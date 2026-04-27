@@ -1,11 +1,12 @@
 #include "RenderSettings.h"
 #include "ImageXYZC.h"
 
-RenderSettings::RenderSettings(void)
+RenderSettings::RenderSettings()
   : m_DirtyFlags()
   , m_DenoiseParams()
   , m_NoIterations(0)
-{}
+{
+}
 
 RenderSettings::RenderSettings(const RenderSettings& Other)
 {

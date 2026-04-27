@@ -1,4 +1,5 @@
 #include "AppearanceSettingsWidget.h"
+#include "ObjectTransformMode.h"
 #include "QRenderSettings.h"
 #include "RangeWidget.h"
 #include "Section.h"
@@ -15,13 +16,14 @@
 #include <QFrame>
 #include <QItemDelegate>
 #include <QLinearGradient>
+#include <algorithm>
 
 static QGradientStops
 colormapToGradient(const std::vector<ColorControlPoint>& v)
 {
   QGradientStops stops;
-  for (int i = 0; i < v.size(); ++i) {
-    stops.push_back(QPair<qreal, QColor>(v[i].first, QColor::fromRgb(v[i].r, v[i].g, v[i].b, v[i].a)));
+  for (auto i : v) {
+    stops.push_back(QPair<qreal, QColor>(i.first, QColor::fromRgb(i.r, i.g, i.b, i.a)));
   }
   return stops;
 }
@@ -35,7 +37,7 @@ public:
     setFocusPolicy(Qt::StrongFocus);
   }
 
-  void wheelEvent(QWheelEvent* event)
+  void wheelEvent(QWheelEvent* event) override
   {
     if (!hasFocus()) {
       event->ignore();
@@ -44,7 +46,7 @@ public:
     QComboBox::wheelEvent(event);
   }
 
-  void paintEvent(QPaintEvent* e)
+  void paintEvent(QPaintEvent* e) override
   {
     QComboBox::paintEvent(e);
 
@@ -107,7 +109,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   , m_StepSizePrimaryRaySlider()
   , m_StepSizeSecondaryRaySlider()
   , m_qrendersettings(qrs)
-  , m_scene(nullptr)
+  , m_transformMode(new ObjectTransformMode([this]() { return m_scene; }, qrs, this))
 {
   Controls::initFormLayout(m_MainLayout);
   setLayout(&m_MainLayout);
@@ -338,10 +340,13 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_MainLayout.addRow(lineB);
 
   // create a "lock lights to camera" checkbox
-  auto* lockLightsToCameraCheckBox = new QCheckBox("Lock Lights to Camera");
-  lockLightsToCameraCheckBox->setChecked(false);
-  m_MainLayout.addRow(lockLightsToCameraCheckBox);
-  QObject::connect(lockLightsToCameraCheckBox, &QCheckBox::clicked, [this](bool is_checked) {
+  m_lockLightsToCameraCheckBox = new QCheckBox("Lock Lights to Camera");
+  m_lockLightsToCameraCheckBox->setStatusTip(tr("When checked, interactive volume rotation will not rotate lights"));
+  m_lockLightsToCameraCheckBox->setToolTip(tr("When checked, interactive volume rotation will not rotate lights"));
+
+  m_lockLightsToCameraCheckBox->setChecked(m_scene ? m_scene->m_lighting.lockToCamera : false);
+  m_MainLayout.addRow(m_lockLightsToCameraCheckBox);
+  QObject::connect(m_lockLightsToCameraCheckBox, &QCheckBox::clicked, [this](bool is_checked) {
     if (m_scene) {
       m_scene->setLockLightsToCamera(is_checked);
     }
@@ -362,32 +367,6 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   // QObject::connect(&gStatus, SIGNAL(RenderBegin()), this, SLOT(OnRenderBegin()));
 
   QObject::connect(m_qrendersettings, SIGNAL(Changed()), this, SLOT(OnTransferFunctionChanged()));
-}
-
-void
-QAppearanceSettingsWidget::toggleActionForObject(QAction* pAction, SceneObject* object)
-{
-  if (!this->m_scene) {
-    return;
-  }
-  bool wasActionOn = pAction->isChecked();
-  bool isObjectSelected = this->m_scene->m_selection == object;
-  if (!wasActionOn) {
-    // if we are turning the action on, then select the object and turn the action on.
-    emit this->m_qrendersettings->Selected(object);
-    pAction->trigger();
-  } else {
-    // If we are turning the action off but something else is selected, then we are really just selecting this
-    // object but leaving the action ON.
-    // If we are turning the action off but THIS object is selected, then turn the action off
-    // and deselect the object.
-    if (!isObjectSelected) {
-      emit this->m_qrendersettings->Selected(object);
-    } else {
-      emit this->m_qrendersettings->Selected(nullptr);
-      pAction->trigger();
-    }
-  }
 }
 
 Section*
@@ -413,16 +392,16 @@ QAppearanceSettingsWidget::createClipPlaneSection(QAction* pToggleRotateAction, 
   m_clipPlaneRotateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
   m_clipPlaneRotateButton->setToolTip(tr("Show interactive controls in viewport for clip plane rotation angle"));
   btnLayout->addWidget(m_clipPlaneRotateButton);
-  QObject::connect(m_clipPlaneRotateButton, &QPushButton::clicked, [this, pToggleRotateAction]() {
-    toggleActionForObject(pToggleRotateAction, this->m_scene->m_clipPlane.get());
+  m_transformMode->registerButton(m_clipPlaneRotateButton, pToggleRotateAction, [this]() -> SceneObject* {
+    return this->m_scene ? this->m_scene->m_clipPlane.get() : nullptr;
   });
 
   m_clipPlaneTranslateButton = new QPushButton("Translate");
   m_clipPlaneTranslateButton->setStatusTip(tr("Show interactive controls in viewport for clip plane translation"));
   m_clipPlaneTranslateButton->setToolTip(tr("Show interactive controls in viewport for clip plane translation"));
   btnLayout->addWidget(m_clipPlaneTranslateButton);
-  QObject::connect(m_clipPlaneTranslateButton, &QPushButton::clicked, [this, pToggleTranslateAction]() {
-    toggleActionForObject(pToggleTranslateAction, this->m_scene->m_clipPlane.get());
+  m_transformMode->registerButton(m_clipPlaneTranslateButton, pToggleTranslateAction, [this]() -> SceneObject* {
+    return this->m_scene ? this->m_scene->m_clipPlane.get() : nullptr;
   });
 
   sectionLayout->addLayout(btnLayout, sectionLayout->rowCount(), 0, 1, 2);
@@ -489,11 +468,8 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
   m_lt0gui.m_RotateButton->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
   m_lt0gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
   btnLayout->addWidget(m_lt0gui.m_RotateButton);
-  QObject::connect(m_lt0gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
-    if (!this->m_scene || !this->m_scene->m_volume) {
-      return;
-    }
-    toggleActionForObject(pRotationAction, this->m_scene->SceneAreaLight());
+  m_transformMode->registerButton(m_lt0gui.m_RotateButton, pRotationAction, [this]() -> SceneObject* {
+    return (this->m_scene && this->m_scene->m_volume) ? this->m_scene->SceneAreaLight() : nullptr;
   });
   // dummy widget to fill space (TODO: Translate button?)
   btnLayout->addWidget(new QWidget());
@@ -561,6 +537,27 @@ QAppearanceSettingsWidget::createAreaLightingControls(QAction* pRotationAction)
     this->OnSetAreaLightColor(v, this->m_lt0gui.m_areaLightColorButton->GetColor());
   });
 
+  auto* resetBtn = new QPushButton("Reset");
+  resetBtn->setStatusTip(tr("Reset area light to default orientation and settings"));
+  resetBtn->setToolTip(tr("Reset area light to default orientation and settings"));
+  QObject::connect(resetBtn, &QPushButton::clicked, [this]() {
+    if (!this->m_scene) {
+      return;
+    }
+    SceneLight* sl = this->m_scene->SceneAreaLight();
+    sl->reset();
+    updateLightingControlsFromScene();
+
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
+    if (this->m_scene->m_selection == sl) {
+      emit this->m_qrendersettings->Selected(sl);
+    }
+  });
+  auto* resetLayout = new QHBoxLayout();
+  resetLayout->addWidget(new QWidget());
+  resetLayout->addWidget(resetBtn);
+  sectionLayout->addLayout(resetLayout, sectionLayout->rowCount(), 0, 1, 2);
+
   section->setContentLayout(*sectionLayout);
   return section;
 }
@@ -574,14 +571,11 @@ QAppearanceSettingsWidget::createSkyLightingControls(QAction* pRotationAction)
   auto btnLayout = new QHBoxLayout();
 
   m_lt1gui.m_RotateButton = new QPushButton("Rotate");
-  m_lt1gui.m_RotateButton->setStatusTip(tr("Show interactive controls in viewport for area light rotation angle"));
-  m_lt1gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for area light rotation angle"));
+  m_lt1gui.m_RotateButton->setStatusTip(tr("Show interactive controls in viewport for sky light rotation angle"));
+  m_lt1gui.m_RotateButton->setToolTip(tr("Show interactive controls in viewport for sky light rotation angle"));
   btnLayout->addWidget(m_lt1gui.m_RotateButton);
-  QObject::connect(m_lt1gui.m_RotateButton, &QPushButton::clicked, [this, pRotationAction]() {
-    if (!this->m_scene || !this->m_scene->m_volume) {
-      return;
-    }
-    toggleActionForObject(pRotationAction, this->m_scene->SceneSphereLight());
+  m_transformMode->registerButton(m_lt1gui.m_RotateButton, pRotationAction, [this]() -> SceneObject* {
+    return (this->m_scene && this->m_scene->m_volume) ? this->m_scene->SceneSphereLight() : nullptr;
   });
   // dummy widget to fill space (TODO: Translate button?)
   btnLayout->addWidget(new QWidget());
@@ -644,6 +638,27 @@ QAppearanceSettingsWidget::createSkyLightingControls(QAction* pRotationAction)
     this->OnSetSkyLightBotColor(v, this->m_lt1gui.m_sbColorButton->GetColor());
   });
 
+  auto* resetBtn = new QPushButton("Reset");
+  resetBtn->setStatusTip(tr("Reset sky light to default orientation and colors"));
+  resetBtn->setToolTip(tr("Reset sky light to default orientation and colors"));
+  QObject::connect(resetBtn, &QPushButton::clicked, [this]() {
+    if (!this->m_scene) {
+      return;
+    }
+    SceneLight* sl = this->m_scene->SceneSphereLight();
+    sl->reset();
+    updateLightingControlsFromScene();
+
+    m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
+    if (this->m_scene->m_selection == sl) {
+      emit this->m_qrendersettings->Selected(sl);
+    }
+  });
+  auto* resetLayout = new QHBoxLayout();
+  resetLayout->addWidget(new QWidget());
+  resetLayout->addWidget(resetBtn);
+  sectionLayout->addLayout(resetLayout, sectionLayout->rowCount(), 0, 1, 2);
+
   section->setContentLayout(*sectionLayout);
   return section;
 }
@@ -665,7 +680,8 @@ QAppearanceSettingsWidget::OnSetScaleX(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_volume->setPhysicalSize(value, m_scene->m_volume->physicalSizeY(), m_scene->m_volume->physicalSizeZ());
+  m_scene->m_volume->setPhysicalSize(
+    static_cast<float>(value), m_scene->m_volume->physicalSizeY(), m_scene->m_volume->physicalSizeZ());
   m_scene->initBoundsFromImg(m_scene->m_volume);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -675,7 +691,8 @@ QAppearanceSettingsWidget::OnSetScaleY(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_volume->setPhysicalSize(m_scene->m_volume->physicalSizeX(), value, m_scene->m_volume->physicalSizeZ());
+  m_scene->m_volume->setPhysicalSize(
+    m_scene->m_volume->physicalSizeX(), static_cast<float>(value), m_scene->m_volume->physicalSizeZ());
   m_scene->initBoundsFromImg(m_scene->m_volume);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -685,7 +702,8 @@ QAppearanceSettingsWidget::OnSetScaleZ(double value)
 {
   if (!m_scene)
     return;
-  m_scene->m_volume->setPhysicalSize(m_scene->m_volume->physicalSizeX(), m_scene->m_volume->physicalSizeY(), value);
+  m_scene->m_volume->setPhysicalSize(
+    m_scene->m_volume->physicalSizeX(), m_scene->m_volume->physicalSizeY(), static_cast<float>(value));
   m_scene->initBoundsFromImg(m_scene->m_volume);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(CameraDirty);
 }
@@ -696,7 +714,7 @@ QAppearanceSettingsWidget::OnSetRoiXMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.x = (float)value / (m_scene->m_volume->sizeX() - 1);
+  v.x = (float)value / (static_cast<float>(m_scene->m_volume->sizeX()) - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -707,7 +725,7 @@ QAppearanceSettingsWidget::OnSetRoiYMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.y = (float)value / (m_scene->m_volume->sizeY() - 1);
+  v.y = (float)value / (static_cast<float>(m_scene->m_volume->sizeY()) - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -718,7 +736,7 @@ QAppearanceSettingsWidget::OnSetRoiZMin(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMinP();
-  v.z = (float)value / (m_scene->m_volume->sizeZ() - 1);
+  v.z = (float)value / (static_cast<float>(m_scene->m_volume->sizeZ()) - 1);
   m_scene->m_roi.SetMinP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -728,7 +746,7 @@ QAppearanceSettingsWidget::OnSetRoiXMax(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMaxP();
-  v.x = (float)value / (m_scene->m_volume->sizeX() - 1);
+  v.x = (float)value / (static_cast<float>(m_scene->m_volume->sizeX()) - 1);
   m_scene->m_roi.SetMaxP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -738,7 +756,7 @@ QAppearanceSettingsWidget::OnSetRoiYMax(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMaxP();
-  v.y = (float)value / (m_scene->m_volume->sizeY() - 1);
+  v.y = (float)value / (static_cast<float>(m_scene->m_volume->sizeY()) - 1);
   m_scene->m_roi.SetMaxP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -748,7 +766,7 @@ QAppearanceSettingsWidget::OnSetRoiZMax(int value)
   if (!m_scene)
     return;
   glm::vec3 v = m_scene->m_roi.GetMaxP();
-  v.z = (float)value / (m_scene->m_volume->sizeZ() - 1);
+  v.z = (float)value / (static_cast<float>(m_scene->m_volume->sizeZ()) - 1);
   m_scene->m_roi.SetMaxP(v);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(RoiDirty);
 }
@@ -758,7 +776,7 @@ QAppearanceSettingsWidget::OnSetAreaLightTheta(double value)
 {
   if (!m_scene)
     return;
-  m_scene->AreaLight().m_Theta = value;
+  m_scene->AreaLight().m_Theta = static_cast<float>(value);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -766,7 +784,7 @@ QAppearanceSettingsWidget::OnSetAreaLightPhi(double value)
 {
   if (!m_scene)
     return;
-  m_scene->AreaLight().m_Phi = value;
+  m_scene->AreaLight().m_Phi = static_cast<float>(value);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -774,8 +792,8 @@ QAppearanceSettingsWidget::OnSetAreaLightSize(double value)
 {
   if (!m_scene)
     return;
-  m_scene->AreaLight().m_Width = value;
-  m_scene->AreaLight().m_Height = value;
+  m_scene->AreaLight().m_Width = static_cast<float>(value);
+  m_scene->AreaLight().m_Height = static_cast<float>(value);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -783,7 +801,7 @@ QAppearanceSettingsWidget::OnSetAreaLightDistance(double value)
 {
   if (!m_scene)
     return;
-  m_scene->AreaLight().m_Distance = value;
+  m_scene->AreaLight().m_Distance = static_cast<float>(value);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -795,7 +813,7 @@ QAppearanceSettingsWidget::OnSetAreaLightColor(double intensity, const QColor& c
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->AreaLight().m_Color = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->AreaLight().m_ColorIntensity = intensity;
+  m_scene->AreaLight().m_ColorIntensity = static_cast<float>(intensity);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
@@ -808,7 +826,7 @@ QAppearanceSettingsWidget::OnSetSkyLightTopColor(double intensity, const QColor&
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->SphereLight().m_ColorTop = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->SphereLight().m_ColorTopIntensity = intensity;
+  m_scene->SphereLight().m_ColorTopIntensity = static_cast<float>(intensity);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -820,7 +838,7 @@ QAppearanceSettingsWidget::OnSetSkyLightMidColor(double intensity, const QColor&
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->SphereLight().m_ColorMiddle = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->SphereLight().m_ColorMiddleIntensity = intensity;
+  m_scene->SphereLight().m_ColorMiddleIntensity = static_cast<float>(intensity);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 void
@@ -832,12 +850,12 @@ QAppearanceSettingsWidget::OnSetSkyLightBotColor(double intensity, const QColor&
   color.getRgbF(&rgba[0], &rgba[1], &rgba[2], &rgba[3]);
 
   m_scene->SphereLight().m_ColorBottom = glm::vec3(rgba[0], rgba[1], rgba[2]);
-  m_scene->SphereLight().m_ColorBottomIntensity = intensity;
+  m_scene->SphereLight().m_ColorBottomIntensity = static_cast<float>(intensity);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(LightsDirty);
 }
 
 void
-QAppearanceSettingsWidget::OnRenderBegin(void)
+QAppearanceSettingsWidget::OnRenderBegin()
 {
   m_DensityScaleSlider.setValue(m_qrendersettings->GetDensityScale());
   m_ShadingType.setCurrentIndex(m_qrendersettings->GetShadingType());
@@ -852,7 +870,7 @@ QAppearanceSettingsWidget::OnRenderBegin(void)
 void
 QAppearanceSettingsWidget::OnSetDensityScale(double DensityScale)
 {
-  m_qrendersettings->SetDensityScale(DensityScale);
+  m_qrendersettings->SetDensityScale(static_cast<float>(DensityScale));
 }
 
 void
@@ -871,7 +889,7 @@ QAppearanceSettingsWidget::OnSetRendererType(int Index)
 void
 QAppearanceSettingsWidget::OnSetGradientFactor(double GradientFactor)
 {
-  m_qrendersettings->SetGradientFactor(GradientFactor);
+  m_qrendersettings->SetGradientFactor(static_cast<float>(GradientFactor));
 }
 
 void
@@ -889,7 +907,7 @@ QAppearanceSettingsWidget::OnSetStepSizeSecondaryRay(const double& StepSizeSecon
 }
 
 void
-QAppearanceSettingsWidget::OnTransferFunctionChanged(void)
+QAppearanceSettingsWidget::OnTransferFunctionChanged()
 {
   m_DensityScaleSlider.setValue(m_qrendersettings->GetDensityScale(), true);
   m_ShadingType.setCurrentIndex(m_qrendersettings->GetShadingType());
@@ -1018,7 +1036,7 @@ QAppearanceSettingsWidget::OnOpacityChanged(int i, double opacity)
     return;
   // LOG_DEBUG << "window/level: " << window << ", " << level;
   //_scene->_volume->channel((uint32_t)i)->setOpacity(opacity);
-  m_scene->m_material.m_opacity[i] = opacity;
+  m_scene->m_material.m_opacity[i] = static_cast<float>(opacity);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -1027,7 +1045,7 @@ QAppearanceSettingsWidget::OnRoughnessChanged(int i, double roughness)
 {
   if (!m_scene)
     return;
-  m_scene->m_material.m_roughness[i] = roughness;
+  m_scene->m_material.m_roughness[i] = static_cast<float>(roughness);
   m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
 }
 
@@ -1041,8 +1059,8 @@ QAppearanceSettingsWidget::OnChannelChecked(int i, bool is_checked)
   // if more than 4, then switch this one back off
   if (is_checked) {
     int count = 0;
-    for (int j = 0; j < m_channelSections.size(); j++) {
-      if (m_channelSections[j]->isChecked())
+    for (auto& m_channelSection : m_channelSections) {
+      if (m_channelSection->isChecked())
         count++;
     }
     if (count > MAX_CHANNELS_CHECKED) {
@@ -1065,7 +1083,7 @@ static inline void
 normalizeColorForGui(const glm::vec3& incolor, QColor& outcolor, float& outintensity)
 {
   // if any r,g,b is greater than 1, take max value as intensity, else intensity = 1
-  float i = std::max(incolor.x, std::max(incolor.y, incolor.z));
+  float i = std::max({ incolor.x, incolor.y, incolor.z });
   outintensity = (i > 1.0f) ? i : 1.0f;
   glm::vec3 voutcolor = incolor / i;
   outcolor = QColor::fromRgbF(voutcolor.x, voutcolor.y, voutcolor.z);
@@ -1079,53 +1097,48 @@ QAppearanceSettingsWidget::initClipPlaneControls(Scene* scene)
 }
 
 void
-QAppearanceSettingsWidget::initLightingControls(Scene* scene)
+QAppearanceSettingsWidget::updateLightingControlsFromScene()
 {
-  m_lt0gui.m_thetaSlider->setValue(scene->AreaLight().m_Theta);
-  m_lt0gui.m_phiSlider->setValue(scene->AreaLight().m_Phi);
-  m_lt0gui.m_sizeSlider->setValue(scene->AreaLight().m_Width);
-  m_lt0gui.m_distSlider->setValue(scene->AreaLight().m_Distance);
-  // split color into color and intensity.
+  if (!m_scene) {
+    return;
+  }
   QColor c;
   float i;
-  normalizeColorForGui(scene->AreaLight().m_Color, c, i);
-  m_lt0gui.m_intensitySlider->setValue(i * scene->AreaLight().m_ColorIntensity);
+  normalizeColorForGui(m_scene->AreaLight().m_Color, c, i);
+  m_lt0gui.m_thetaSlider->setValue(m_scene->AreaLight().m_Theta);
+  m_lt0gui.m_phiSlider->setValue(m_scene->AreaLight().m_Phi);
+  m_lt0gui.m_sizeSlider->setValue(m_scene->AreaLight().m_Width);
+  m_lt0gui.m_distSlider->setValue(m_scene->AreaLight().m_Distance);
+  m_lt0gui.m_intensitySlider->setValue(i * m_scene->AreaLight().m_ColorIntensity);
   m_lt0gui.m_areaLightColorButton->SetColor(c);
+
+  normalizeColorForGui(m_scene->SphereLight().m_ColorTop, c, i);
+  m_lt1gui.m_stintensitySlider->setValue(i * m_scene->SphereLight().m_ColorTopIntensity);
+  m_lt1gui.m_stColorButton->SetColor(c);
+  normalizeColorForGui(m_scene->SphereLight().m_ColorMiddle, c, i);
+  m_lt1gui.m_smintensitySlider->setValue(i * m_scene->SphereLight().m_ColorMiddleIntensity);
+  m_lt1gui.m_smColorButton->SetColor(c);
+  normalizeColorForGui(m_scene->SphereLight().m_ColorBottom, c, i);
+  m_lt1gui.m_sbintensitySlider->setValue(i * m_scene->SphereLight().m_ColorBottomIntensity);
+  m_lt1gui.m_sbColorButton->SetColor(c);
+}
+
+void
+QAppearanceSettingsWidget::initLightingControls(Scene* scene)
+{
+  updateLightingControlsFromScene();
 
   // attach light observer to scene's area light source, to receive updates from viewport controls
   // TODO FIXME clean this up - it's not removed anywhere so if light(i.e. scene) outlives "this" then we have problems.
   // Currently in AGAVE this is not an issue..
-  scene->SceneAreaLight()->m_observers.push_back([this](const Light& light) {
-    // update gui controls
-
-    // bring theta into 0..2pi
-    m_lt0gui.m_thetaSlider->setValue(light.m_Theta < 0 ? light.m_Theta + TWO_PI_F : light.m_Theta);
-    // bring phi into 0..pi
-    m_lt0gui.m_phiSlider->setValue(light.m_Phi < 0 ? light.m_Phi + PI_F : light.m_Phi);
-    m_lt0gui.m_sizeSlider->setValue(light.m_Width);
-    m_lt0gui.m_distSlider->setValue(light.m_Distance);
-    // split color into color and intensity.
-    QColor c;
-    float i;
-    normalizeColorForGui(light.m_Color, c, i);
-    m_lt0gui.m_intensitySlider->setValue(i * light.m_ColorIntensity);
-    m_lt0gui.m_areaLightColorButton->SetColor(c);
-  });
-
-  normalizeColorForGui(scene->SphereLight().m_ColorTop, c, i);
-  m_lt1gui.m_stintensitySlider->setValue(i * scene->SphereLight().m_ColorTopIntensity);
-  m_lt1gui.m_stColorButton->SetColor(c);
-  normalizeColorForGui(scene->SphereLight().m_ColorMiddle, c, i);
-  m_lt1gui.m_smintensitySlider->setValue(i * scene->SphereLight().m_ColorMiddleIntensity);
-  m_lt1gui.m_smColorButton->SetColor(c);
-  normalizeColorForGui(scene->SphereLight().m_ColorBottom, c, i);
-  m_lt1gui.m_sbintensitySlider->setValue(i * scene->SphereLight().m_ColorBottomIntensity);
-  m_lt1gui.m_sbColorButton->SetColor(c);
+  scene->SceneAreaLight()->m_observers.emplace_back([this](const Light& light) { updateLightingControlsFromScene(); });
 }
 
 void
 QAppearanceSettingsWidget::onNewImage(Scene* scene)
 {
+  m_transformMode->clearMode();
+
   // Don't forget that most ui updating triggered in this function should
   // NOT signal changes to the scene.
 
@@ -1156,20 +1169,20 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
                                 m_scene->m_material.m_backgroundColor[2]);
   m_backgroundColorButton.SetColor(cbg);
 
-  size_t xmax = m_scene->m_volume->sizeX() - 1;
-  size_t ymax = m_scene->m_volume->sizeY() - 1;
-  size_t zmax = m_scene->m_volume->sizeZ() - 1;
+  int xmax = static_cast<int>(m_scene->m_volume->sizeX() - 1);
+  int ymax = static_cast<int>(m_scene->m_volume->sizeY() - 1);
+  int zmax = static_cast<int>(m_scene->m_volume->sizeZ() - 1);
 
   m_roiX->setBounds(0, xmax, true);
   m_roiY->setBounds(0, ymax, true);
   m_roiZ->setBounds(0, zmax, true);
 
-  m_roiX->setFirstValue(m_scene->m_roi.GetMinP().x * xmax, true);
-  m_roiX->setSecondValue(m_scene->m_roi.GetMaxP().x * xmax, true);
-  m_roiY->setFirstValue(m_scene->m_roi.GetMinP().y * ymax, true);
-  m_roiY->setSecondValue(m_scene->m_roi.GetMaxP().y * ymax, true);
-  m_roiZ->setFirstValue(m_scene->m_roi.GetMinP().z * zmax, true);
-  m_roiZ->setSecondValue(m_scene->m_roi.GetMaxP().z * zmax, true);
+  m_roiX->setFirstValue(static_cast<int>(m_scene->m_roi.GetMinP().x * static_cast<float>(xmax)), true);
+  m_roiX->setSecondValue(static_cast<int>(m_scene->m_roi.GetMaxP().x * static_cast<float>(xmax)), true);
+  m_roiY->setFirstValue(static_cast<int>(m_scene->m_roi.GetMinP().y * static_cast<float>(ymax)), true);
+  m_roiY->setSecondValue(static_cast<int>(m_scene->m_roi.GetMaxP().y * static_cast<float>(ymax)), true);
+  m_roiZ->setFirstValue(static_cast<int>(m_scene->m_roi.GetMinP().z * static_cast<float>(zmax)), true);
+  m_roiZ->setSecondValue(static_cast<int>(m_scene->m_roi.GetMaxP().z * static_cast<float>(zmax)), true);
 
   m_xscaleSpinner->setValue(m_scene->m_volume->physicalSizeX());
   m_yscaleSpinner->setValue(m_scene->m_volume->physicalSizeY());
@@ -1185,6 +1198,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   m_boundingBoxColorButton.SetColor(cbbox);
   m_showBoundingBoxCheckBox.setChecked(m_scene->m_material.m_showBoundingBox);
   m_showScaleBarCheckBox.setChecked(m_scene->m_showScaleBar);
+  m_lockLightsToCameraCheckBox->setChecked(m_scene->m_lighting.lockToCamera);
   m_showTimeStampCheckBox.setChecked(m_scene->m_showTimeStamp);
   m_timeStampFormatComboBox.setCurrentIndex(static_cast<int>(m_scene->m_timeStampDisplayMode));
 
@@ -1192,7 +1206,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
   initClipPlaneControls(scene);
 
   int numEnabled = 0;
-  for (uint32_t i = 0; i < scene->m_volume->sizeC(); ++i) {
+  for (int i = 0; i < scene->m_volume->sizeC(); ++i) {
     bool channelenabled = m_scene->m_material.m_enabled[i];
     // only really allow the first 4 enabled
     if (channelenabled) {
@@ -1223,8 +1237,9 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QObject::connect(editor, &GradientWidget::gradientStopsChanged, [i, this](const QGradientStops& stops) {
       // convert stops to control points
       std::vector<LutControlPoint> pts;
-      for (int i = 0; i < stops.size(); ++i) {
-        pts.push_back(LutControlPoint(stops.at(i).first, stops.at(i).second.alphaF()));
+      pts.reserve(stops.size());
+      for (const auto& stop : stops) {
+        pts.emplace_back(stop.first, stop.second.alphaF());
       }
 
       this->OnUpdateLut(i, pts);

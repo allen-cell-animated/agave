@@ -9,6 +9,7 @@
 #include <vector>
 #include <functional>
 
+// A SceneObject wrapper for a Light.
 // MUST NOT OUTLIVE ITS LIGHT
 class SceneLight : public SceneObject
 {
@@ -25,10 +26,13 @@ public:
     }
   }
 
-  void updateTransform();
+  void updateTransform() override;
+  void applyBasis(const glm::mat3& basis);
+  void reset();
+
   Light* m_light;
   std::vector<std::function<void(const Light&)>> m_observers;
   std::unique_ptr<ManipulationTool> m_tool;
 
-  virtual ManipulationTool* getSelectedTool() { return m_tool.get(); }
+  ManipulationTool* getSelectedTool() override { return m_tool.get(); }
 };

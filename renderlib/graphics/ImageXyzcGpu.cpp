@@ -26,7 +26,7 @@ ChannelGpu::allocGpu(ImageXYZC* img, int channel)
 
   // LUT buffer
 
-  m_gpuBytes += (32) / 8 * LUT_SIZE;
+  m_gpuBytes += static_cast<size_t>(32) / 8 * LUT_SIZE;
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glGenTextures(1, &m_VolumeLutGLTexture);
@@ -183,7 +183,7 @@ ImageGpu::updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     // do this in chunks for very large data sizes.
-    static const size_t GB = 1024 * 1024 * 1024;
+    static const size_t GB = static_cast<size_t>(1024) * 1024 * 1024;
     size_t chunkThresholdBytes = 4 * GB;
     // if whole volume is larger than chunk size:
     if (xyz * N * sizeof(uint16_t) > chunkThresholdBytes) {

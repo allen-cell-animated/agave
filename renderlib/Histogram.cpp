@@ -14,7 +14,7 @@ static constexpr size_t HIGH_RES_BINS = 4096;
 static constexpr size_t FILTERED_BINS = 512;
 
 template<class T>
-const T&
+static T
 clamp(const T& v, const T& lo, const T& hi)
 {
   assert(hi > lo);
@@ -636,4 +636,54 @@ Histogram::getDisplayBinCount(size_t bin) const
     return 0;
   }
   return _filteredBins[bin];
+}
+
+std::vector<uint32_t>
+Histogram::computeForDisplay(float xmin, float xmax, size_t nbins) const
+{
+  if (nbins == 0) {
+    return {};
+  }
+
+  std::vector<uint32_t> displayBins(nbins, 0);
+  if (_pixelCount == 0 || _bins.empty()) {
+    return displayBins;
+  }
+
+  if (xmax < xmin) {
+    std::swap(xmin, xmax);
+  }
+
+  float sourceFirstCenter, sourceLastCenter, sourceBinSize;
+  binRange(static_cast<uint32_t>(_bins.size()), _dataMin, _dataMax, sourceFirstCenter, sourceLastCenter, sourceBinSize);
+  if (sourceBinSize <= 0.0f) {
+    return displayBins;
+  }
+
+  if (xmax == xmin) {
+    int64_t sourceIndex = static_cast<int64_t>(((xmin - sourceFirstCenter) / sourceBinSize) + 0.5f);
+    sourceIndex = std::max<int64_t>(0, std::min<int64_t>(sourceIndex, static_cast<int64_t>(_bins.size() - 1)));
+    displayBins[0] = _bins[static_cast<size_t>(sourceIndex)];
+    return displayBins;
+  }
+
+  float displayRange = xmax - xmin;
+  float displayBinMax = static_cast<float>(nbins - 1);
+  for (size_t i = 0; i < _bins.size(); ++i) {
+    uint32_t count = _bins[i];
+    if (count == 0) {
+      continue;
+    }
+
+    float sourceCenter = sourceFirstCenter + static_cast<float>(i) * sourceBinSize;
+    if (sourceCenter < xmin || sourceCenter > xmax) {
+      continue;
+    }
+
+    int64_t displayIndex = static_cast<int64_t>(((sourceCenter - xmin) / displayRange) * displayBinMax + 0.5f);
+    displayIndex = std::max<int64_t>(0, std::min<int64_t>(displayIndex, static_cast<int64_t>(nbins - 1)));
+    displayBins[static_cast<size_t>(displayIndex)] += count;
+  }
+
+  return displayBins;
 }

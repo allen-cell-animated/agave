@@ -244,6 +244,16 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_g == data.m_g);
     REQUIRE(cmd->m_data.m_b == data.m_b);
   }
+  SECTION("SetSkylightRotationCommand")
+  {
+    SetSkylightRotationCommandD data = { 0.1f, 0.2f, 0.3f, 0.9f };
+    auto cmd = testcodec<SetSkylightRotationCommand, SetSkylightRotationCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_skylight_rotation(0.1, 0.2, 0.3, 0.9)");
+    REQUIRE(cmd->m_data.m_x == data.m_x);
+    REQUIRE(cmd->m_data.m_y == data.m_y);
+    REQUIRE(cmd->m_data.m_z == data.m_z);
+    REQUIRE(cmd->m_data.m_w == data.m_w);
+  }
   SECTION("SetLightPosCommand")
   {
     SetLightPosCommandD data = { 1, 0.25, 0.5, 0.333 };

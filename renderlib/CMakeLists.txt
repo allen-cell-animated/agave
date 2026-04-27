@@ -47,6 +47,8 @@ target_sources(renderlib PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/ImageXYZC.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Light.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Light.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/Lighting.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Logging.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Manipulator.cpp"

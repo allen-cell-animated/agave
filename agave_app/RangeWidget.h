@@ -48,10 +48,10 @@ private:
   QGridLayout m_layout;
 
 protected:
-  void paintEvent(QPaintEvent* event);
-  void mousePressEvent(QMouseEvent* event);
-  void mouseMoveEvent(QMouseEvent* event);
-  void mouseReleaseEvent(QMouseEvent* event);
+  void paintEvent(QPaintEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
   void updateSpinners();
   void updateHoverFlags(QMouseEvent* event);
 
@@ -67,7 +67,7 @@ protected:
 public:
   RangeWidget(Qt::Orientation orientation = Qt::Vertical, QWidget* parent = nullptr);
 
-  QSize minimumSizeHint() const;
+  QSize minimumSizeHint() const override;
 
   inline int minValue() const { return std::min(m_firstValue, m_secondValue); }
   inline float minValuePercent() const { return (float)(minValue() - minBound()) / (float)boundsRange(); }

@@ -6,6 +6,7 @@
 #include "DenoiseParams.h"
 #include "GradientData.h"
 #include "Light.h"
+#include "Lighting.h"
 #include "Object3d.h"
 #include "ScenePlane.h"
 #include "SceneLight.h"
@@ -17,7 +18,8 @@
 
 class ImageXYZC;
 
-#define MAX_CPU_CHANNELS 32
+static constexpr size_t MAX_CPU_CHANNELS = 32;
+
 struct VolumeDisplay
 {
   bool m_showBoundingBox = true;
@@ -41,57 +43,6 @@ struct VolumeDisplay
   GradientData m_gradientData[MAX_CPU_CHANNELS];
 
   VolumeDisplay();
-};
-
-#define MAX_NO_LIGHTS 4
-class Lighting
-{
-public:
-  Lighting(void)
-    : m_NoLights(0)
-    , m_Lights{ nullptr, nullptr, nullptr, nullptr }
-    , m_sceneLights{ nullptr, nullptr, nullptr, nullptr }
-  {
-  }
-  ~Lighting()
-  {
-    for (int i = 0; i < MAX_NO_LIGHTS; ++i) {
-      delete m_sceneLights[i];
-      delete m_Lights[i];
-    }
-  }
-
-  Lighting(const Lighting& other);
-
-  Light& LightRef(int i) const { return *m_Lights[i]; }
-
-  void AddLight(Light& light)
-  {
-    if (m_NoLights >= MAX_NO_LIGHTS)
-      return;
-
-    m_Lights[m_NoLights] = new Light(light);
-    m_sceneLights[m_NoLights] = new SceneLight(m_Lights[m_NoLights]);
-
-    m_NoLights = m_NoLights + 1;
-  }
-  void SetLight(int i, Light& light)
-  {
-    if (i >= MAX_NO_LIGHTS)
-      return;
-
-    delete m_sceneLights[i];
-    delete m_Lights[i];
-
-    m_Lights[i] = new Light(light);
-    m_sceneLights[i] = new SceneLight(m_Lights[i]);
-  }
-
-  Light* m_Lights[MAX_NO_LIGHTS];
-  int m_NoLights;
-  SceneLight* m_sceneLights[MAX_NO_LIGHTS];
-
-  bool lockToCamera = false;
 };
 
 class Scene

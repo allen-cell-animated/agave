@@ -45,6 +45,8 @@ target_sources(agaveapp PRIVATE
 	"${CMAKE_CURRENT_SOURCE_DIR}/loadDialog.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/mainwindow.h"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ObjectTransformMode.cpp"
+	"${CMAKE_CURRENT_SOURCE_DIR}/ObjectTransformMode.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Projection.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/Projection.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/QRenderSettings.cpp"

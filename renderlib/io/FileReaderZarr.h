@@ -18,14 +18,14 @@ class FileReaderZarr : public IFileReader
 {
 public:
   FileReaderZarr(const std::string& filepath);
-  virtual ~FileReaderZarr();
+  ~FileReaderZarr() override;
 
-  bool supportChunkedLoading() const { return true; }
+  bool supportChunkedLoading() const override { return true; }
 
-  std::shared_ptr<ImageXYZC> loadFromFile(const LoadSpec& loadSpec);
-  VolumeDimensions loadDimensions(const std::string& filepath, uint32_t scene = 0);
-  uint32_t loadNumScenes(const std::string& filepath);
-  std::vector<MultiscaleDims> loadMultiscaleDims(const std::string& filepath, uint32_t scene = 0);
+  std::shared_ptr<ImageXYZC> loadFromFile(const LoadSpec& loadSpec) override;
+  VolumeDimensions loadDimensions(const std::string& filepath, uint32_t scene = 0) override;
+  uint32_t loadNumScenes(const std::string& filepath) override;
+  std::vector<MultiscaleDims> loadMultiscaleDims(const std::string& filepath, uint32_t scene = 0) override;
 
 private:
   nlohmann::json jsonRead(const std::string& filepath);

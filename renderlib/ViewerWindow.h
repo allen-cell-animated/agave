@@ -59,6 +59,12 @@ public:
 
   void updateCamera();
 
+  // Bracket instant camera changes (toolbar view buttons, etc.) to maintain
+  // light-lock-to-camera invariant. Call beginCameraChange() before modifying
+  // m_CCamera, and endCameraChange() after.
+  void beginCameraChange();
+  void endCameraChange();
+
   CCamera m_CCamera;
   std::vector<CameraAnimation> m_cameraAnim;
 
@@ -79,10 +85,8 @@ public:
 
   RenderSettings* m_renderSettings;
   std::unique_ptr<IRenderWindow> m_renderer;
-  int m_rendererType;
+  int m_rendererType{ 1 };
 
   // Track camera manipulation for light following
   bool m_wasCameraBeingEdited = false;
-  glm::vec3 m_capturedAreaLightRelativeDir = glm::vec3(0.3f, 0.5f, 1.0f);
-  glm::vec3 m_capturedSphereLightRelativeDir = glm::vec3(0.3f, 0.5f, 1.0f);
 };

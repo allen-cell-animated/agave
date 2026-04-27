@@ -13,13 +13,15 @@ Image2D::Image2D()
   , m_image_texcoords(0)
   , m_image_elements(0)
   , m_num_image_elements(0)
-{}
+{
+}
 
 Image2D::~Image2D() {}
 
 void
 Image2D::create()
-{}
+{
+}
 
 void
 Image2D::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
@@ -37,7 +39,7 @@ Image2D::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
   }
   glBindBuffer(GL_ARRAY_BUFFER, m_image_vertices);
   glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_vertices.size(), square_vertices.data(), GL_STATIC_DRAW);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
   glEnableVertexAttribArray(0);
 
   glm::vec2 texxlim(0.0, 1.0);
@@ -50,7 +52,7 @@ Image2D::setSize(const glm::vec2& xlim, const glm::vec2& ylim)
   }
   glBindBuffer(GL_ARRAY_BUFFER, m_image_texcoords);
   glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * square_texcoords.size(), square_texcoords.data(), GL_STATIC_DRAW);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
   glEnableVertexAttribArray(1);
 
   std::array<GLushort, 6> square_elements{ // front

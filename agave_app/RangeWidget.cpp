@@ -86,13 +86,13 @@ RangeWidget::paintEvent(QPaintEvent* event)
   QRectF rv2 = secondHandleRect();
 
   // Draw the track
-  QRect r;
+  QRectF r;
   if (m_orientation == Qt::Horizontal)
     // Define the track area, centering it within the RangeWidget's vertical space and accounting for outline width.
     // Params are in top, left, width, height order
-    r = QRect(0, std::floor((height() - m_trackHeight - totalOutline) / 2), width() - totalOutline, m_trackHeight);
+    r = QRectF(0, std::floor((height() - m_trackHeight - totalOutline) / 2), width() - totalOutline, m_trackHeight);
   else
-    r = QRect(
+    r = QRectF(
       std::floor((m_handleHeight - m_trackHeight + totalOutline) / 2.), 0, m_trackHeight, height() - totalOutline);
   QPainterPath trackPath;
   trackPath.addRoundedRect(r.translated(0.5, 0.0), radius, radius);

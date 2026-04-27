@@ -13,7 +13,7 @@ class ScenePlane : public SceneObject
 public:
   ScenePlane(glm::vec3 pos);
 
-  void updateTransform();
+  void updateTransform() override;
   std::vector<std::function<void(const Plane&)>> m_observers;
 
   glm::vec3 m_center;
@@ -23,7 +23,7 @@ public:
 
   std::unique_ptr<ClipPlaneTool> m_tool;
 
-  virtual ManipulationTool* getTool();
+  ManipulationTool* getTool() override;
 
   void resetTo(const glm::vec3& c);
 

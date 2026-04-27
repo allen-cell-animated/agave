@@ -758,12 +758,26 @@ export class AgaveClient {
   }
 
   /**
+   * Set the orientation of the sphere (sky) light as a quaternion. The quaternion
+   * rotates the default direction (0, 0, 1) to the desired sky-light direction and
+   * also encodes the roll of the sphere around that direction, which determines
+   * where the top/middle/bottom color bands appear relative to the volume.
+   *
+   * @param x Quaternion x component
+   * @param y Quaternion y component
+   * @param z Quaternion z component
+   * @param w Quaternion w component
+   */
+  skylightRotation(x: number, y: number, z: number, w: number) {
+    // 51
+    this.cb.addCommand("SET_SKYLIGHT_ROTATION", x, y, z, w);
+  /**
    * Turn timestamp display on or off
    *
    * @param on 0 to hide timestamps, 1 to show them
    */
   showTimeStamp(on: number) {
-    // 51
+    // 52
     this.cb.addCommand("SHOW_TIME_STAMP", on);
   }
 
@@ -773,7 +787,7 @@ export class AgaveClient {
    * @param format 0 for HH:MM:SS, 1 for time units
    */
   setTimeStampFormat(format: number) {
-    // 52
+    // 53
     this.cb.addCommand("SET_TIME_STAMP_FORMAT", format);
   }
 

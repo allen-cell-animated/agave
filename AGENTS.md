@@ -1,79 +1,203 @@
 # Project Guidelines
 
-## Overview
-
-AGAVE (Advanced GPU Accelerated Volume Explorer) is a scientific 3D volume rendering application for multichannel microscopy data. It consists of a C++/Qt desktop GUI, a core rendering library, a Python client for remote control, and a web client.
+AGAVE (Advanced GPU Accelerated Volume Explorer) is a C++17/Qt6 desktop application for viewing multichannel volumetric image data (OME-ZARR, OME-TIFF, CZI). See [README.md](README.md) for full details.
 
 ## Architecture
 
-- **agave_app/**: Qt 6 desktop GUI — main window, dock widgets, OpenGL viewport (`GLView3D`), and command streaming server
-- **renderlib/**: Core rendering engine — file I/O (`io/`), OpenGL shaders (`graphics/`), scene management, command buffer system, and threading utilities
-- **agave_pyclient/**: Python package for programmatic control of AGAVE via WebSocket/REST
-- **webclient/**: Browser-based client
-- **test/**: Catch2 unit tests
+| Module            | Role                                                                                                                                              |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `agave_app/`      | Qt6 GUI layer — widgets, dialogs, dock panels, OpenGL viewport (`GLView3D`)                                                                       |
+| `renderlib/`      | Core rendering engine — image I/O (`io/`), GPU pipeline (`graphics/`), camera, scene, gesture handling (`gesture/`), JSON serialization (`json/`) |
+| `agave_pyclient/` | Python WebSocket client for remote control of AGAVE in server mode                                                                                |
+| `test/`           | C++ unit tests (Catch2)                                                                                                                           |
+| `webclient/`      | JavaScript client                                                                                                                                 |
 
-File readers implement the `IFileReader` interface. The command buffer system enables serializable command queues for remote control and replay.
-
-## Code Style
-
-- `.clang-format`: Mozilla style, 120-column limit, no automatic include sorting
-- **Classes**: PascalCase (`AppScene`, `FileReaderCzi`)
-- **Member variables**: `m_` prefix (`m_Film`, `m_Aperture`)
-- **Methods**: camelCase, Get/Set for accessors (`getDataMin()`, `SetFilm()`)
-- **Constants**: UPPER_CASE (`DEFAULT_PCT_LOW`)
-- **Headers**: Use `#pragma once`
+`agave_app` depends on `renderlib` for all rendering and data operations. Keep GUI concerns out of `renderlib`.
 
 ## Build and Test
 
-### C++ (CMake)
+Prerequisites and platform-specific setup are in [INSTALL.md](INSTALL.md). Dependencies are fetched via CMake FetchContent (GLM, Catch2) and require Qt 6.9.3 installed on the system.
+
+After cloning, initialize submodules:
 
 ```bash
-# Configure (example for Windows with Qt 6.9.3, in a VS2022 x64 Native Tools Command Prompt)
-cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=C:\\Users\\%USERNAME%\\source\\repos\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake -G "Ninja Multi-Config" -DVCPKG_TARGET_TRIPLET=x64-windows
-# Configure examplefor Linux or macOS with appropriate generator and toolchain settings
-cmake -B build -S . -G "Ninja" -DCMAKE_BUILD_TYPE=Release
-
-# Build
-cmake --build build --config Release
-# on Windows:
-cmake --build build --target install
-
-# Tests run automatically post-build via Catch2. They can be run separately with:
-cmake --build build --target agave_test
+git submodule update --init
 ```
 
-Requires CMake 3.24+, C++17, Qt 6.9.3. Key dependencies: spdlog, GLM, TIFF, libCZI (vendored), tensorstore, pugixml (vendored). See [INSTALL.md](INSTALL.md) for platform-specific setup.
-
-### Python (agave_pyclient)
+### macOS (Homebrew)
 
 ```bash
-pip install -e ".[dev]"
-pytest
+brew install spdlog libtiff nasm
+
+pip install aqtinstall
+aqt install-qt --outputdir ~/Qt mac desktop 6.9.3 -m qtwebsockets qtimageformats
+export Qt6_DIR=~/Qt/6.9.3/macos
+
+mkdir build && cd build
+cmake ..
+make
 ```
 
-Uses black for formatting and flake8 for linting.
+### Windows
 
-### Version Bumping
+Run from a **VS2022 x64 Native Tools Command Prompt**. Requires Perl, NASM, and GNU Patch in PATH (install via `choco install strawberryperl nasm patch`).
 
-Use `tbump` for coordinated version updates across CMakeLists.txt and agave_pyclient.
+```powershell
+pip install aqtinstall
+aqt install-qt --outputdir C:\Qt windows desktop 6.9.3 win64_msvc2022_64 -m qtwebsockets qtimageformats
+
+vcpkg install spdlog zlib libjpeg-turbo liblzma tiff zstd --triplet x64-windows
+
+mkdir build && cd build
+cmake -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>\scripts\buildsystems\vcpkg.cmake -G "Ninja Multi-Config" -DVCPKG_TARGET_TRIPLET=x64-windows ..
+cmake --build . --target install
+```
+
+### Tests and Analysis
+
+```bash
+# C++ tests (Catch2) — run automatically post-build
+# Test sources are in test/
+
+# Python client
+pip install -e agave_pyclient/[test]
+pytest agave_pyclient/tests/
+
+# Static analysis — run clang-tidy on individual files
+# The build generates compile_commands.json in the build directory.
+
+# macOS / Linux (requires clang-tidy, e.g. brew install llvm)
+clang-tidy -p build renderlib/RenderSettings.cpp
+
+# Windows (from a VS2022 x64 Native Tools Command Prompt)
+clang-tidy.exe -p build renderlib\RenderSettings.cpp
+
+# To auto-apply suggested fixes, add --fix:
+clang-tidy -p build --fix renderlib/RenderSettings.cpp
+```
+
+## Code Style
+
+### C++
+
+- **Standard:** C++17
+- **Classes, methods, enums:** PascalCase (`GLView3D`, `RenderSettings`, `GetNoIterations()`)
+- **Member variables:** `m_` prefix (`m_Type`, `m_DirtyFlags`, `m_qcamera`)
+- **Header guards:** prefer `#pragma once`
+- **Include order:** local project headers → standard C++ headers → third-party headers → Qt headers
+- **Static analysis:** Run `clang-tidy -p build <file>` on individual source files (the build exports `compile_commands.json`). Add `--fix` to auto-apply suggestions.
+
+### Python
+
+- PEP 8 / snake_case
+- Tooling: black, flake8, pyright (see `pyrightconfig.json`)
 
 ## Conventions
 
-- Header/implementation split: every `.h` has a corresponding `.cpp`
-- Qt MOC is enabled via `AUTOMOC` in CMake — use `Q_OBJECT` macro in QObject subclasses
-- Logging uses spdlog macros defined in `renderlib/Logging.h`
-- Serialization follows a versioned format (see `Serialize.cpp`, `SerializeV1.cpp`)
-- Python client follows PEP 8; C++ follows Mozilla clang-format style
-- See [CONTRIBUTING.md](CONTRIBUTING.md) for development workflow
-- Adding new commands to the command buffer requires defining a new command class and implementing serialization methods. Whenever a command is added, agave_pyclient and webclient must be updated with the same command id.
+- Versioning is managed with `tbump` — run `tbump <version>` to bump across all components
+- Contribution workflow and PR process: [CONTRIBUTING.md](CONTRIBUTING.md)
 
-### Adding a New Command
+## Adding a New Command
 
-A new command requires changes in **four places** across three codebases. All must use the same integer command ID and argument signature.
+Commands are the binary protocol connecting the C++ engine, Python client, and web client. Every command must be added to all four locations to stay in sync.
 
-1. **C++ command definition** (`renderlib/command.h`): Define a data struct (`FooCommandD`) and use the `CMDDECL` macro to declare the command class with its ID, Python name, and argument types.
-2. **C++ command implementation** (`renderlib/command.cpp`): Implement `execute()`, `parse()`, `write()`, and `toPythonString()` methods.
-3. **C++ dispatch** (`agave_app/commandBuffer.cpp`): Add a `CMD_CASE(FooCommand)` entry to the switch statement.
-4. **C++ unit test** (`test/test_commands.cpp`): Add a `SECTION` that round-trips the command through `testcodec` and verifies `toPythonString()` output and data fields.
-5. **Python client** (`agave_pyclient/agave_pyclient/commandbuffer.py`): Add the command name, ID, and argument types to the `COMMANDS` dict. Then add a wrapper method in `agave_pyclient/agave_pyclient/agave.py`.
-6. **Web client** (`webclient/src/commandbuffer.ts`): Add the command to the `COMMANDS` export. Then add a wrapper method in `webclient/src/agave.ts`.
+### 1. `renderlib/command.h` — declare data struct + command class
+
+```cpp
+// Data struct (plain POD)
+struct SetFooCommandD
+{
+  float m_x;
+  int32_t m_mode;
+};
+
+// CMDDECL(ClassName, UniqueID, "python_name", argTypes)
+// Use the next available integer ID.
+CMDDECL(SetFooCommand, 52, "set_foo",
+        CMD_ARGS({ CommandArgType::F32, CommandArgType::I32 }));
+```
+
+### 2. `renderlib/command.cpp` — implement `execute`, `parse`, `write`, `toPythonString`
+
+```cpp
+void SetFooCommand::execute(ExecutionContext* c)
+{
+  c->m_appScene->m_foo = m_data.m_x;
+  c->m_renderSettings->m_DirtyFlags.SetFlag(RenderParamsDirty);
+}
+
+SetFooCommand* SetFooCommand::parse(ParseableStream* c)
+{
+  SetFooCommandD data;
+  data.m_x = c->parseFloat32();
+  data.m_mode = c->parseInt32();
+  return new SetFooCommand(data);
+}
+
+size_t SetFooCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeFloat32(m_data.m_x);
+  bytesWritten += o->writeInt32(m_data.m_mode);
+  return bytesWritten;
+}
+
+std::string SetFooCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(" << m_data.m_x << ", " << m_data.m_mode << ")";
+  return ss.str();
+}
+```
+
+### 3. `agave_app/commandBuffer.cpp` — register in the switch
+
+Add `CMD_CASE(SetFooCommand);` in the `processBuffer()` switch statement.
+
+### 4. `test/test_commands.cpp` — round-trip test
+
+```cpp
+SECTION("SetFooCommand")
+{
+  SetFooCommandD data = { 1.5f, 3 };
+  auto cmd = testcodec<SetFooCommand, SetFooCommandD>(data);
+  REQUIRE(cmd->toPythonString() == "set_foo(1.5, 3)");
+  REQUIRE(cmd->m_data.m_x == data.m_x);
+  REQUIRE(cmd->m_data.m_mode == data.m_mode);
+}
+```
+
+### 5. `agave_pyclient/agave_pyclient/commandbuffer.py` — add to `COMMANDS` dict
+
+```python
+"SET_FOO": [52, "F32", "I32"],
+```
+
+### 6. `agave_pyclient/agave_pyclient/agave.py` — add method to `AgaveRenderer`
+
+```python
+def set_foo(self, x: float, mode: int):
+    self.cb.add_command("SET_FOO", x, mode)
+```
+
+### 7. `webclient/src/commandbuffer.ts` — add to `COMMANDS` object
+
+```typescript
+SET_FOO: [52, "F32", "I32"],
+```
+
+### 8. `webclient/src/agave.ts` — add method to `AgaveClient`
+
+```typescript
+set_foo(x: number, mode: number) {
+  this.cb.addCommand("SET_FOO", x, mode);
+}
+```
+
+**Key rules:**
+
+- The integer ID must be unique and match across all four locations
+- Argument types are `F32`, `I32`, `S` (string), `F32A` (float array), `I32A` (int array)
+- Python method name uses snake_case; `COMMANDS` dict key is UPPERCASE
+- `parse()`/`write()` field order must match the `CMD_ARGS` type list exactly

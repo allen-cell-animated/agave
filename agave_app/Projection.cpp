@@ -3,7 +3,8 @@
 QProjection::QProjection(QObject* pParent /*= NULL*/)
   : QObject(pParent)
   , m_FieldOfView(55.0f)
-{}
+{
+}
 
 QProjection::QProjection(const QProjection& Other)
 {
@@ -21,7 +22,7 @@ QProjection::operator=(const QProjection& Other)
 }
 
 float
-QProjection::GetFieldOfView(void) const
+QProjection::GetFieldOfView() const
 {
   return m_FieldOfView;
 }
@@ -35,7 +36,7 @@ QProjection::SetFieldOfView(const float& FieldOfView)
 }
 
 void
-QProjection::Reset(void)
+QProjection::Reset()
 {
   m_FieldOfView = 35.0f;
 

@@ -5,6 +5,7 @@
 void
 SphereLightTool::action(SceneView& scene, Gesture& gesture)
 {
+  // draw only, not a manipulator.
 }
 void
 SphereLightTool::draw(SceneView& scene, Gesture& gesture)
@@ -13,24 +14,27 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
     return;
   }
 
+  using GFX = Gesture::Graphics;
+  using Seq = GFX::CommandSequence;
+
   const Light& l = *m_light;
   glm::vec3 p = l.m_Target;
 
   glm::vec3 viewDir = (scene.camera.m_From - p);
   LinearSpace3f camFrame = scene.camera.getFrame();
-  // remember the camFrame vectors are the world-space vectors that correspond to camera x, y, z directions
+
+  glm::vec3 viewDirN = glm::normalize(viewDir);
 
   glm::vec3 color = glm::vec3(1, 1, 1);
   float opacity = 1.0f;
-  uint32_t code = Gesture::Graphics::k_noSelectionCode;
-  gesture.graphics.addCommand(Gesture::Graphics::PrimitiveType::kLines);
+  uint32_t code = GFX::k_noSelectionCode;
 
   // Draw the circle so it inscribes the viewport (touching the smaller dimension edges)
-  float dist = length(viewDir);
+  float dist = glm::length(viewDir);
   float projectedRadius = 0.0f;
   float sphereRadius = 0.0f;
+  glm::ivec2 viewportSize = scene.viewport.region.size();
   if (scene.camera.m_Projection == ORTHOGRAPHIC) {
-    glm::ivec2 viewportSize = scene.viewport.region.size();
     float aspect = static_cast<float>(viewportSize.x) / static_cast<float>(viewportSize.y);
     float halfWidth = scene.camera.m_OrthoScale * aspect;
     float halfHeight = scene.camera.m_OrthoScale;
@@ -45,33 +49,107 @@ SphereLightTool::draw(SceneView& scene, Gesture& gesture)
     sphereRadius = projectedRadius / sqrtf(1.0f + (projectedRadiusSq / distSq));
   }
 
+  // Split front/back at the sphere's silhouette (horizon) plane, not through the center.
+  // For an orthographic camera the camera is at infinity and the horizon passes through
+  // the sphere center, so the offset is 0. For a perspective camera with camera-to-center
+  // distance d and sphere radius r, the horizon circle lies on the plane offset from the
+  // center toward the camera by r^2 / d. Using this plane makes the front/back half-rings
+  // meet exactly on the projected silhouette for every rotation angle.
+  // drawCircle/drawCircleAsStrip keep geometry where dot(clipPlane, point) > 0.
+  float horizonOffset =
+    (scene.camera.m_Projection == ORTHOGRAPHIC) ? 0.0f : (sphereRadius * sphereRadius) / glm::max(dist, 1e-6f);
+  glm::vec3 horizonCenter = p + viewDirN * horizonOffset;
+  glm::vec4 frontPlane(viewDirN, -glm::dot(viewDirN, horizonCenter));
+  glm::vec4 backPlane = -frontPlane;
+
+  // Silhouette circle — always foreground (view-aligned, always in front)
+  gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStacked);
   gesture.drawCircle(p, camFrame.vx * projectedRadius, camFrame.vy * projectedRadius, 128, color, opacity, code);
+
+  opacity = 0.3f;
 
   glm::vec3 colorTop = l.m_ColorTop * l.m_ColorTopIntensity;
   glm::vec3 colorMid = l.m_ColorMiddle * l.m_ColorMiddleIntensity;
   glm::vec3 colorBottom = l.m_ColorBottom * l.m_ColorBottomIntensity;
-  auto ringColorFromY = [&](float y) {
-    if (y >= 0.0f) {
-      return glm::mix(colorMid, colorTop, glm::clamp(y, 0.0f, 1.0f));
-    }
-    return glm::mix(colorMid, colorBottom, glm::clamp(-y, 0.0f, 1.0f));
-  };
 
-  const int latBands = 12;
+  // Thin white latitude lines — front half then back half
+  const int latBands = 8;
   for (int i = 1; i < latBands; i++) {
     float t = static_cast<float>(i) / static_cast<float>(latBands);
     float lat = t * PI_F - HALF_PI_F;
     float ringRadius = sphereRadius * cosf(lat);
     float y = sinf(lat);
     glm::vec3 ringCenter = p + l.m_V * (sphereRadius * y);
-    glm::vec3 ringColor = ringColorFromY(y);
-    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, ringColor, opacity, code);
+    gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStacked);
+    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, color, opacity, code, &frontPlane);
+    gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStackedUnderlay);
+    gesture.drawCircle(ringCenter, l.m_U * ringRadius, l.m_N * ringRadius, 128, color, opacity, code, &backPlane);
   }
 
-  const int lonBands = 12;
+  // Longitude lines (thin white) — front half then back half
+  const int lonBands = 8;
   for (int i = 0; i < lonBands; i++) {
     float lon = (static_cast<float>(i) / static_cast<float>(lonBands)) * PI_F;
     glm::vec3 axis = cosf(lon) * l.m_N + sinf(lon) * l.m_U;
-    gesture.drawCircle(p, axis * sphereRadius, l.m_V * sphereRadius, 128, color, opacity, code);
+    gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStacked);
+    gesture.drawCircle(p, axis * sphereRadius, l.m_V * sphereRadius, 128, color, opacity, code, &frontPlane);
+    gesture.graphics.addCommand(GFX::PrimitiveType::kLines, Seq::k3dStackedUnderlay);
+    gesture.drawCircle(p, axis * sphereRadius, l.m_V * sphereRadius, 128, color, opacity, code, &backPlane);
+  }
+
+  // Thicker colored equator band — front half then back half
+  gesture.drawCircleAsStrip(
+    p, l.m_U * sphereRadius, l.m_N * sphereRadius, 128, colorMid, 0.7f, code, 8.0f, &frontPlane, Seq::k3dStacked);
+  gesture.drawCircleAsStrip(p,
+                            l.m_U * sphereRadius,
+                            l.m_N * sphereRadius,
+                            128,
+                            colorMid,
+                            0.7f,
+                            code,
+                            8.0f,
+                            &backPlane,
+                            Seq::k3dStackedUnderlay);
+
+  // Pole caps using drawCone — route to foreground or underlay based on visibility
+  float capAngle = 0.2f; // radians from pole (~11 degrees)
+  float capRingRadius = sphereRadius * sinf(capAngle);
+  float capHeight = sphereRadius * cosf(capAngle);
+  const int capSegments = 32;
+
+  // North pole cap
+  {
+    glm::vec3 polePoint = p + l.m_V * sphereRadius;
+    glm::vec3 ringCenter = p + l.m_V * capHeight;
+    // Use the horizon plane (same one used to split the rings) so the cap ends up on the
+    // same side of the silhouette as the nearby latitude/longitude arcs.
+    bool poleFacesCamera = glm::dot(viewDirN, polePoint - horizonCenter) > 0;
+    Seq capSeq = poleFacesCamera ? Seq::k3dStacked : Seq::k3dStackedUnderlay;
+    gesture.graphics.addCommand(GFX::Command(GFX::PrimitiveType::kTriangles, 1.0f, true), capSeq);
+    gesture.drawCone(ringCenter,
+                     l.m_U * capRingRadius,
+                     l.m_N * capRingRadius,
+                     l.m_V * (sphereRadius - capHeight),
+                     capSegments,
+                     colorTop,
+                     0.7f,
+                     code);
+  }
+
+  // South pole cap
+  {
+    glm::vec3 polePoint = p - l.m_V * sphereRadius;
+    glm::vec3 ringCenter = p - l.m_V * capHeight;
+    bool poleFacesCamera = glm::dot(viewDirN, polePoint - horizonCenter) > 0;
+    Seq capSeq = poleFacesCamera ? Seq::k3dStacked : Seq::k3dStackedUnderlay;
+    gesture.graphics.addCommand(GFX::Command(GFX::PrimitiveType::kTriangles, 1.0f, true), capSeq);
+    gesture.drawCone(ringCenter,
+                     l.m_U * capRingRadius,
+                     l.m_N * capRingRadius,
+                     -l.m_V * (sphereRadius - capHeight),
+                     capSegments,
+                     colorBottom,
+                     0.7f,
+                     code);
   }
 }
