@@ -20,22 +20,22 @@
 QT_FORWARD_DECLARE_CLASS(QWebSocketServer)
 QT_FORWARD_DECLARE_CLASS(QWebSocket)
 
-#define THREAD_COUNT 4
+static constexpr int THREAD_COUNT = 4;
 
 class StreamServer : public QObject
 {
   Q_OBJECT
 public:
   explicit StreamServer(quint16 port, bool debug, QObject* parent = Q_NULLPTR);
-  ~StreamServer();
+  ~StreamServer() override;
 
-  inline int getClientsCount() { return _clients.count(); }
+  size_t getClientsCount() { return _clients.count(); }
 
-  inline QList<QWebSocket*> getClients() { return _clients; }
+  QList<QWebSocket*> getClients() { return _clients; }
 
-  inline int getThreadsCount() { return _renderers.length(); }
+  size_t getThreadsCount() { return _renderers.length(); }
 
-  inline QList<int> getThreadsLoad()
+  QList<int> getThreadsLoad()
   {
     QList<int> loads;
     foreach (Renderer* renderer, this->_renderers) {
@@ -45,7 +45,7 @@ public:
     return loads;
   }
 
-  inline QList<int> getThreadsRequestCount()
+  QList<int> getThreadsRequestCount()
   {
     QList<int> requests;
     foreach (Renderer* renderer, this->_renderers) {
@@ -60,9 +60,9 @@ signals:
 
 private slots:
   void onNewConnection();
-  void onSslErrors(const QList<QSslError>& errors);
-  void processTextMessage(QString message);
-  void processBinaryMessage(QByteArray message);
+  static void onSslErrors(const QList<QSslError>& errors);
+  void processTextMessage(const QString& message);
+  void processBinaryMessage(const QByteArray& message);
   void socketDisconnected();
   void sendImage(RenderRequest* request, QImage image);
   void sendString(RenderRequest* request, QString s);

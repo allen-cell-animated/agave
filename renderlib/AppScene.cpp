@@ -7,7 +7,7 @@
 #include <glm/gtx/color_space.hpp>
 
 inline std::vector<float>
-rndColors(int count)
+rndColors(size_t count)
 {
   std::vector<float> colors;
   // colors.push_back(QColor(255, 0, 255));
@@ -26,7 +26,7 @@ rndColors(int count)
   colors.push_back(1.0);
 
   float currentHue = 0.0;
-  for (int i = 0; i < count; i++) {
+  for (size_t i = 0; i < count; i++) {
     glm::vec3 rgb = glm::rgbColor(glm::vec3(currentHue * 360.0f, 1.0f, 0.5f));
     colors.push_back(rgb.x);
     colors.push_back(rgb.y);
@@ -50,7 +50,7 @@ VolumeDisplay::VolumeDisplay()
 {
   std::vector<float> colors = rndColors(MAX_CPU_CHANNELS);
 
-  for (uint32_t i = 0; i < MAX_CPU_CHANNELS; ++i) {
+  for (size_t i = 0; i < MAX_CPU_CHANNELS; ++i) {
     // enable first N channels!
     m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
 
@@ -70,20 +70,6 @@ VolumeDisplay::VolumeDisplay()
     m_roughness[i] = 1.0;
 
     m_labels[i] = 0.0;
-  }
-}
-
-Lighting::Lighting(const Lighting& other)
-{
-  m_NoLights = other.m_NoLights;
-  for (int i = 0; i < MAX_NO_LIGHTS; ++i) {
-    if (other.m_Lights[i]) {
-      m_Lights[i] = new Light(*other.m_Lights[i]);
-      m_sceneLights[i] = new SceneLight(m_Lights[i]);
-    } else {
-      m_Lights[i] = nullptr;
-      m_sceneLights[i] = nullptr;
-    }
   }
 }
 
@@ -130,7 +116,7 @@ Scene::initSceneFromImg(std::shared_ptr<ImageXYZC> img)
 {
   std::vector<float> colors = rndColors(img->sizeC());
 
-  for (uint32_t i = 0; i < img->sizeC(); ++i) {
+  for (size_t i = 0; i < img->sizeC(); ++i) {
     // enable first 3 channels!
     m_material.m_enabled[i] = (i < ImageXYZC::FIRST_N_CHANNELS);
 

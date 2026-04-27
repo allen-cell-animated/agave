@@ -30,7 +30,7 @@ class LoadDialog : public QDialog
 
 public:
   LoadDialog(std::string path, const std::vector<MultiscaleDims>& dims, uint32_t scene, QWidget* parent = Q_NULLPTR);
-  ~LoadDialog();
+  ~LoadDialog() override;
 
   LoadSpec getLoadSpec() const;
   int getMultiscaleLevelIndex() const { return mSelectedLevel; }

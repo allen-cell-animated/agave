@@ -37,7 +37,7 @@ public:
    * @param tupleSize the tuple size of the data.
    * @param stride the stride of the data.
    */
-  void setCoords(const GLfloat* offset = 0, int tupleSize = 2, int stride = 0);
+  void setCoords(const GLfloat* offset = nullptr, int tupleSize = 2, int stride = 0);
 
   /**
    * Set vertex coordinates from buffer object.
@@ -47,7 +47,7 @@ public:
    * @param tupleSize the tuple size of the data.
    * @param stride the stride of the data.
    */
-  void setCoords(GLuint coords, const GLfloat* offset = 0, int tupleSize = 2, int stride = 0);
+  void setCoords(GLuint coords, const GLfloat* offset = nullptr, int tupleSize = 2, int stride = 0);
 
   /// Enable texture coordinates.
   void enableTexCoords();
@@ -63,7 +63,7 @@ public:
    * @param tupleSize the tuple size of the data.
    * @param stride the stride of the data.
    */
-  void setTexCoords(const GLfloat* offset = 0, int tupleSize = 2, int stride = 0);
+  void setTexCoords(const GLfloat* offset = nullptr, int tupleSize = 2, int stride = 0);
 
   /**
    * Set texture coordinates from buffer object.
@@ -74,7 +74,7 @@ public:
    * @param tupleSize the tuple size of the data.
    * @param stride the stride of the data.
    */
-  void setTexCoords(GLuint coords, const GLfloat* offset = 0, int tupleSize = 2, int stride = 0);
+  void setTexCoords(GLuint coords, const GLfloat* offset = nullptr, int tupleSize = 2, int stride = 0);
 
   /**
    * Set the texture to render.

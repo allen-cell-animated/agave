@@ -6,6 +6,7 @@
 #include "renderlib/CCamera.h"
 #include "renderlib/GradientData.h"
 #include "renderlib/Logging.h"
+#include "renderlib/SceneLight.h"
 #include "renderlib/StringUtil.h"
 #include "renderlib/renderlib.h"
 #include "renderlib/version.h"
@@ -357,10 +358,10 @@ stateToGradientData(const Serialize::ViewerState& state, int channelIndex)
   return gd;
 }
 
-Light
-stateToLight(const Serialize::ViewerState& state, int lightIndex)
+void
+stateToLight(const Serialize::ViewerState& state, int lightIndex, SceneLight& sceneLight)
 {
-  Light lt;
+  Light& lt = *sceneLight.m_light;
   const Serialize::LightSettings_V1& l = state.lights[lightIndex];
   lt.m_T = g_PermIdToLightType[l.type];
   lt.m_Distance = l.distance;
@@ -377,7 +378,11 @@ stateToLight(const Serialize::ViewerState& state, int lightIndex)
   lt.m_Width = l.width;
   lt.m_Height = l.height;
 
-  return lt;
+  // Apply saved rotation quaternion (xyzw) and propagate to the Light's
+  // phi/theta/basis via updateTransform().
+  const std::array<float, 4>& q = l.rotation;
+  sceneLight.m_transform.m_rotation = glm::quat(q[3], q[0], q[1], q[2]);
+  sceneLight.updateTransform();
 }
 Serialize::LoadSettings
 fromLoadSpec(const LoadSpec& loadSpec)
@@ -399,8 +404,9 @@ fromLoadSpec(const LoadSpec& loadSpec)
 }
 
 Serialize::LightSettings_V1
-fromLight(const Light& lt)
+fromLight(const SceneLight& sceneLight)
 {
+  const Light& lt = *sceneLight.m_light;
   Serialize::LightSettings_V1 s;
   s.type = g_LightTypeToPermId[lt.m_T];
   s.distance = lt.m_Distance;
@@ -416,6 +422,10 @@ fromLight(const Light& lt)
   s.bottomColorIntensity = lt.m_ColorBottomIntensity;
   s.width = lt.m_Width;
   s.height = lt.m_Height;
+
+  // Capture SceneLight rotation as xyzw quaternion.
+  const glm::quat& q = sceneLight.m_transform.m_rotation;
+  s.rotation = { q.x, q.y, q.z, q.w };
   return s;
 }
 

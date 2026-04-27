@@ -1002,6 +1002,26 @@ class AgaveRenderer:
         # 50
         self.cb.add_command("SET_MIN_MAX_THRESHOLD", channel, min_val, max_val)
 
+    def set_skylight_rotation(self, x: float, y: float, z: float, w: float):
+        """
+        Set the orientation of the sphere (sky) light as a quaternion. The quaternion
+        rotates the default direction (0, 0, 1) to the desired sky-light direction and
+        also encodes the roll of the sphere around that direction, which determines
+        where the top/middle/bottom color bands appear relative to the volume.
+
+        Parameters
+        ----------
+        x: float
+            Quaternion x component.
+        y: float
+            Quaternion y component.
+        z: float
+            Quaternion z component.
+        w: float
+            Quaternion w component.
+        """
+        # 51
+        self.cb.add_command("SET_SKYLIGHT_ROTATION", x, y, z, w)
     def show_time_stamp(self, on: int):
         """
         Turn timestamp display on or off
@@ -1011,7 +1031,7 @@ class AgaveRenderer:
         on: int
             0 to hide timestamps, 1 to show them
         """
-        # 51
+        # 52
         self.cb.add_command("SHOW_TIME_STAMP", on)
 
     def batch_render_turntable(

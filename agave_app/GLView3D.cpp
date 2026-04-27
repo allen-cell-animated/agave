@@ -73,11 +73,13 @@ GLView3D::GLView3D(QCamera* cam, QRenderSettings* qrs, RenderSettings* rs, QWidg
 void
 GLView3D::initCameraFromImage(Scene* scene)
 {
+  m_viewerWindow->beginCameraChange();
   // Tell the camera about the volume's bounding box
   m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MinP = scene->m_boundingBox.GetMinP();
   m_viewerWindow->m_CCamera.m_SceneBoundingBox.m_MaxP = scene->m_boundingBox.GetMaxP();
   // reposition to face image
   m_viewerWindow->m_CCamera.SetViewMode(ViewModeFront);
+  m_viewerWindow->endCameraChange();
 
   RenderSettings* rs = m_viewerWindow->m_renderSettings;
   rs->m_DirtyFlags.SetFlag(CameraDirty);
@@ -457,7 +459,7 @@ GLView3D::OnUpdateCamera()
 }
 
 void
-GLView3D::OnUpdateQRenderSettings(void)
+GLView3D::OnUpdateQRenderSettings()
 {
   // QMutexLocker Locker(&gSceneMutex);
   RenderSettings* rs = m_viewerWindow->m_renderSettings;

@@ -70,4 +70,4 @@ CitationDialog::CitationDialog()
   setLayout(layout);
 }
 
-CitationDialog::~CitationDialog() {}
+CitationDialog::~CitationDialog() = default;

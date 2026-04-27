@@ -497,7 +497,7 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
                   << physicalSizeYunit << " " << physicalSizeZunit;
     }
     // this is the documented ome-xml default.
-    if (units == "") {
+    if (units.empty()) {
       units = "um";
     }
 

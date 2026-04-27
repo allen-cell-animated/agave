@@ -13,8 +13,8 @@ struct SphereLightTool : public ManipulationTool
   {
   }
 
-  virtual void action(SceneView& scene, Gesture& gesture) final;
-  virtual void draw(SceneView& scene, Gesture& gesture) final;
+  void action(SceneView& scene, Gesture& gesture) final;
+  void draw(SceneView& scene, Gesture& gesture) final;
 
   Light* m_light;
 };

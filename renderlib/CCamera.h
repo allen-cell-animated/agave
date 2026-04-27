@@ -5,15 +5,7 @@
 #include "MathUtil.h"
 #include "glm.h"
 
-#define DEF_FOCUS_TYPE CenterScreen
-#define DEF_FOCUS_SENSOR_POS_CANVAS glm::vec2(0.0f)
-#define DEF_FOCUS_P glm::vec3(0.0f)
-#define DEF_FOCUS_FOCAL_DISTANCE 100.0f
-#define DEF_FOCUS_T 0.0f
-#define DEF_FOCUS_N glm::vec3(0.0f)
-#define DEF_FOCUS_DOT_WN 0.0f
-
-enum ProjectionMode
+enum ProjectionMode : std::uint8_t
 {
   PERSPECTIVE,
   ORTHOGRAPHIC
@@ -22,7 +14,7 @@ enum ProjectionMode
 class Focus
 {
 public:
-  enum EType
+  enum EType : std::uint8_t
   {
     CenterScreen,
     ScreenPoint,
@@ -38,42 +30,30 @@ public:
   glm::vec3 m_N;
   float m_DotWN;
 
-  Focus(void)
+  Focus()
   {
-    m_Type = DEF_FOCUS_TYPE;
-    m_SensorPosCanvas = DEF_FOCUS_SENSOR_POS_CANVAS;
-    m_FocalDistance = DEF_FOCUS_FOCAL_DISTANCE;
-    m_T = DEF_FOCUS_T;
-    m_P = DEF_FOCUS_P;
-    m_N = DEF_FOCUS_N;
-    m_DotWN = DEF_FOCUS_DOT_WN;
+    m_Type = CenterScreen;
+    m_SensorPosCanvas = glm::vec2(0.0f);
+    m_FocalDistance = 100.0f;
+    m_T = 0.0f;
+    m_P = glm::vec3(0.0f);
+    m_N = glm::vec3(0.0f);
+    m_DotWN = 0.0f;
   }
 
-  Focus& operator=(const Focus& Other)
-  {
-    m_Type = Other.m_Type;
-    m_SensorPosCanvas = Other.m_SensorPosCanvas;
-    m_FocalDistance = Other.m_FocalDistance;
-    m_P = Other.m_P;
-    m_T = Other.m_T;
-    m_N = Other.m_N;
-    m_DotWN = Other.m_DotWN;
-
-    return *this;
-  }
+  Focus& operator=(const Focus& Other) = default;
 };
 
-#define DEF_APERTURE_SIZE 0.0f
-#define DEF_APERTURE_NO_BLADES 5
-#define DEF_APERTURE_BIAS BiasNone
-#define DEF_APERTURE_ROTATION 0.0f
+static constexpr float DEF_APERTURE_SIZE = 0.0f;
+static constexpr int DEF_APERTURE_NO_BLADES = 5;
+static constexpr float DEF_APERTURE_ROTATION = 0.0f;
 
-#define MAX_BOKEH_DATA (12)
+static constexpr int MAX_BOKEH_DATA = 12;
 
 class Aperture
 {
 public:
-  enum EBias
+  enum EBias : std::uint8_t
   {
     BiasCenter,
     BiasEdge,
@@ -86,19 +66,23 @@ public:
   float m_Rotation;
   float m_Data[MAX_BOKEH_DATA];
 
-  Aperture(void)
+  Aperture()
   {
     m_Size = DEF_APERTURE_SIZE;
     m_NoBlades = DEF_APERTURE_NO_BLADES;
-    m_Bias = DEF_APERTURE_BIAS;
+    m_Bias = BiasNone;
     m_Rotation = DEF_APERTURE_ROTATION;
 
-    for (int i = 0; i < MAX_BOKEH_DATA; i++)
-      m_Data[i] = 0.0f;
+    for (float& i : m_Data)
+      i = 0.0f;
   }
 
   Aperture& operator=(const Aperture& Other)
   {
+    if (this == &Other) {
+      return *this;
+    }
+
     m_Size = Other.m_Size;
     m_NoBlades = Other.m_NoBlades;
     m_Bias = Other.m_Bias;
@@ -139,25 +123,16 @@ public:
     Update();
   }
 
-  Resolution2D(void)
+  Resolution2D()
   {
     m_XY = glm::ivec2(640, 480);
 
     Update();
   }
 
-  ~Resolution2D(void) {}
+  ~Resolution2D() = default;
 
-  Resolution2D& operator=(const Resolution2D& Other)
-  {
-    m_XY = Other.m_XY;
-    m_InvXY = Other.m_InvXY;
-    m_NoElements = Other.m_NoElements;
-    m_AspectRatio = Other.m_AspectRatio;
-    m_DiagonalLength = Other.m_DiagonalLength;
-
-    return *this;
-  }
+  Resolution2D& operator=(const Resolution2D& Other) = default;
 
   int operator[](int i) const { return m_XY[i]; }
 
@@ -173,15 +148,15 @@ public:
     return GetResX() != Other.GetResX() || GetResY() != Other.GetResY();
   }
 
-  void Update(void)
+  void Update()
   {
-    m_InvXY = glm::vec2(1.0f / m_XY.x, 1.0f / m_XY.y);
+    m_InvXY = glm::vec2(1.0f / (float)m_XY.x, 1.0f / (float)m_XY.y);
     m_NoElements = m_XY.x * m_XY.y;
     m_AspectRatio = (float)m_XY.x / (float)m_XY.y;
     m_DiagonalLength = sqrtf(powf((float)m_XY.x, 2.0f) + powf((float)m_XY.y, 2.0f));
   }
 
-  glm::ivec2 ToVector(void) const { return glm::ivec2(m_XY.x, m_XY.y); }
+  glm::ivec2 ToVector() const { return { m_XY.x, m_XY.y }; }
 
   void Set(const glm::ivec2& Resolution)
   {
@@ -190,23 +165,23 @@ public:
     Update();
   }
 
-  int GetResX(void) const { return m_XY.x; }
+  int GetResX() const { return m_XY.x; }
   void SetResX(const int& Width)
   {
     m_XY.x = Width;
     Update();
   }
-  int GetResY(void) const { return m_XY.y; }
+  int GetResY() const { return m_XY.y; }
   void SetResY(const int& Height)
   {
     m_XY.y = Height;
     Update();
   }
-  glm::vec2 GetInv(void) const { return m_InvXY; }
-  int GetNoElements(void) const { return m_NoElements; }
-  float GetAspectRatio(void) const { return m_AspectRatio; }
+  glm::vec2 GetInv() const { return m_InvXY; }
+  int GetNoElements() const { return m_NoElements; }
+  float GetAspectRatio() const { return m_AspectRatio; }
 
-  void PrintSelf(void) const { printf("[%d x %d]\n", GetResX(), GetResY()); }
+  void PrintSelf() const { printf("[%d x %d]\n", GetResX(), GetResY()); }
 
 private:
   glm::ivec2 m_XY;        /*!< Resolution width and height */
@@ -234,7 +209,7 @@ public:
   float m_Gamma;
 
   // ToDo: Add description
-  Film(void)
+  Film()
   {
     m_Screen[0][0] = 0.0f;
     m_Screen[0][1] = 0.0f;
@@ -250,17 +225,19 @@ public:
 
   Film& operator=(const Film& Other)
   {
-    m_Resolution = Other.m_Resolution;
-    m_Screen[0][0] = Other.m_Screen[0][0];
-    m_Screen[0][1] = Other.m_Screen[0][1];
-    m_Screen[1][0] = Other.m_Screen[1][0];
-    m_Screen[1][1] = Other.m_Screen[1][1];
-    m_InvScreen = Other.m_InvScreen;
-    m_Iso = Other.m_Iso;
-    m_Exposure = Other.m_Exposure;
-    m_ExposureIterations = Other.m_ExposureIterations;
-    m_FStop = Other.m_FStop;
-    m_Gamma = Other.m_Gamma;
+    if (this != &Other) {
+      m_Resolution = Other.m_Resolution;
+      m_Screen[0][0] = Other.m_Screen[0][0];
+      m_Screen[0][1] = Other.m_Screen[0][1];
+      m_Screen[1][0] = Other.m_Screen[1][0];
+      m_Screen[1][1] = Other.m_Screen[1][1];
+      m_InvScreen = Other.m_InvScreen;
+      m_Iso = Other.m_Iso;
+      m_Exposure = Other.m_Exposure;
+      m_ExposureIterations = Other.m_ExposureIterations;
+      m_FStop = Other.m_FStop;
+      m_Gamma = Other.m_Gamma;
+    }
 
     return *this;
   }
@@ -280,31 +257,28 @@ public:
     m_Screen[1][1] = Scale;
 
     // the amount to increment for each pixel
-    m_InvScreen.x = (m_Screen[0][1] - m_Screen[0][0]) / m_Resolution.GetResX();
-    m_InvScreen.y = (m_Screen[1][1] - m_Screen[1][0]) / m_Resolution.GetResY();
+    m_InvScreen.x = (m_Screen[0][1] - m_Screen[0][0]) / (float)m_Resolution.GetResX();
+    m_InvScreen.y = (m_Screen[1][1] - m_Screen[1][0]) / (float)m_Resolution.GetResY();
 
     m_Resolution.Update();
   }
 
-  int GetWidth(void) const { return m_Resolution.GetResX(); }
+  int GetWidth() const { return m_Resolution.GetResX(); }
 
-  int GetHeight(void) const { return m_Resolution.GetResY(); }
+  int GetHeight() const { return m_Resolution.GetResY(); }
 };
 
-#define FPS1 30.0f
-
 // #define DEF_CAMERA_TYPE						Perspective
-#define DEF_CAMERA_OPERATOR CameraOperatorUndefined
-#define DEF_CAMERA_VIEW_MODE ViewModeBack
-#define DEF_CAMERA_NEAR 0.01f
-#define DEF_CAMERA_FAR 20.0f
-#define DEF_CAMERA_ENABLE_CLIPPING true
-#define DEF_CAMERA_GAMMA 2.2f
-#define DEF_CAMERA_FIELD_OF_VIEW 55.0f
-#define DEF_CAMERA_NUM_APERTURE_BLADES 4
-#define DEF_CAMERA_APERTURE_BLADES_ANGLE 0.0f
-#define DEF_CAMERA_ASPECT_RATIO 1.0f
-#define DEF_ORTHO_SCALE 0.5f
+static constexpr auto DEF_CAMERA_VIEW_MODE = ViewModeBack;
+static constexpr float DEF_CAMERA_NEAR = 0.01f;
+static constexpr float DEF_CAMERA_FAR = 20.0f;
+static constexpr bool DEF_CAMERA_ENABLE_CLIPPING = true;
+static constexpr float DEF_CAMERA_GAMMA = 2.2f;
+static constexpr float DEF_CAMERA_FIELD_OF_VIEW = 55.0f;
+static constexpr int DEF_CAMERA_NUM_APERTURE_BLADES = 4;
+static constexpr float DEF_CAMERA_APERTURE_BLADES_ANGLE = 0.0f;
+static constexpr float DEF_CAMERA_ASPECT_RATIO = 1.0f;
+static constexpr float DEF_ORTHO_SCALE = 0.5f;
 // #define DEF_CAMERA_ZOOM_SPEED				1.0f
 // #define DEF_CAMERA_ORBIT_SPEED				5.0f
 // #define DEF_CAMERA_APERTURE_SPEED			0.25f
@@ -337,7 +311,7 @@ public:
   ProjectionMode m_Projection;
   float m_OrthoScale;
 
-  CCamera(void)
+  CCamera()
   {
     m_Near = DEF_CAMERA_NEAR;
     m_Far = DEF_CAMERA_FAR;
@@ -375,31 +349,9 @@ public:
     m_Projection = other.m_Projection;
     m_OrthoScale = other.m_OrthoScale;
   }
-  CCamera& operator=(const CCamera& Other)
-  {
-    m_SceneBoundingBox = Other.m_SceneBoundingBox;
-    m_Near = Other.m_Near;
-    m_Far = Other.m_Far;
-    m_EnableClippingPlanes = Other.m_EnableClippingPlanes;
-    m_From = Other.m_From;
-    m_Target = Other.m_Target;
-    m_Up = Other.m_Up;
-    m_FovV = Other.m_FovV;
-    m_AreaPixel = Other.m_AreaPixel;
-    m_N = Other.m_N;
-    m_U = Other.m_U;
-    m_V = Other.m_V;
-    m_Film = Other.m_Film;
-    m_Focus = Other.m_Focus;
-    m_Aperture = Other.m_Aperture;
-    m_Dirty = Other.m_Dirty;
-    m_Projection = Other.m_Projection;
-    m_OrthoScale = Other.m_OrthoScale;
+  CCamera& operator=(const CCamera& Other) = default;
 
-    return *this;
-  }
-
-  void Update(void)
+  void Update()
   {
     // right handed coordinate system
 
@@ -454,8 +406,8 @@ public:
 
     const unsigned int WindowWidth = m_Film.m_Resolution.GetResX();
 
-    const float U = Length * (RightUnits / WindowWidth);
-    const float V = Length * (UpUnits / WindowWidth);
+    const float U = Length * (RightUnits / (float)WindowWidth);
+    const float V = Length * (UpUnits / (float)WindowWidth);
 
     m_From = m_From + right * U + m_Up * V;
     m_Target = m_Target + right * U + m_Up * V;
@@ -466,7 +418,6 @@ public:
     glm::vec3 ReverseLoS = m_From - m_Target;
 
     glm::vec3 right = glm::cross(m_Up, ReverseLoS);
-    glm::vec3 orthogUp = glm::cross(ReverseLoS, right);
     glm::vec3 Up = glm::vec3(0.0f, 1.0f, 0.0f);
 
     ReverseLoS = glm::rotate(ReverseLoS, DownDegrees * DEG_TO_RAD, right);
@@ -533,6 +484,11 @@ public:
   // return the world-space vectors that correspond to camera x, y, z directions
   LinearSpace3f getFrame() const;
 
+  // transform camera space basis into world space using the current camera frame.
+  glm::mat3 reconstructBasis(const glm::mat3& capturedBasis) const;
+  // transform world space basis into camera space using the current camera frame.
+  glm::mat3 captureRelativeBasis(const glm::mat3& worldBasis) const;
+
   float getDistance(glm::vec3 p) const { return glm::distance(p, m_From); }
 
   void getProjMatrix(glm::mat4& projMatrix) const
@@ -562,11 +518,7 @@ struct CameraModifier
   float fov = 0;
   float nearClip = 0, farClip = 0;
 
-  CameraModifier()
-    : nearClip(0)
-    , farClip(0)
-  {
-  }
+  CameraModifier() = default;
 };
 
 inline CameraModifier

@@ -15,9 +15,9 @@ class QCameraWidget : public QWidget
   Q_OBJECT
 
 public:
-  QCameraWidget(QWidget* pParent = NULL, QCamera* cam = nullptr, RenderSettings* rs = nullptr);
+  QCameraWidget(QWidget* pParent = nullptr, QCamera* cam = nullptr, RenderSettings* rs = nullptr);
 
-  virtual QSize sizeHint() const;
+  QSize sizeHint() const override;
 
 private:
   QFormLayout m_MainLayout;

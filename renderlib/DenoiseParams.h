@@ -13,7 +13,7 @@ public:
   float m_LerpThreshold;
 
 public:
-  DenoiseParams(void)
+  DenoiseParams()
   {
     m_Enabled = true;
     m_Noise = 0.05f;

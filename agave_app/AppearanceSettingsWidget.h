@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Controls.h"
+#include "ObjectTransformMode.h"
 #include "renderlib/Colormap.h"
 #include "renderlib/GradientData.h"
 
@@ -20,7 +21,7 @@ class Scene;
 class SceneObject;
 class Section;
 
-enum Axis
+enum class Axis : std::uint8_t
 {
   X = 0,
   Y = 1,
@@ -32,7 +33,7 @@ class QAppearanceSettingsWidget : public QGroupBox
   Q_OBJECT
 
 public:
-  QAppearanceSettingsWidget(QWidget* pParent = NULL,
+  QAppearanceSettingsWidget(QWidget* pParent = nullptr,
                             QRenderSettings* qrs = nullptr,
                             RenderSettings* rs = nullptr,
                             QAction* pToggleRotateAction = nullptr,
@@ -42,9 +43,9 @@ public:
   void onTimeChanged(int newTime);
 
 public slots:
-  void OnRenderBegin(void);
+  void OnRenderBegin();
   void OnSetDensityScale(double DensityScale);
-  void OnTransferFunctionChanged(void);
+  void OnTransferFunctionChanged();
   void OnSetRendererType(int Index);
   void OnSetShadingType(int Index);
   void OnSetGradientFactor(double GradientFactor);
@@ -89,7 +90,7 @@ public:
   void OnFlipAxis(Axis axis, bool value);
 
 private:
-  Scene* m_scene;
+  Scene* m_scene{ nullptr };
 
   QFormLayout m_MainLayout;
   QNumericSlider m_DensityScaleSlider;
@@ -151,12 +152,15 @@ private:
     QColorPushButton* m_sbColorButton;
   } m_lt1gui;
 
+  QCheckBox* m_lockLightsToCameraCheckBox;
+
   Section* createSkyLightingControls(QAction* pRotationAction);
   Section* createAreaLightingControls(QAction* pLightRotationAction);
   Section* createClipPlaneSection(QAction* rotation, QAction* translation);
   void initLightingControls(Scene* scene);
+  void updateLightingControlsFromScene();
   void initClipPlaneControls(Scene* scene);
   bool shouldClipPlaneShow();
 
-  void toggleActionForObject(QAction* pAction, SceneObject* object);
+  ObjectTransformMode* m_transformMode;
 };

@@ -6,7 +6,7 @@
 #include <sstream>
 
 #define SPDLOG_LOGGER_STREAM(log, lvl)                                                                                 \
-  log && log->should_log(lvl) &&                                                                                       \
+  log && (log)->should_log(lvl) &&                                                                                     \
     LogStream(log, lvl, spdlog::source_loc{ __FILE__, __LINE__, SPDLOG_FUNCTION }) == LogLine()
 
 class LogLine

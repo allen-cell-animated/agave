@@ -78,9 +78,9 @@ public:
       : m_data(d)                                                                                                      \
     {                                                                                                                  \
     }                                                                                                                  \
-    virtual void execute(ExecutionContext* context);                                                                   \
-    virtual std::string toPythonString() const;                                                                        \
-    virtual size_t write(WriteableStream* buffer) const;                                                               \
+    void execute(ExecutionContext* context) override;                                                                  \
+    std::string toPythonString() const override;                                                                       \
+    size_t write(WriteableStream* buffer) const override;                                                              \
     static NAME* parse(ParseableStream* buffer);                                                                       \
     static const uint32_t m_ID = CMDID;                                                                                \
     static const std::string PythonName()                                                                              \
@@ -520,8 +520,16 @@ CMDDECL(SetMinMaxThresholdCommand,
         "set_min_max_threshold",
         CMD_ARGS({ CommandArgType::I32, CommandArgType::I32, CommandArgType::I32 }));
 
+struct SetSkylightRotationCommandD
+{
+  float m_x, m_y, m_z, m_w;
+};
+CMDDECL(SetSkylightRotationCommand,
+        51,
+        "set_skylight_rotation",
+        CMD_ARGS({ CommandArgType::F32, CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));
 struct ShowTimeStampCommandD
 {
   int32_t m_on;
 };
-CMDDECL(ShowTimeStampCommand, 51, "show_time_stamp", CMD_ARGS({ CommandArgType::I32 }));
+CMDDECL(ShowTimeStampCommand, 52, "show_time_stamp", CMD_ARGS({ CommandArgType::I32 }));

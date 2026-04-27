@@ -1,5 +1,7 @@
 #include "ViewerWindow.h"
 
+#include <memory>
+
 #include "AppScene.h"
 #include "AxisHelperTool.h"
 #include "BoundingBoxTool.h"
@@ -21,7 +23,6 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
   , m_renderer(new RenderGLPT(rs))
   , m_gestureRenderer(new GestureRendererGL())
-  , m_rendererType(1)
 {
   gesture.input.reset();
 
@@ -100,7 +101,7 @@ ViewerWindow::updateCamera()
   if (!m_cameraAnim.empty()) {
     for (auto it = m_cameraAnim.begin(); it != m_cameraAnim.end();) {
       CameraAnimation& anim = *it;
-      anim.time += m_clock.timeIncrement;
+      anim.time += static_cast<float>(m_clock.timeIncrement);
 
       if (anim.time < anim.duration) { // alpha < 1.0) {
         float alpha = glm::smoothstep(0.0f, 1.0f, glm::clamp(anim.time / anim.duration, 0.0f, 1.0f));
@@ -135,75 +136,40 @@ ViewerWindow::updateCamera()
   sceneView.camera.Update();
 
   // Update lights to maintain fixed direction relative to camera view when enabled.
-  // Basic strategy: capture the view space direction of each light at the start of
-  // camera manipulation, then during manipulation update the light direction
-  // in world space to match the captured relative direction.
   if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
-    auto captureRelativeDir = [&](SceneLight* sceneLight, glm::vec3& capturedDir) {
-      if (!sceneLight) {
-        return;
-      }
-      glm::vec3 worldLightDir(0.0f, 0.0f, 1.0f);
-      if (sceneLight->m_light) {
-        if (sceneLight->m_light->m_T == LightType_Sphere) {
-          worldLightDir = sceneLight->m_light->m_P;
-        } else {
-          worldLightDir = sceneLight->m_light->m_Target - sceneLight->m_light->m_P;
-        }
-      } else {
-        worldLightDir = sceneLight->m_transform.m_rotation * glm::vec3(0.0f, 0.0f, 1.0f);
-      }
-      if (glm::length(worldLightDir) <= 1e-6f) {
-        worldLightDir = glm::vec3(0.0f, 0.0f, 1.0f);
-      }
-      worldLightDir = glm::normalize(worldLightDir);
-
-      CCamera baseCamera = m_CCamera;
-      baseCamera.Update();
-
-      capturedDir.x = glm::dot(worldLightDir, baseCamera.m_U);
-      capturedDir.y = glm::dot(worldLightDir, baseCamera.m_V);
-      capturedDir.z = glm::dot(worldLightDir, baseCamera.m_N);
-      capturedDir = glm::normalize(capturedDir);
-    };
-
-    auto applyRelativeDir = [&](SceneLight* sceneLight, const glm::vec3& capturedDir) {
-      if (!sceneLight) {
-        return;
-      }
-      glm::vec3 newWorldLightDir =
-        glm::normalize(capturedDir.z * sceneView.camera.m_N + capturedDir.x * sceneView.camera.m_U +
-                       capturedDir.y * sceneView.camera.m_V);
-
-      glm::vec3 defaultDir(0.0f, 0.0f, 1.0f);
-      glm::quat rotation;
-      float dot = glm::dot(defaultDir, newWorldLightDir);
-      if (dot < -0.999999f) {
-        rotation = glm::angleAxis(glm::pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f));
-      } else {
-        glm::vec3 axis = glm::cross(defaultDir, newWorldLightDir);
-        rotation = glm::quat(1.0f + dot, axis.x, axis.y, axis.z);
-        rotation = glm::normalize(rotation);
-      }
-
-      sceneLight->m_transform.m_rotation = rotation;
-      sceneLight->updateTransform();
-    };
-
-    if (cameraEdit && !m_wasCameraBeingEdited) {
-      captureRelativeDir(sceneView.scene->SceneAreaLight(), m_capturedAreaLightRelativeDir);
-      captureRelativeDir(sceneView.scene->SceneSphereLight(), m_capturedSphereLightRelativeDir);
-    }
-
     if (cameraEdit) {
-      applyRelativeDir(sceneView.scene->SceneAreaLight(), m_capturedAreaLightRelativeDir);
-      applyRelativeDir(sceneView.scene->SceneSphereLight(), m_capturedSphereLightRelativeDir);
-      m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+      // If we just started editing the camera, we need to capture the current view-space
+      // basis from the pre-transformed camera (m_CCamera) for the lights to
+      // maintain their orientation relative to the camera view during the edit.
+      if (!m_wasCameraBeingEdited) {
+        sceneView.scene->m_lighting.captureLightsViewSpaceBasis(m_CCamera);
+      }
+      // Restore the lights' view-space basis on the post-transformed camera
+      sceneView.scene->m_lighting.restoreLightsViewSpaceBasis(sceneView.camera, m_renderSettings);
     }
   }
 
   // Track camera edit state for next frame
   m_wasCameraBeingEdited = cameraEdit;
+}
+
+void
+ViewerWindow::beginCameraChange()
+{
+  if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
+    sceneView.scene->m_lighting.captureLightsViewSpaceBasis(m_CCamera);
+  }
+}
+
+void
+ViewerWindow::endCameraChange()
+{
+  m_CCamera.Update();
+  sceneView.camera = m_CCamera;
+  sceneView.camera.Update();
+  if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
+    sceneView.scene->m_lighting.restoreLightsViewSpaceBasis(sceneView.camera, m_renderSettings);
+  }
 }
 
 void
@@ -376,17 +342,17 @@ ViewerWindow::setRenderer(int rendererType)
   switch (rendererType) {
     case 1:
       LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderer = std::make_unique<RenderGLPT>(m_renderSettings);
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     case 2:
       LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderer = std::make_unique<RenderGLPT>(m_renderSettings);
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     default:
       LOG_DEBUG << "Set OpenGL single pass Renderer";
-      m_renderer.reset(new RenderGL(m_renderSettings));
+      m_renderer = std::make_unique<RenderGL>(m_renderSettings);
   };
   m_rendererType = rendererType;
 
