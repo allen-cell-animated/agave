@@ -1166,6 +1166,7 @@ agaveGui::viewerStateToApp(const Serialize::ViewerState& v)
   m_appScene.m_material.m_showBoundingBox = v.showBoundingBox;
   m_appScene.m_showScaleBar = v.showScaleBar;
   m_appScene.m_showTimeStamp = v.showTimeStamp;
+  m_appScene.m_timeStampDisplayMode = static_cast<Scene::TimeStampDisplayMode>(v.timeStampFormat);
 
   m_renderSettings.m_RenderSettings.m_DensityScale = v.density;
   m_renderSettings.m_RenderSettings.m_StepSizeFactor = v.pathTracer.primaryStepSize;
@@ -1254,6 +1255,7 @@ agaveGui::appToViewerState()
   v.showBoundingBox = m_appScene.m_material.m_showBoundingBox;
   v.showScaleBar = m_appScene.m_showScaleBar;
   v.showTimeStamp = m_appScene.m_showTimeStamp;
+  v.timeStampFormat = static_cast<int32_t>(m_appScene.m_timeStampDisplayMode);
 
   v.capture.samples = m_renderSettings.GetNoIterations();
 

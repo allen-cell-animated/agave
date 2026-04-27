@@ -131,6 +131,7 @@ commandBuffer::processBuffer()
           CMD_CASE(SetMinMaxThresholdCommand);
           CMD_CASE(SetSkylightRotationCommand);
           CMD_CASE(ShowTimeStampCommand);
+          CMD_CASE(SetTimeStampFormatCommand);
           default:
             // ERROR UNRECOGNIZED COMMAND SIGNATURE.
             // PRINT OUT PREVIOUS! BAIL OUT! OR DO SOMETHING CLEVER AND CORRECT!

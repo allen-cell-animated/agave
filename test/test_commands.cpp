@@ -496,4 +496,11 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_min == data.m_min);
     REQUIRE(cmd->m_data.m_max == data.m_max);
   }
+  SECTION("SetTimeStampFormatCommand")
+  {
+    SetTimeStampFormatCommandD data = { 1 };
+    auto cmd = testcodec<SetTimeStampFormatCommand, SetTimeStampFormatCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_time_stamp_format(1)");
+    REQUIRE(cmd->m_data.m_format == data.m_format);
+  }
 }

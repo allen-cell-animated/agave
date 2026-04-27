@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <inttypes.h>
+#include <string>
 
 class Timeline
 {
@@ -18,6 +19,7 @@ public:
   int32_t minTime() const { return m_MinTime; }
   int32_t maxTime() const { return m_MaxTime; }
   double timeUnit() const { return m_TimeUnit; }
+  const std::string& timeUnits() const { return m_TimeUnits; }
 
   int32_t increment(int32_t delta);
 
@@ -26,6 +28,7 @@ public:
   void setRange(int32_t minT, int32_t maxT);
 
   void setTimeUnit(double timeUnit);
+  void setTimeUnits(const std::string& timeUnits) { m_TimeUnits = timeUnits; }
   double toPhysicalTime(int32_t t) const;
   double currentPhysicalTime() const { return toPhysicalTime(m_CurrentTime); }
 
@@ -37,6 +40,7 @@ private:
   int32_t m_RangeSize = 1;
   int32_t m_CurrentTime = 0;
   double m_TimeUnit = 1.0;
+  std::string m_TimeUnits = "s";
 
   // false means clamp, true means wrap
   WrapMode m_wrapMode = WrapMode::TIMELINE_WRAP;
