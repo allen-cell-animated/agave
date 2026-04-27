@@ -27,8 +27,12 @@ QColorPushButton::paintEvent(QPaintEvent* pPaintEvent)
 
   QPainter painter(this);
 
-  // Get button rectangle
-  QRect colorRectangle = pPaintEvent->rect();
+  // Use the widget's full rectangle, not pPaintEvent->rect(). The event rect
+  // is only the dirty sub-region (e.g. the strip newly exposed by scrolling),
+  // and painting our rounded swatch into that strip alone leaves stale pixels
+  // banding the rest of the button until the next full repaint. Qt will clip
+  // our drawing to the actual dirty region automatically.
+  QRect colorRectangle = rect();
 
   // Deflate it
   colorRectangle.adjust(m_Margin, m_Margin, -m_Margin, -m_Margin);
