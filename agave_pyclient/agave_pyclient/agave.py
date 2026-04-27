@@ -1022,6 +1022,7 @@ class AgaveRenderer:
         """
         # 51
         self.cb.add_command("SET_SKYLIGHT_ROTATION", x, y, z, w)
+
     def show_time_stamp(self, on: int):
         """
         Turn timestamp display on or off
