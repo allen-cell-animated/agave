@@ -504,6 +504,8 @@ LoadVolumeFromFileCommand::execute(ExecutionContext* c)
 
     c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
     c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
+    c->m_appScene->m_timeLine.setTimeUnit(dims.timeUnit);
+    c->m_appScene->m_timeLine.setTimeUnits(dims.timeUnits);
 
     c->m_appScene->m_volume = image;
     c->m_appScene->initSceneFromImg(image);
@@ -683,6 +685,8 @@ LoadDataCommand::execute(ExecutionContext* c)
 
   c->m_appScene->m_timeLine.setRange(0, dims.sizeT - 1);
   c->m_appScene->m_timeLine.setCurrentTime(m_data.m_time);
+  c->m_appScene->m_timeLine.setTimeUnit(dims.timeUnit);
+  c->m_appScene->m_timeLine.setTimeUnits(dims.timeUnits);
 
   c->m_appScene->m_volume = image;
   c->m_appScene->initSceneFromImg(image);
@@ -823,6 +827,19 @@ SetSkylightRotationCommand::execute(ExecutionContext* c)
   c->m_appScene->SceneSphereLight()->m_transform.m_rotation = q;
   c->m_appScene->SceneSphereLight()->updateTransform();
   c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+}
+void
+ShowTimeStampCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "ShowTimeStamp " << m_data.m_on;
+  c->m_appScene->m_showTimeStamp = m_data.m_on ? true : false;
+}
+
+void
+SetTimeStampFormatCommand::execute(ExecutionContext* c)
+{
+  LOG_DEBUG << "SetTimeStampFormat " << m_data.m_format;
+  c->m_appScene->m_timeStampDisplayMode = static_cast<Scene::TimeStampDisplayMode>(m_data.m_format);
 }
 
 SessionCommand*
@@ -1846,6 +1863,37 @@ SetSkylightRotationCommand::write(WriteableStream* o) const
   bytesWritten += o->writeFloat32(m_data.m_z);
   bytesWritten += o->writeFloat32(m_data.m_w);
   return bytesWritten;
+} 
+ShowTimeStampCommand*
+ShowTimeStampCommand::parse(ParseableStream* c)
+{
+  ShowTimeStampCommandD data;
+  data.m_on = c->parseInt32();
+  return new ShowTimeStampCommand(data);
+}
+size_t
+ShowTimeStampCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_on);
+  return bytesWritten;
+}
+
+SetTimeStampFormatCommand*
+SetTimeStampFormatCommand::parse(ParseableStream* c)
+{
+  SetTimeStampFormatCommandD data;
+  data.m_format = c->parseInt32();
+  return new SetTimeStampFormatCommand(data);
+}
+size_t
+SetTimeStampFormatCommand::write(WriteableStream* o) const
+{
+  size_t bytesWritten = 0;
+  bytesWritten += o->writeInt32(m_ID);
+  bytesWritten += o->writeInt32(m_data.m_format);
+  return bytesWritten;
 }
 
 std::string
@@ -2370,6 +2418,25 @@ SetSkylightRotationCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z << ", " << m_data.m_w;
+  ss << ")";
+  return ss.str();
+}
+std::string
+ShowTimeStampCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_on;
+  ss << ")";
+  return ss.str();
+}
+
+std::string
+SetTimeStampFormatCommand::toPythonString() const
+{
+  std::ostringstream ss;
+  ss << PythonName() << "(";
+  ss << m_data.m_format;
   ss << ")";
   return ss.str();
 }

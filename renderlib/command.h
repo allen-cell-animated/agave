@@ -528,3 +528,14 @@ CMDDECL(SetSkylightRotationCommand,
         51,
         "set_skylight_rotation",
         CMD_ARGS({ CommandArgType::F32, CommandArgType::F32, CommandArgType::F32, CommandArgType::F32 }));
+struct ShowTimeStampCommandD
+{
+  int32_t m_on;
+};
+CMDDECL(ShowTimeStampCommand, 52, "show_time_stamp", CMD_ARGS({ CommandArgType::I32 }));
+
+struct SetTimeStampFormatCommandD
+{
+  int32_t m_format;
+};
+CMDDECL(SetTimeStampFormatCommand, 53, "set_time_stamp_format", CMD_ARGS({ CommandArgType::I32 }));

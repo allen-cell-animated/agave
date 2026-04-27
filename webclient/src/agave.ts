@@ -773,6 +773,26 @@ export class AgaveClient {
     this.cb.addCommand("SET_SKYLIGHT_ROTATION", x, y, z, w);
   }
 
+  /**
+   * Turn timestamp display on or off
+   *
+   * @param on 0 to hide timestamps, 1 to show them
+   */
+  showTimeStamp(on: number) {
+    // 52
+    this.cb.addCommand("SHOW_TIME_STAMP", on);
+  }
+
+  /**
+   * Set the timestamp display format
+   *
+   * @param format 0 for HH:MM:SS, 1 for time units
+   */
+  setTimeStampFormat(format: number) {
+    // 53
+    this.cb.addCommand("SET_TIME_STAMP_FORMAT", format);
+  }
+
   // send all data in our current command buffer to the server
   flushCommandBuffer() {
     if (this.cb.length() > 0 && this.socket) {

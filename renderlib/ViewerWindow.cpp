@@ -12,6 +12,7 @@
 #include "RotateTool.h"
 #include "ScaleBarTool.h"
 #include "SceneLight.h"
+#include "TimeStampTool.h"
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
 #include "graphics/GestureGraphicsGL.h"
@@ -28,6 +29,7 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   m_tools.push_back(new ScaleBarTool());
   m_tools.push_back(new AxisHelperTool());
   m_tools.push_back(new BoundingBoxTool());
+  m_tools.push_back(new TimeStampTool());
 }
 
 ViewerWindow::~ViewerWindow()

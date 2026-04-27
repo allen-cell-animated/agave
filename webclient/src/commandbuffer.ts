@@ -90,6 +90,8 @@ export const COMMANDS = {
   SET_MIN_MAX_THRESHOLD: [50, "I32", "I32", "I32"],
   // sphere (sky) light rotation as a quaternion (x, y, z, w)
   SET_SKYLIGHT_ROTATION: [51, "F32", "F32", "F32", "F32"],
+  SHOW_TIME_STAMP: [52, "I32"],
+  SET_TIME_STAMP_FORMAT: [53, "I32"],
 };
 
 // strategy: add elements to prebuffer, and then traverse prebuffer to convert
