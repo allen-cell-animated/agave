@@ -771,6 +771,8 @@ export class AgaveClient {
   skylightRotation(x: number, y: number, z: number, w: number) {
     // 51
     this.cb.addCommand("SET_SKYLIGHT_ROTATION", x, y, z, w);
+  }
+
   /**
    * Turn timestamp display on or off
    *
