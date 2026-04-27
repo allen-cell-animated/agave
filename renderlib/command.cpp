@@ -825,6 +825,9 @@ SetSkylightRotationCommand::execute(ExecutionContext* c)
   c->m_appScene->SceneSphereLight()->m_transform.m_rotation = q;
   c->m_appScene->SceneSphereLight()->updateTransform();
   c->m_renderSettings->m_DirtyFlags.SetFlag(LightsDirty);
+}
+
+void
 ShowTimeStampCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "ShowTimeStamp " << m_data.m_on;
@@ -1851,6 +1854,8 @@ SetSkylightRotationCommand::write(WriteableStream* o) const
   bytesWritten += o->writeFloat32(m_data.m_y);
   bytesWritten += o->writeFloat32(m_data.m_z);
   bytesWritten += o->writeFloat32(m_data.m_w);
+  return bytesWritten;
+}
 ShowTimeStampCommand*
 ShowTimeStampCommand::parse(ParseableStream* c)
 {
@@ -2389,6 +2394,10 @@ SetSkylightRotationCommand::toPythonString() const
   std::ostringstream ss;
   ss << PythonName() << "(";
   ss << m_data.m_x << ", " << m_data.m_y << ", " << m_data.m_z << ", " << m_data.m_w;
+  ss << ")";
+  return ss.str();
+}
+std::string
 ShowTimeStampCommand::toPythonString() const
 {
   std::ostringstream ss;
