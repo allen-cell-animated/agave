@@ -41,6 +41,31 @@ formatTimeWithUnits(double value, const std::string& units)
   return stream.str();
 }
 
+static double
+toSeconds(double value, const std::string& units)
+{
+  // Convert from given units to seconds using NGFF/OME unit names
+  if (units == "millisecond" || units == "ms") {
+    return value * 1e-3;
+  } else if (units == "microsecond" || units == "us") {
+    return value * 1e-6;
+  } else if (units == "nanosecond" || units == "ns") {
+    return value * 1e-9;
+  } else if (units == "picosecond" || units == "ps") {
+    return value * 1e-12;
+  } else if (units == "femtosecond" || units == "fs") {
+    return value * 1e-15;
+  } else if (units == "minute" || units == "min") {
+    return value * 60.0;
+  } else if (units == "hour" || units == "h") {
+    return value * 3600.0;
+  } else if (units == "day" || units == "d") {
+    return value * 86400.0;
+  }
+  // "second", "s", or any unrecognized unit — assume seconds
+  return value;
+}
+
 void
 TimeStampTool::action(SceneView& scene, Gesture& gesture)
 {
@@ -64,7 +89,8 @@ TimeStampTool::draw(SceneView& scene, Gesture& gesture)
   const double physicalTime = scene.scene->m_timeLine.currentPhysicalTime();
   std::string msg;
   if (scene.scene->m_timeStampDisplayMode == Scene::TimeStampDisplayMode::HHMMSS) {
-    msg = formatTimeHhMmSs(physicalTime);
+    const double physicalTimeSeconds = toSeconds(physicalTime, scene.scene->m_timeLine.timeUnits());
+    msg = formatTimeHhMmSs(physicalTimeSeconds);
   } else {
     msg = formatTimeWithUnits(physicalTime, scene.scene->m_timeLine.timeUnits());
   }

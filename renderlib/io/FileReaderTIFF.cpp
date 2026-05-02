@@ -225,6 +225,10 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
         if (timeUnit < 0.0f) {
           timeUnit = -timeUnit;
         }
+        if (timeUnit == 0.0f) {
+          LOG_WARNING << "Frame interval of zero in ImageJ TIFF: '" << filepath << "', using 1.0";
+          timeUnit = 1.0f;
+        }
       } catch (...) {
         LOG_WARNING << "Failed to read frame interval of ImageJ TIFF: '" << filepath << "'";
         timeUnit = 1.0f;
