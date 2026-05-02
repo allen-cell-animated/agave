@@ -694,6 +694,7 @@ agaveGui::onImageLoaded(std::shared_ptr<ImageXYZC> image,
   m_appScene.m_timeLine.setRange(0, dims.sizeT - 1);
   m_appScene.m_timeLine.setCurrentTime(loadSpec.time);
   m_appScene.m_timeLine.setTimeUnit(dims.timeUnit);
+  m_appScene.m_timeLine.setTimeUnits(dims.timeUnits);
 
   // Show timeline widget if the loaded image has multiple frames.
   m_timelinedock->setVisible(dims.sizeT > 1);
