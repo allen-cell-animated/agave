@@ -13,22 +13,17 @@
 namespace {
 
 // Bytes per pixel that CacheManager uses when estimating an image's RAM cost.
-// IN_MEMORY_BPP is a static const member without an out-of-class definition,
-// so we copy its value into a constexpr to avoid ODR-use at the link step.
-constexpr std::uint32_t kInMemoryBpp = 16;
-constexpr std::uint64_t kBytesPerPixel = kInMemoryBpp / 8;
-static_assert(kInMemoryBpp == ImageXYZC::IN_MEMORY_BPP, "IN_MEMORY_BPP changed");
+constexpr size_t kBytesPerPixel = ImageXYZC::IN_MEMORY_BPP / 8;
 
 // Build a minimal in-memory ImageXYZC for cache testing. Memory is owned by the
 // returned ImageXYZC (it deletes m_data in its destructor).
 std::shared_ptr<ImageXYZC>
 makeImage(uint32_t x, uint32_t y, uint32_t z, uint32_t c)
 {
-  const std::uint64_t bytes =
-    static_cast<std::uint64_t>(x) * y * z * c * kBytesPerPixel;
+  const std::uint64_t bytes = static_cast<std::uint64_t>(x) * y * z * c * kBytesPerPixel;
   auto* data = new uint8_t[bytes];
   std::memset(data, 0, bytes);
-  return std::make_shared<ImageXYZC>(x, y, z, c, kInMemoryBpp, data, 1.0f, 1.0f, 1.0f, "units");
+  return std::make_shared<ImageXYZC>(x, y, z, c, ImageXYZC::IN_MEMORY_BPP, data, 1.0f, 1.0f, 1.0f, "units");
 }
 
 LoadSpec
@@ -224,6 +219,52 @@ TEST_CASE("CacheManager respects RAM limit and evicts LRU entries", "[cache]")
       }
     }
     REQUIRE(present <= 1);
+  }
+
+  SECTION("Reducing cache size immediately evicts LRU entries to fit")
+  {
+    resetCache();
+    // Fill the cache exactly to its 4-image cap.
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+    CacheManager::instance().storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
+    CacheManager::instance().storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
+    CacheManager::instance().storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
+    CacheManager::instance().storeImage(makeSpec("d"), makeImage(4, 4, 4, 1));
+
+    // All four are resident. LRU order (most recent first) is: d, c, b, a.
+    // Reset stats so the find() calls below count cleanly.
+    CacheManager::instance().resetStats();
+
+    // User shrinks the cache to hold only 2 images. Eviction must occur
+    // synchronously inside setConfig() — not lazily on the next store.
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 2));
+
+    // The two least recently used entries ("a" and "b") must be gone, and
+    // the two most recently used ("c" and "d") must still be present.
+    REQUIRE(CacheManager::instance().findImage(makeSpec("a")) == nullptr);
+    REQUIRE(CacheManager::instance().findImage(makeSpec("b")) == nullptr);
+    REQUIRE(CacheManager::instance().findImage(makeSpec("c")) != nullptr);
+    REQUIRE(CacheManager::instance().findImage(makeSpec("d")) != nullptr);
+
+    auto stats = CacheManager::instance().getStats();
+    REQUIRE(stats.misses == 2);
+    REQUIRE(stats.ramHits == 2);
+  }
+
+  SECTION("Reducing cache size below a single image evicts everything")
+  {
+    resetCache();
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 3));
+    CacheManager::instance().storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
+    CacheManager::instance().storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
+    CacheManager::instance().storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
+
+    // Shrink below the size of a single entry — everything must go.
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage / 2));
+
+    REQUIRE(CacheManager::instance().findImage(makeSpec("a")) == nullptr);
+    REQUIRE(CacheManager::instance().findImage(makeSpec("b")) == nullptr);
+    REQUIRE(CacheManager::instance().findImage(makeSpec("c")) == nullptr);
   }
 
   SECTION("clear() empties the cache")
