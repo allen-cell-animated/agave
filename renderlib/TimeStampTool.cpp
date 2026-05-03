@@ -90,6 +90,7 @@ formatTimeWithUnits(double value, const std::string& units)
   } else {
     stream << std::fixed << std::setprecision(2) << value;
   }
+  // TODO consider using the abbreviated unit name earler at the point of parsing in renderlib/io
   stream << " " << abbreviateUnits(units);
   return stream.str();
 }
