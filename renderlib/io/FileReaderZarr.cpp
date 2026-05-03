@@ -266,18 +266,18 @@ getTimeUnit(nlohmann::json axes)
   for (auto axis : axes) {
     std::string type = axis.value("type", "");
     if (type == "time") {
-      auto unitobj = axis["unit"];
-      if (unitobj.is_string()) {
-        unit = unitobj;
+      std::string u = axis.value("unit", "");
+      if (!u.empty()) {
+        unit = u;
         return unit;
       }
     }
     std::string name = axis.value("name", "");
     std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::toupper(c); });
     if (name == "T") {
-      auto unitobj = axis["unit"];
-      if (unitobj.is_string()) {
-        unit = unitobj;
+      std::string u = axis.value("unit", "");
+      if (!u.empty()) {
+        unit = u;
         return unit;
       }
     }
