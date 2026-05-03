@@ -191,7 +191,81 @@ VolumeDimensions::sanitizeUnitsString(std::string units)
   // sanitize known weird characters
   units = std::regex_replace(units, std::regex("µ"), "u");
   units = std::regex_replace(units, std::regex("Å"), "A");
+
+  // abbreviate common NGFF/OME long-form unit names so the UI shows compact
+  // labels like "um" / "ms" instead of "micrometer" / "millisecond".
+  static const struct
+  {
+    const char* longName;
+    const char* shortName;
+  } kAbbreviations[] = {
+    // length
+    { "angstrom", "A" },
+    { "attometer", "am" },
+    { "centimeter", "cm" },
+    { "decimeter", "dm" },
+    { "femtometer", "fm" },
+    { "foot", "ft" },
+    { "hectometer", "hm" },
+    { "inch", "in" },
+    { "kilometer", "km" },
+    { "megameter", "Mm" },
+    { "meter", "m" },
+    { "micrometer", "um" },
+    { "mile", "mi" },
+    { "millimeter", "mm" },
+    { "nanometer", "nm" },
+    { "parsec", "pc" },
+    { "picometer", "pm" },
+    { "yard", "yd" },
+    // time
+    { "attosecond", "as" },
+    { "centisecond", "cs" },
+    { "day", "d" },
+    { "decisecond", "ds" },
+    { "femtosecond", "fs" },
+    { "hectosecond", "hs" },
+    { "hour", "h" },
+    { "kilosecond", "ks" },
+    { "microsecond", "us" },
+    { "millisecond", "ms" },
+    { "minute", "min" },
+    { "nanosecond", "ns" },
+    { "picosecond", "ps" },
+    { "second", "s" },
+  };
+  for (const auto& a : kAbbreviations) {
+    if (units == a.longName || units == std::string(a.longName) + "s") {
+      return a.shortName;
+    }
+  }
   return units;
+}
+
+double
+VolumeDimensions::timeToSeconds(double value, const std::string& units)
+{
+  // Accept both NGFF/OME long-form names and the abbreviations produced by
+  // sanitizeUnitsString().
+  if (units == "millisecond" || units == "milliseconds" || units == "ms") {
+    return value * 1e-3;
+  } else if (units == "microsecond" || units == "microseconds" || units == "us") {
+    return value * 1e-6;
+  } else if (units == "nanosecond" || units == "nanoseconds" || units == "ns") {
+    return value * 1e-9;
+  } else if (units == "picosecond" || units == "picoseconds" || units == "ps") {
+    return value * 1e-12;
+  } else if (units == "femtosecond" || units == "femtoseconds" || units == "fs") {
+    return value * 1e-15;
+  } else if (units == "minute" || units == "minutes" || units == "min") {
+    return value * 60.0;
+  } else if (units == "hour" || units == "hours" || units == "h") {
+    return value * 3600.0;
+  } else if (units == "day" || units == "days" || units == "d") {
+    return value * 86400.0;
+  }
+  // "second", "s", or any unrecognized unit — assume seconds
+  return value;
 }
 
 VolumeDimensions

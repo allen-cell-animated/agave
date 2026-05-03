@@ -35,6 +35,11 @@ struct VolumeDimensions
   std::vector<std::string> getChannelNames(const std::vector<uint32_t>& channels) const;
 
   static std::string sanitizeUnitsString(std::string units);
+
+  // Convert a value expressed in the given time-unit string (NGFF/OME long
+  // form or its abbreviation, e.g. "millisecond"/"ms") to seconds. Unknown
+  // unit strings are treated as seconds.
+  static double timeToSeconds(double value, const std::string& units);
 };
 
 struct MultiscaleDims

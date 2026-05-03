@@ -839,6 +839,12 @@ void
 SetTimeStampFormatCommand::execute(ExecutionContext* c)
 {
   LOG_DEBUG << "SetTimeStampFormat " << m_data.m_format;
+  constexpr int32_t kMinMode = static_cast<int32_t>(Scene::TimeStampDisplayMode::HHMMSS);
+  constexpr int32_t kMaxMode = static_cast<int32_t>(Scene::TimeStampDisplayMode::TIME_UNITS);
+  if (m_data.m_format < kMinMode || m_data.m_format > kMaxMode) {
+    LOG_WARNING << "SetTimeStampFormat: invalid display mode " << m_data.m_format << ", ignoring";
+    return;
+  }
   c->m_appScene->m_timeStampDisplayMode = static_cast<Scene::TimeStampDisplayMode>(m_data.m_format);
 }
 
@@ -1863,7 +1869,7 @@ SetSkylightRotationCommand::write(WriteableStream* o) const
   bytesWritten += o->writeFloat32(m_data.m_z);
   bytesWritten += o->writeFloat32(m_data.m_w);
   return bytesWritten;
-} 
+}
 ShowTimeStampCommand*
 ShowTimeStampCommand::parse(ParseableStream* c)
 {
