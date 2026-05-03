@@ -8,7 +8,7 @@
 #include <sstream>
 
 static std::string
-formatTimeHhMmSs(double seconds)
+formatTimeHhMmSs(double seconds, int fractionalDigits = 0)
 {
   if (seconds < 0.0) {
     seconds = 0.0;
@@ -20,7 +20,35 @@ formatTimeHhMmSs(double seconds)
 
   std::ostringstream stream;
   stream << std::setfill('0') << std::setw(2) << hours << ":" << std::setw(2) << minutes << ":" << std::setw(2) << secs;
+  if (fractionalDigits > 0) {
+    double frac = seconds - static_cast<double>(totalSeconds);
+    // Guard against rounding pushing frac to 1.0 at the chosen precision.
+    double scale = std::pow(10.0, fractionalDigits);
+    int64_t fracInt = static_cast<int64_t>(std::floor(frac * scale + 0.5));
+    if (fracInt >= static_cast<int64_t>(scale)) {
+      fracInt = static_cast<int64_t>(scale) - 1;
+    }
+    stream << "." << std::setfill('0') << std::setw(fractionalDigits) << fracInt;
+  }
   return stream.str();
+}
+
+// Choose how many fractional-second digits to show so that increments of
+// `intervalSeconds` produce a visible change in the readout.
+static int
+fractionalDigitsForInterval(double intervalSeconds)
+{
+  if (!(intervalSeconds > 0.0) || intervalSeconds >= 1.0) {
+    return 0;
+  }
+  int digits = static_cast<int>(std::ceil(-std::log10(intervalSeconds)));
+  if (digits < 1) {
+    digits = 1;
+  }
+  if (digits > 6) {
+    digits = 6;
+  }
+  return digits;
 }
 
 static std::string
@@ -89,8 +117,10 @@ TimeStampTool::draw(SceneView& scene, Gesture& gesture)
   const double physicalTime = scene.scene->m_timeLine.currentPhysicalTime();
   std::string msg;
   if (scene.scene->m_timeStampDisplayMode == Scene::TimeStampDisplayMode::HHMMSS) {
-    const double physicalTimeSeconds = toSeconds(physicalTime, scene.scene->m_timeLine.timeUnits());
-    msg = formatTimeHhMmSs(physicalTimeSeconds);
+    const std::string& units = scene.scene->m_timeLine.timeUnits();
+    const double physicalTimeSeconds = toSeconds(physicalTime, units);
+    const double intervalSeconds = toSeconds(scene.scene->m_timeLine.timeUnit(), units);
+    msg = formatTimeHhMmSs(physicalTimeSeconds, fractionalDigitsForInterval(intervalSeconds));
   } else {
     msg = formatTimeWithUnits(physicalTime, scene.scene->m_timeLine.timeUnits());
   }
