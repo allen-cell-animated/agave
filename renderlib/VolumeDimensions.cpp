@@ -191,6 +191,54 @@ VolumeDimensions::sanitizeUnitsString(std::string units)
   // sanitize known weird characters
   units = std::regex_replace(units, std::regex("µ"), "u");
   units = std::regex_replace(units, std::regex("Å"), "A");
+
+  // abbreviate common NGFF/OME long-form unit names so the UI shows compact
+  // labels like "um" / "ms" instead of "micrometer" / "millisecond".
+  static const struct
+  {
+    const char* longName;
+    const char* shortName;
+  } kAbbreviations[] = {
+    // length
+    { "angstrom", "A" },
+    { "attometer", "am" },
+    { "centimeter", "cm" },
+    { "decimeter", "dm" },
+    { "femtometer", "fm" },
+    { "foot", "ft" },
+    { "hectometer", "hm" },
+    { "inch", "in" },
+    { "kilometer", "km" },
+    { "megameter", "Mm" },
+    { "meter", "m" },
+    { "micrometer", "um" },
+    { "mile", "mi" },
+    { "millimeter", "mm" },
+    { "nanometer", "nm" },
+    { "parsec", "pc" },
+    { "picometer", "pm" },
+    { "yard", "yd" },
+    // time
+    { "attosecond", "as" },
+    { "centisecond", "cs" },
+    { "day", "d" },
+    { "decisecond", "ds" },
+    { "femtosecond", "fs" },
+    { "hectosecond", "hs" },
+    { "hour", "h" },
+    { "kilosecond", "ks" },
+    { "microsecond", "us" },
+    { "millisecond", "ms" },
+    { "minute", "min" },
+    { "nanosecond", "ns" },
+    { "picosecond", "ps" },
+    { "second", "s" },
+  };
+  for (const auto& a : kAbbreviations) {
+    if (units == a.longName || units == std::string(a.longName) + "s") {
+      return a.shortName;
+    }
+  }
   return units;
 }
 
