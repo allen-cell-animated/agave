@@ -52,6 +52,31 @@ fractionalDigitsForInterval(double intervalSeconds)
 }
 
 static std::string
+abbreviateUnits(const std::string& units)
+{
+  // Map NGFF/OME long-form unit names to short abbreviations.
+  if (units == "second" || units == "seconds")
+    return "s";
+  if (units == "millisecond" || units == "milliseconds")
+    return "ms";
+  if (units == "microsecond" || units == "microseconds")
+    return "us";
+  if (units == "nanosecond" || units == "nanoseconds")
+    return "ns";
+  if (units == "picosecond" || units == "picoseconds")
+    return "ps";
+  if (units == "femtosecond" || units == "femtoseconds")
+    return "fs";
+  if (units == "minute" || units == "minutes")
+    return "min";
+  if (units == "hour" || units == "hours")
+    return "h";
+  if (units == "day" || units == "days")
+    return "d";
+  return units;
+}
+
+static std::string
 formatTimeWithUnits(double value, const std::string& units)
 {
   if (value < 0.0) {
@@ -65,7 +90,7 @@ formatTimeWithUnits(double value, const std::string& units)
   } else {
     stream << std::fixed << std::setprecision(2) << value;
   }
-  stream << " " << units;
+  stream << " " << abbreviateUnits(units);
   return stream.str();
 }
 
