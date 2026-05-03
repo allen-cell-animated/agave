@@ -1,7 +1,9 @@
 #pragma once
 
 #include <QCheckBox>
+#include <QColor>
 #include <QFrame>
+#include <QGradient>
 #include <QGridLayout>
 #include <QParallelAnimationGroup>
 #include <QScrollArea>
@@ -52,6 +54,10 @@ public:
 
   QColor getColor() const;
   void setColor(const QColor& color);
+
+  // Set an optional colormap gradient drawn behind the section's color
+  // swatch. Pass empty stops to render a solid color swatch.
+  void setColormapStops(const QGradientStops& stops);
 
 signals:
   void checked(bool checked);

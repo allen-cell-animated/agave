@@ -6,6 +6,7 @@
 #include <QEvent>
 #include <QFormLayout>
 #include <QFrame>
+#include <QGradient>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QInputDialog>
@@ -28,7 +29,7 @@ private:
   QString tooltip2;
   QString statustip1;
   QString statustip2;
-  int state;
+  int state{ 0 };
 
 public:
   DualIconButton(const QString& tooltip1,
@@ -40,7 +41,6 @@ public:
     , tooltip2(tooltip2)
     , statustip1(statustip1)
     , statustip2(statustip2)
-    , state(0)
     , QPushButton(QIcon(), "", parent)
   {
     setToolTip(tooltip1);
@@ -82,6 +82,11 @@ public:
   QColor GetColor() const;
   void SetColor(const QColor& Color, bool BlockSignals = false);
 
+  // Optional colormap gradient drawn behind the diffuse color. When set, the
+  // swatch is rendered as the gradient multiplied by the diffuse color. Pass
+  // an empty stop list to disable the gradient and render a solid swatch.
+  void SetGradientStops(const QGradientStops& stops);
+
 private slots:
   void OnCurrentColorChanged(const QColor& Color);
 
@@ -89,9 +94,10 @@ signals:
   void currentColorChanged(const QColor&);
 
 private:
-  int m_Margin;
-  int m_Radius;
+  int m_Margin{ 4 };
+  int m_Radius{ 4 };
   QColor m_Color;
+  QGradientStops m_GradientStops;
 };
 
 class QColorSelector : public QFrame
@@ -127,9 +133,9 @@ public:
 
   void setRange(double Min, double Max);
   void setMinimum(double Min);
-  double minimum() const;
+  double dminimum() const;
   void setMaximum(double Max);
-  double maximum() const;
+  double dmaximum() const;
   double value() const;
 
   double sliderPositionToValue(int pos) const;
@@ -145,7 +151,7 @@ signals:
   void rangeChanged(double Min, double Max);
 
 private:
-  double m_Multiplier;
+  double m_Multiplier{ 10000.0 };
 
 protected:
   void wheelEvent(QWheelEvent* pEvent) override;
@@ -317,7 +323,7 @@ public:
   {
     std::vector<uint32_t> indices;
     for (uint32_t i = 0; i < m_model->rowCount(); ++i) {
-      if (m_model->item(i)->checkState() == Qt::Checked) {
+      if (m_model->item(static_cast<int>(i))->checkState() == Qt::Checked) {
         indices.push_back(i);
       }
     }

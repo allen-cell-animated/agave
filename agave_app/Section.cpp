@@ -55,8 +55,8 @@ Section::Section(const QString& title,
   int row = 0;
   m_mainLayout->addWidget(m_toggleButton, row, 0, 1, 1, Qt::AlignLeft);
   m_mainLayout->addWidget(m_headerLine, row, 2, 1, 1);
-  bool use_color_button = colorBoxInfo != nullptr;
-  if (use_color_button) {
+  bool useColorButton = colorBoxInfo != nullptr;
+  if (useColorButton) {
     m_colorButton = new QColorPushButton(this);
     m_colorButton->SetColor(colorBoxInfo->color, true);
     m_colorButton->setToolTip(QString::fromStdString(colorBoxInfo->toolTip));
@@ -65,8 +65,8 @@ Section::Section(const QString& title,
     QObject::connect(
       m_colorButton, &QColorPushButton::currentColorChanged, [this](const QColor& color) { emit colorChanged(color); });
   }
-  bool use_checkbox = checkBoxInfo != nullptr;
-  if (use_checkbox) {
+  bool useCheckbox = checkBoxInfo != nullptr;
+  if (useCheckbox) {
     m_checkBox = new QCheckBox(this);
     m_checkBox->setChecked(checkBoxInfo->is_checked);
     m_checkBox->setToolTip(QString::fromStdString(checkBoxInfo->toolTip));
@@ -145,13 +145,22 @@ Section::getColor() const
   if (m_colorButton) {
     return m_colorButton->GetColor();
   }
-  return QColor();
+  return {};
 }
 
 void
 Section::setColor(const QColor& color)
 {
   if (m_colorButton) {
-    m_colorButton->SetColor(color);
+    // note this does not emit the change event signal
+    m_colorButton->SetColor(color, true);
+  }
+}
+
+void
+Section::setColormapStops(const QGradientStops& stops)
+{
+  if (m_colorButton) {
+    m_colorButton->SetGradientStops(stops);
   }
 }

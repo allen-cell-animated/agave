@@ -28,6 +28,18 @@ colormapToGradient(const std::vector<ColorControlPoint>& v)
   return stops;
 }
 
+// Returns gradient stops to use for displaying a channel's colormap as a
+// background swatch. For "Labels" and the no-colormap entry we return an
+// empty list so the swatch falls back to a solid diffuse color.
+static QGradientStops
+swatchStopsForColorRamp(const ColorRamp& cr)
+{
+  if (cr.m_name == "Labels" || cr.m_name == ColorRamp::NO_COLORMAP_NAME) {
+    return QGradientStops();
+  }
+  return colormapToGradient(cr.m_stops);
+}
+
 class GradientCombo : public QComboBox
 {
 public:
@@ -1277,23 +1289,30 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
 
+    // Reflect the current colormap in the section's swatch. The combo's
+    // currentIndexChanged handler (registered below) keeps it in sync after
+    // user interaction.
+    section->setColormapStops(swatchStopsForColorRamp(cr));
+
     sectionLayout->addRow("ColorMap", gradients);
-    QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
+    QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, section, this](int index) {
       // get string from userdata
       std::string name = gradients->itemData(index).toString().toStdString();
 
+      ColorRamp ramp = ColorRamp::colormapFromName(name);
       if (name == "Labels") {
         if (m_scene) {
-          m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
+          m_scene->m_material.m_colormap[i] = ramp;
           m_scene->m_material.m_labels[i] = 1.0;
           m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
         }
 
       } else {
-        m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
+        m_scene->m_material.m_colormap[i] = ramp;
         m_scene->m_material.m_labels[i] = 0.0;
         m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       }
+      section->setColormapStops(swatchStopsForColorRamp(ramp));
     });
     // init after creating the callback, so that we can reinit a named colormap properly.
     gradients->setCurrentIndex(idx);
