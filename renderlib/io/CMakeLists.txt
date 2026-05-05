@@ -19,18 +19,31 @@ target_sources(renderlib PRIVATE
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.h"
 )
 
+# Locate a system libcurl up front. Both libCZI (curl-based HTTP/HTTPS stream)
+# and tensorstore link against libcurl; sharing a single system-provided copy
+# avoids the symbol/target collisions that arise when both projects try to
+# fetch and build their own curl.
+find_package(CURL REQUIRED)
+message(STATUS "Using system CURL: ${CURL_VERSION_STRING} (${CURL_LIBRARIES})")
+
 # libCZI dependency for renderlib
 # add_compile_definitions(_LIBCZISTATICLIB)
 set(LIBCZI_DO_NOT_SET_MSVC_RUNTIME_LIBRARY ON)
 set(LIBCZI_BUILD_UNITTESTS OFF)
 set(LIBCZI_BUILD_DYNLIB ON)
 set(LIBCZI_BUILD_CZICMD OFF)
+# Enable libCZI's curl-based HTTP/HTTPS input stream so we can open CZI files
+# served over the network, and have it use the system libcurl located above
+# (rather than fetching its own copy).
+set(LIBCZI_BUILD_CURL_BASED_STREAM ON)
+set(LIBCZI_BUILD_PREFER_EXTERNALPACKAGE_LIBCURL ON)
 add_subdirectory(libCZI)
 
 # end libczi dependency
 
 # tensorstore dependency for renderlib
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
+set(TENSORSTORE_USE_SYSTEM_CURL ON)
 if(APPLE)
   set(TENSORSTORE_USE_SYSTEM_ZLIB ON)
 endif(APPLE)

@@ -16,7 +16,15 @@
 std::string
 getExtension(const std::string filepath)
 {
-  std::filesystem::path fpath(filepath);
+  // For URLs, strip the query string and fragment before deriving the extension
+  // so things like "https://host/foo.czi?token=..." resolve to ".czi".
+  std::string path = filepath;
+  std::string::size_type queryPos = path.find_first_of("?#");
+  if (queryPos != std::string::npos) {
+    path.erase(queryPos);
+  }
+
+  std::filesystem::path fpath(path);
 
   std::filesystem::path ext = fpath.extension();
   std::string extstr = ext.string();
@@ -35,19 +43,19 @@ IFileReader*
 FileReader::getReader(const std::string& filepath, bool isImageSequence)
 {
   std::string extstr = getExtension(filepath);
+  bool isUrl = filepath.find("http") == 0 || filepath.find("s3:") == 0 || filepath.find("gs:") == 0;
 
   if (isImageSequence && (extstr == ".tif" || extstr == ".tiff")) {
     return new FileReaderImageSequence(filepath);
-  } else if (filepath.find("http") == 0) {
-    return new FileReaderZarr(filepath);
-  } else if (filepath.find("s3:") == 0) {
-    return new FileReaderZarr(filepath);
-  } else if (filepath.find("gs:") == 0) {
+  } else if (extstr == ".czi") {
+    // CZI works for both local files and HTTP/HTTPS URLs (libCZI curl stream).
+    return new FileReaderCzi(filepath);
+  } else if (isUrl) {
+    // Remaining URL schemes are routed to the Zarr reader (handles http/s3/gs
+    // via tensorstore).
     return new FileReaderZarr(filepath);
   } else if (extstr == ".tif" || extstr == ".tiff") {
     return new FileReaderTIFF(filepath);
-  } else if (extstr == ".czi") {
-    return new FileReaderCzi(filepath);
   } else if (extstr == ".map" || extstr == ".mrc") {
     return new FileReaderCCP4(filepath);
   } else if (extstr == ".zarr") {

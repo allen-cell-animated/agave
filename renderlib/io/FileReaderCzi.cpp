@@ -14,23 +14,54 @@
 #include <chrono>
 #include <codecvt>
 #include <map>
+#include <mutex>
 #include <set>
 
 FileReaderCzi::FileReaderCzi(const std::string& filepath) {}
 
 FileReaderCzi::~FileReaderCzi() {}
 
+namespace {
+bool
+isHttpUrl(const std::string& filepath)
+{
+  return filepath.rfind("http://", 0) == 0 || filepath.rfind("https://", 0) == 0;
+}
+
+// Initialize libCZI's stream factory exactly once. This sets up the global
+// state required by the curl-based HTTP/HTTPS input stream (when libCZI was
+// built with curl support). Safe to call from any thread.
+void
+ensureStreamsFactoryInitialized()
+{
+  static std::once_flag s_initFlag;
+  std::call_once(s_initFlag, []() { libCZI::StreamsFactory::Initialize(); });
+}
+} // namespace
+
 class ScopedCziReader
 {
 public:
   ScopedCziReader(const std::string& filepath)
   {
-    std::filesystem::path fpath(filepath);
-    const std::wstring widestr = fpath.wstring();
+    std::shared_ptr<libCZI::IStream> stream;
+    if (isHttpUrl(filepath)) {
+      ensureStreamsFactoryInitialized();
+      libCZI::StreamsFactory::CreateStreamInfo streamInfo;
+      streamInfo.class_name = "curl_http_inputstream";
+      stream = libCZI::StreamsFactory::CreateStream(streamInfo, filepath);
+      if (!stream) {
+        LOG_ERROR << "Failed to create HTTP stream for " << filepath
+                  << " (libCZI may have been built without curl support)";
+        throw std::runtime_error("Failed to create HTTP stream for CZI URL");
+      }
+    } else {
+      std::filesystem::path fpath(filepath);
+      const std::wstring widestr = fpath.wstring();
+      stream = libCZI::CreateStreamFromFile(widestr.c_str());
+    }
 
-    std::shared_ptr<libCZI::IStream> stream = libCZI::CreateStreamFromFile(widestr.c_str());
     m_reader = libCZI::CreateCZIReader();
-
     m_reader->Open(stream);
   }
   ~ScopedCziReader()
