@@ -223,10 +223,13 @@ readTiffDimensions(TIFF* tiff, const std::string filepath, VolumeDimensions& dim
       try {
         timeUnit = std::stof((*iter).second);
         if (timeUnit < 0.0f) {
+          LOG_WARNING << "Found unexpected negative frame interval in ImageJ TIFF: '" << filepath
+                      << "', negating for a positive value";
           timeUnit = -timeUnit;
         }
         if (timeUnit == 0.0f) {
-          LOG_WARNING << "Frame interval of zero in ImageJ TIFF: '" << filepath << "', using 1.0";
+          LOG_WARNING << "Frame interval of zero in ImageJ TIFF: '" << filepath
+                      << "', using frame interval of 1.0 instead";
           timeUnit = 1.0f;
         }
       } catch (...) {
