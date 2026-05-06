@@ -11,6 +11,8 @@
 class CBoundingBox;
 class ImageXYZC;
 
+struct CziReaderState;
+
 class FileReaderCzi : public IFileReader
 {
 public:
@@ -23,4 +25,7 @@ public:
   VolumeDimensions loadDimensions(const std::string& filepath, uint32_t scene = 0) override;
   uint32_t loadNumScenes(const std::string& filepath) override;
   std::vector<MultiscaleDims> loadMultiscaleDims(const std::string& filepath, uint32_t scene = 0) override;
+
+private:
+  std::unique_ptr<CziReaderState> m_state;
 };
