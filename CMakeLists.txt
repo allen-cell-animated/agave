@@ -363,6 +363,7 @@ else() # Linux
     $<TARGET_FILE:Qt6::Network>
     $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
+    $<TARGET_FILE:CURL::libcurl>
     DESTINATION ${INSTALLDIR}
   )
   install(TARGETS libCZI LIBRARY DESTINATION ${INSTALLDIR})
