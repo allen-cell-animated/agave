@@ -3,6 +3,7 @@
 #include "FileReaderCCP4.h"
 #include "FileReaderCzi.h"
 #include "FileReaderImageSequence.h"
+#include "FileReaderND2.h"
 #include "FileReaderTIFF.h"
 #include "FileReaderZarr.h"
 #include "ImageXYZC.h"
@@ -48,6 +49,8 @@ FileReader::getReader(const std::string& filepath, bool isImageSequence)
     return new FileReaderTIFF(filepath);
   } else if (extstr == ".czi") {
     return new FileReaderCzi(filepath);
+  } else if (extstr == ".nd2") {
+    return new FileReaderND2(filepath);
   } else if (extstr == ".map" || extstr == ".mrc") {
     return new FileReaderCCP4(filepath);
   } else if (extstr == ".zarr") {

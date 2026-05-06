@@ -13,6 +13,8 @@ target_sources(renderlib PRIVATE
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderCzi.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderImageSequence.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderImageSequence.h"
+"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderND2.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/FileReaderND2.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderTIFF.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/FileReaderZarr.cpp"
@@ -45,9 +47,25 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(tensorstore)
 # end tensorstore dependency
 
+# zlib + lz4 dependencies for the ND2 reader (frame decompression).
+# tensorstore already pulls zlib in; on macOS it uses the system zlib. We
+# resolve the include path / link via find_package, but use the variable
+# form (not ZLIB::ZLIB) because the imported target is not always exposed
+# in this scope after tensorstore's nested configuration.
+find_package(ZLIB REQUIRED)
+# tensorstore (via its blosc dependency) already builds LZ4 and exposes
+# the LZ4::LZ4 target with sources at ${lz4_SOURCE_DIR}/lib.
+
 target_link_libraries(renderlib
 libCZI
 
 tensorstore::tensorstore tensorstore::all_drivers
+${ZLIB_LIBRARIES}
+LZ4::LZ4
+)
+
+target_include_directories(renderlib PRIVATE
+  "${lz4_SOURCE_DIR}/lib"
+  ${ZLIB_INCLUDE_DIRS}
 )
 
