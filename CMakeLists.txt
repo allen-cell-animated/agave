@@ -81,6 +81,9 @@ list(INSERT CMAKE_PREFIX_PATH 0 ${GUESS_Qt6_DIR})
 find_package(Qt6 REQUIRED COMPONENTS Widgets Core Gui OpenGL OpenGLWidgets Network WebSockets Xml Svg REQUIRED)
 
 find_package(spdlog REQUIRED)
+# System libcurl is used by FileReaderND2 (HTTP Range reads) and shared with
+# tensorstore via TENSORSTORE_USE_SYSTEM_CURL=ON in renderlib/io/CMakeLists.txt.
+find_package(CURL REQUIRED)
 
 # if(MSVC)
 # Debug library suffix.

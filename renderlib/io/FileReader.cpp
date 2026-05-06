@@ -39,6 +39,9 @@ FileReader::getReader(const std::string& filepath, bool isImageSequence)
 
   if (isImageSequence && (extstr == ".tif" || extstr == ".tiff")) {
     return new FileReaderImageSequence(filepath);
+  } else if (extstr == ".nd2") {
+    // ND2 reader handles both local files and HTTP(S) URLs internally.
+    return new FileReaderND2(filepath);
   } else if (filepath.find("http") == 0) {
     return new FileReaderZarr(filepath);
   } else if (filepath.find("s3:") == 0) {
@@ -49,8 +52,6 @@ FileReader::getReader(const std::string& filepath, bool isImageSequence)
     return new FileReaderTIFF(filepath);
   } else if (extstr == ".czi") {
     return new FileReaderCzi(filepath);
-  } else if (extstr == ".nd2") {
-    return new FileReaderND2(filepath);
   } else if (extstr == ".map" || extstr == ".mrc") {
     return new FileReaderCCP4(filepath);
   } else if (extstr == ".zarr") {

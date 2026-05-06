@@ -7,14 +7,18 @@
 
 #include <lz4frame.h>
 #include <zlib.h>
+#include <curl/curl.h>
 
 #include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 #include <variant>
@@ -108,32 +112,68 @@ readLEdouble(const std::uint8_t* p)
 
 // ----------------- file IO wrapper -----------------
 
-// Owns an std::ifstream and provides read-at-offset semantics. Single
-// reader, single thread of access (we don't parallelize ND2 yet).
+// Returns true if `s` looks like an http:// or https:// URL.
+inline bool
+isHttpUrl(const std::string& s)
+{
+  auto starts = [&](const char* prefix) {
+    std::size_t n = std::strlen(prefix);
+    if (s.size() < n)
+      return false;
+    for (std::size_t i = 0; i < n; ++i) {
+      if (std::tolower(static_cast<unsigned char>(s[i])) != prefix[i]) {
+        return false;
+      }
+    }
+    return true;
+  };
+  return starts("http://") || starts("https://");
+}
+
+// One-time global libcurl init.
+inline void
+ensureCurlGlobalInit()
+{
+  static std::once_flag flag;
+  std::call_once(flag, []() { curl_global_init(CURL_GLOBAL_DEFAULT); });
+}
+
+// Owns either a local file handle or a libcurl easy handle bound to an
+// HTTP(S) URL, and provides read-at-offset semantics. Single reader,
+// single thread of access (we don't parallelize ND2 yet).
 class FileStream
 {
 public:
   explicit FileStream(const std::string& path)
     : m_path(path)
+    , m_isHttp(isHttpUrl(path))
   {
-    m_stream.open(path, std::ios::binary);
-    if (!m_stream.is_open()) {
-      throw std::runtime_error("ND2: failed to open file '" + path + "'");
+    if (m_isHttp) {
+      openHttp();
+    } else {
+      openLocal();
     }
-    m_stream.seekg(0, std::ios::end);
-    m_size = static_cast<std::uint64_t>(m_stream.tellg());
-    m_stream.seekg(0, std::ios::beg);
   }
+  ~FileStream()
+  {
+    if (m_curl) {
+      curl_easy_cleanup(m_curl);
+      m_curl = nullptr;
+    }
+  }
+  FileStream(const FileStream&) = delete;
+  FileStream& operator=(const FileStream&) = delete;
+
   std::uint64_t size() const { return m_size; }
+
   void readAt(std::uint64_t offset, void* dst, std::uint64_t bytes)
   {
-    m_stream.seekg(static_cast<std::streamoff>(offset), std::ios::beg);
-    if (!m_stream) {
-      throw std::runtime_error("ND2: seek failed in '" + m_path + "'");
-    }
-    m_stream.read(reinterpret_cast<char*>(dst), static_cast<std::streamsize>(bytes));
-    if (m_stream.gcount() != static_cast<std::streamsize>(bytes)) {
-      throw std::runtime_error("ND2: short read in '" + m_path + "'");
+    if (bytes == 0)
+      return;
+    if (m_isHttp) {
+      readHttp(offset, dst, bytes);
+    } else {
+      readLocal(offset, dst, bytes);
     }
   }
   std::vector<std::uint8_t> readBytes(std::uint64_t offset, std::uint64_t bytes)
@@ -146,8 +186,123 @@ public:
   }
 
 private:
+  // ---- local file backend ----
+  void openLocal()
+  {
+    m_stream.open(m_path, std::ios::binary);
+    if (!m_stream.is_open()) {
+      throw std::runtime_error("ND2: failed to open file '" + m_path + "'");
+    }
+    m_stream.seekg(0, std::ios::end);
+    m_size = static_cast<std::uint64_t>(m_stream.tellg());
+    m_stream.seekg(0, std::ios::beg);
+  }
+  void readLocal(std::uint64_t offset, void* dst, std::uint64_t bytes)
+  {
+    m_stream.seekg(static_cast<std::streamoff>(offset), std::ios::beg);
+    if (!m_stream) {
+      throw std::runtime_error("ND2: seek failed in '" + m_path + "'");
+    }
+    m_stream.read(reinterpret_cast<char*>(dst), static_cast<std::streamsize>(bytes));
+    if (m_stream.gcount() != static_cast<std::streamsize>(bytes)) {
+      throw std::runtime_error("ND2: short read in '" + m_path + "'");
+    }
+  }
+
+  // ---- HTTP backend ----
+  struct WriteCtx
+  {
+    std::uint8_t* dst;
+    std::uint64_t cap;
+    std::uint64_t got;
+  };
+  static std::size_t writeCb(char* ptr, std::size_t size, std::size_t nmemb, void* userdata)
+  {
+    auto* ctx = static_cast<WriteCtx*>(userdata);
+    std::size_t bytes = size * nmemb;
+    if (ctx->got + bytes > ctx->cap) {
+      // Server sent more than we asked for; clip.
+      bytes = static_cast<std::size_t>(ctx->cap - ctx->got);
+    }
+    if (bytes > 0) {
+      std::memcpy(ctx->dst + ctx->got, ptr, bytes);
+      ctx->got += bytes;
+    }
+    return size * nmemb; // tell curl we consumed everything to avoid abort
+  }
+  void openHttp()
+  {
+    ensureCurlGlobalInit();
+    m_curl = curl_easy_init();
+    if (!m_curl) {
+      throw std::runtime_error("ND2: curl_easy_init failed");
+    }
+    // HEAD request to discover content length and confirm reachability.
+    curl_easy_setopt(m_curl, CURLOPT_URL, m_path.c_str());
+    curl_easy_setopt(m_curl, CURLOPT_NOBODY, 1L);
+    curl_easy_setopt(m_curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(m_curl, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(m_curl, CURLOPT_CONNECTTIMEOUT, 30L);
+    CURLcode rc = curl_easy_perform(m_curl);
+    if (rc != CURLE_OK) {
+      std::string err = curl_easy_strerror(rc);
+      curl_easy_cleanup(m_curl);
+      m_curl = nullptr;
+      throw std::runtime_error("ND2: HEAD failed for '" + m_path + "': " + err);
+    }
+    long httpCode = 0;
+    curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &httpCode);
+    if (httpCode >= 400) {
+      curl_easy_cleanup(m_curl);
+      m_curl = nullptr;
+      throw std::runtime_error("ND2: HEAD returned HTTP " + std::to_string(httpCode) + " for '" + m_path + "'");
+    }
+    curl_off_t len = -1;
+    curl_easy_getinfo(m_curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &len);
+    if (len < 0) {
+      curl_easy_cleanup(m_curl);
+      m_curl = nullptr;
+      throw std::runtime_error("ND2: server did not report Content-Length for '" + m_path + "'");
+    }
+    m_size = static_cast<std::uint64_t>(len);
+    // Switch the handle to GET for subsequent range reads.
+    curl_easy_setopt(m_curl, CURLOPT_NOBODY, 0L);
+    curl_easy_setopt(m_curl, CURLOPT_HTTPGET, 1L);
+    curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, &FileStream::writeCb);
+  }
+  void readHttp(std::uint64_t offset, void* dst, std::uint64_t bytes)
+  {
+    char range[64];
+    std::snprintf(range,
+                  sizeof(range),
+                  "%llu-%llu",
+                  static_cast<unsigned long long>(offset),
+                  static_cast<unsigned long long>(offset + bytes - 1));
+    WriteCtx ctx{ static_cast<std::uint8_t*>(dst), bytes, 0 };
+    curl_easy_setopt(m_curl, CURLOPT_RANGE, range);
+    curl_easy_setopt(m_curl, CURLOPT_WRITEDATA, &ctx);
+    CURLcode rc = curl_easy_perform(m_curl);
+    if (rc != CURLE_OK) {
+      throw std::runtime_error(std::string("ND2: HTTP range read failed: ") + curl_easy_strerror(rc));
+    }
+    long httpCode = 0;
+    curl_easy_getinfo(m_curl, CURLINFO_RESPONSE_CODE, &httpCode);
+    // 206 = partial content; 200 is acceptable only if server returned
+    // the whole file and we got at least the bytes we wanted.
+    if (httpCode != 206 && httpCode != 200) {
+      throw std::runtime_error("ND2: unexpected HTTP status " + std::to_string(httpCode) + " for range read of '" +
+                               m_path + "'");
+    }
+    if (ctx.got < bytes) {
+      throw std::runtime_error("ND2: short HTTP read (" + std::to_string(ctx.got) + " of " + std::to_string(bytes) +
+                               " bytes) from '" + m_path + "'");
+    }
+  }
+
   std::string m_path;
+  bool m_isHttp{ false };
   std::ifstream m_stream;
+  CURL* m_curl{ nullptr };
   std::uint64_t m_size{ 0 };
 };
 

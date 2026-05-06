@@ -33,6 +33,7 @@ add_subdirectory(libCZI)
 
 # tensorstore dependency for renderlib
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
+set(TENSORSTORE_USE_SYSTEM_CURL ON)
 if(APPLE)
   set(TENSORSTORE_USE_SYSTEM_ZLIB ON)
 endif(APPLE)
@@ -56,12 +57,18 @@ find_package(ZLIB REQUIRED)
 # tensorstore (via its blosc dependency) already builds LZ4 and exposes
 # the LZ4::LZ4 target with sources at ${lz4_SOURCE_DIR}/lib.
 
+# System libcurl is used by FileReaderND2 for HTTP/HTTPS Range requests so
+# that ND2 files can be streamed without downloading the whole file. The
+# find_package call lives in the top-level CMakeLists.txt so the
+# CURL::libcurl target is visible when renderlib is created.
+
 target_link_libraries(renderlib
 libCZI
 
 tensorstore::tensorstore tensorstore::all_drivers
 ${ZLIB_LIBRARIES}
 LZ4::LZ4
+CURL::libcurl
 )
 
 target_include_directories(renderlib PRIVATE
