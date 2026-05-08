@@ -644,17 +644,35 @@ stripLowerPrefix(const std::string& s)
   return s.substr(i);
 }
 
+// Maximum recursion depth for nested CLX-Lite LEVEL / Compress records.
+// ND2 metadata is normally only a few levels deep; a hard cap protects
+// against stack exhaustion on malformed or pathologically nested input.
+constexpr int kLiteMaxDepth = 64;
+
 // Forward decl for recursion.
 void
-parseLiteSequence(const std::uint8_t* data, std::size_t size, std::size_t count, LiteDict& out, bool stripPrefix);
+parseLiteSequence(const std::uint8_t* data,
+                  std::size_t size,
+                  std::size_t count,
+                  LiteDict& out,
+                  bool stripPrefix,
+                  int depth);
 
 // Parse a single CLX-Lite record from `data[offset..size)`. Returns true if
 // a record was consumed; false if the buffer is exhausted. On success,
 // updates `offset` to point past the record and emplaces (name, value)
 // into `out`. Repeated names accumulate into a LiteList.
 bool
-parseLiteRecord(const std::uint8_t* data, std::size_t size, std::size_t& offset, LiteDict& out, bool stripPrefix)
+parseLiteRecord(const std::uint8_t* data,
+                std::size_t size,
+                std::size_t& offset,
+                LiteDict& out,
+                bool stripPrefix,
+                int depth)
 {
+  if (depth > kLiteMaxDepth) {
+    return false;
+  }
   if (offset + 2 > size) {
     return false;
   }
@@ -684,20 +702,25 @@ parseLiteRecord(const std::uint8_t* data, std::size_t size, std::size_t& offset,
     }
     std::vector<std::uint8_t> inflated;
     inflated.reserve(deflated.size() * 4);
-    std::uint8_t buf[64 * 1024];
+    // NOTE: previously this buffer was on the stack as `std::uint8_t buf[64 *
+    // 1024]`. Because parseLiteRecord recurses (Compress payloads can
+    // themselves contain Compress/Level records), a chain of nested Compress
+    // records would consume 64 KB of stack per frame and overflow the
+    // default 1 MB Windows thread stack within ~16 levels. Heap-allocate it.
+    std::vector<std::uint8_t> buf(64 * 1024);
     int rc = Z_OK;
     do {
-      zs.next_out = buf;
-      zs.avail_out = sizeof(buf);
+      zs.next_out = buf.data();
+      zs.avail_out = static_cast<uInt>(buf.size());
       rc = inflate(&zs, Z_NO_FLUSH);
       if (rc != Z_OK && rc != Z_STREAM_END) {
         inflateEnd(&zs);
         return false;
       }
-      inflated.insert(inflated.end(), buf, buf + (sizeof(buf) - zs.avail_out));
+      inflated.insert(inflated.end(), buf.data(), buf.data() + (buf.size() - zs.avail_out));
     } while (rc != Z_STREAM_END);
     inflateEnd(&zs);
-    parseLiteSequence(inflated.data(), inflated.size(), 1u, out, stripPrefix);
+    parseLiteSequence(inflated.data(), inflated.size(), 1u, out, stripPrefix, depth + 1);
     return true;
   }
 
@@ -835,7 +858,7 @@ parseLiteRecord(const std::uint8_t* data, std::size_t size, std::size_t& offset,
         return false;
       }
       LiteDict nested;
-      parseLiteSequence(data + offset, bodySize, itemCount, nested, stripPrefix);
+      parseLiteSequence(data + offset, bodySize, itemCount, nested, stripPrefix, depth + 1);
       offset += bodySize;
       // Trailing footer: itemCount * 8 bytes of (offset/index?) we skip.
       std::size_t trailer = static_cast<std::size_t>(itemCount) * 8u;
@@ -872,14 +895,28 @@ parseLiteRecord(const std::uint8_t* data, std::size_t size, std::size_t& offset,
 }
 
 void
-parseLiteSequence(const std::uint8_t* data, std::size_t size, std::size_t count, LiteDict& out, bool stripPrefix)
+parseLiteSequence(const std::uint8_t* data,
+                  std::size_t size,
+                  std::size_t count,
+                  LiteDict& out,
+                  bool stripPrefix,
+                  int depth)
 {
+  if (depth > kLiteMaxDepth) {
+    return;
+  }
   std::size_t offset = 0;
   for (std::size_t i = 0; i < count; ++i) {
     if (offset >= size) {
       break;
     }
-    if (!parseLiteRecord(data, size, offset, out, stripPrefix)) {
+    std::size_t prevOffset = offset;
+    if (!parseLiteRecord(data, size, offset, out, stripPrefix, depth)) {
+      break;
+    }
+    // Safety: parseLiteRecord must always advance. Without this guard a
+    // record that returns true without consuming bytes would spin forever.
+    if (offset == prevOffset) {
       break;
     }
   }
@@ -898,7 +935,7 @@ decodeChunkVariant(const std::vector<std::uint8_t>& data)
     return LiteValue(LiteDict{});
   }
   LiteDict root;
-  parseLiteSequence(data.data(), data.size(), 1u, root, false);
+  parseLiteSequence(data.data(), data.size(), 1u, root, false, 0);
   return LiteValue(std::move(root));
 }
 
