@@ -34,9 +34,10 @@ add_subdirectory(libCZI)
 # tensorstore dependency for renderlib
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
 set(TENSORSTORE_USE_SYSTEM_CURL ON)
-if(APPLE)
-  set(TENSORSTORE_USE_SYSTEM_ZLIB ON)
-endif(APPLE)
+# Always use the system zlib (macOS: system-provided; Linux: zlib1g-dev;
+# Windows: vcpkg). Otherwise tensorstore's bundled zlib FetchContent
+# collides with the ZLIB::ZLIB target created by find_package(ZLIB) below.
+set(TENSORSTORE_USE_SYSTEM_ZLIB ON)
 FetchContent_Declare(
 	tensorstore
         URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.78.tar.gz"
@@ -49,11 +50,9 @@ FetchContent_MakeAvailable(tensorstore)
 # end tensorstore dependency
 
 # zlib + lz4 dependencies for the ND2 reader (frame decompression).
-# tensorstore already pulls zlib in; on macOS it uses the system zlib. We
-# resolve the include path / link via find_package, but use the variable
-# form (not ZLIB::ZLIB) because the imported target is not always exposed
-# in this scope after tensorstore's nested configuration.
-find_package(ZLIB REQUIRED)
+# tensorstore reuses the system zlib (TENSORSTORE_USE_SYSTEM_ZLIB=ON above).
+# find_package(ZLIB) is called from the top-level CMakeLists.txt so the
+# ZLIB::ZLIB imported target is visible here and to install().
 # tensorstore (via its blosc dependency) already builds LZ4 and exposes
 # the LZ4::LZ4 target with sources at ${lz4_SOURCE_DIR}/lib.
 
@@ -66,13 +65,12 @@ target_link_libraries(renderlib
 libCZI
 
 tensorstore::tensorstore tensorstore::all_drivers
-${ZLIB_LIBRARIES}
+ZLIB::ZLIB
 LZ4::LZ4
 CURL::libcurl
 )
 
 target_include_directories(renderlib PRIVATE
   "${lz4_SOURCE_DIR}/lib"
-  ${ZLIB_INCLUDE_DIRS}
 )
 

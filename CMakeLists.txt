@@ -84,6 +84,10 @@ find_package(spdlog REQUIRED)
 # System libcurl is used by FileReaderND2 (HTTP Range reads) and shared with
 # tensorstore via TENSORSTORE_USE_SYSTEM_CURL=ON in renderlib/io/CMakeLists.txt.
 find_package(CURL REQUIRED)
+# System zlib is used by ND2 frame decompression and shared with tensorstore
+# via TENSORSTORE_USE_SYSTEM_ZLIB=ON in renderlib/io/CMakeLists.txt. Find it
+# at the top level so the ZLIB::ZLIB imported target is visible to install().
+find_package(ZLIB REQUIRED)
 
 # if(MSVC)
 # Debug library suffix.
@@ -364,6 +368,7 @@ else() # Linux
     $<TARGET_FILE:Qt6::WebSockets>
     $<TARGET_FILE:TIFF::TIFF>
     $<TARGET_FILE:CURL::libcurl>
+    $<TARGET_FILE:ZLIB::ZLIB>
     DESTINATION ${INSTALLDIR}
   )
   install(TARGETS libCZI LIBRARY DESTINATION ${INSTALLDIR})
