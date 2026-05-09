@@ -16,6 +16,8 @@ struct VolumeDimensions
   float physicalSizeZ = 1.0f;
   // currently assumes xyz same unit
   std::string spatialUnits = "units";
+  float timeUnit = 1.0f;
+  std::string timeUnits = "s";
   uint32_t bitsPerPixel = 16;
   // SAMPLEFORMAT_UINT = 1;
   // SAMPLEFORMAT_INT = 2;
@@ -33,6 +35,11 @@ struct VolumeDimensions
   std::vector<std::string> getChannelNames(const std::vector<uint32_t>& channels) const;
 
   static std::string sanitizeUnitsString(std::string units);
+
+  // Convert a value expressed in the given time-unit string (NGFF/OME long
+  // form or its abbreviation, e.g. "millisecond"/"ms") to seconds. Unknown
+  // unit strings are treated as seconds.
+  static double timeToSeconds(double value, const std::string& units);
 };
 
 struct MultiscaleDims
@@ -44,6 +51,7 @@ struct MultiscaleDims
   std::string path;
   std::vector<std::string> channelNames;
   std::string spatialUnits = "units";
+  std::string timeUnits = "s";
 
   bool hasDim(const std::string& dim) const;
   int64_t sizeT() const;
@@ -54,6 +62,7 @@ struct MultiscaleDims
   float scaleX() const;
   float scaleY() const;
   float scaleZ() const;
+  float scaleT() const;
 
   VolumeDimensions getVolumeDimensions() const;
 };

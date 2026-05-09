@@ -80,5 +80,18 @@ TEST_CASE("VolumeDimensions", "[volumeDimensions]")
       REQUIRE(!d.validate());
     }
   }
+  SECTION("invalid timeUnit is rejected")
+  {
+    {
+      VolumeDimensions d;
+      d.timeUnit = 0.0f;
+      REQUIRE(!d.validate());
+    }
+    {
+      VolumeDimensions d;
+      d.timeUnit = -1.0f;
+      REQUIRE(!d.validate());
+    }
+  }
   Logging::Enable(true);
 }

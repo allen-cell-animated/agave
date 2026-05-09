@@ -1023,6 +1023,30 @@ class AgaveRenderer:
         # 51
         self.cb.add_command("SET_SKYLIGHT_ROTATION", x, y, z, w)
 
+    def show_time_stamp(self, on: int):
+        """
+        Turn timestamp display on or off
+
+        Parameters
+        ----------
+        on: int
+            0 to hide timestamps, 1 to show them
+        """
+        # 52
+        self.cb.add_command("SHOW_TIME_STAMP", on)
+
+    def set_time_stamp_format(self, format: int):
+        """
+        Set the timestamp display format
+
+        Parameters
+        ----------
+        format: int
+            0 for HH:MM:SS, 1 for time units
+        """
+        # 53
+        self.cb.add_command("SET_TIME_STAMP_FORMAT", format)
+
     def batch_render_turntable(
         self, number_of_frames=90, direction=1, output_name="frame", first_frame=0
     ):

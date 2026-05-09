@@ -5,6 +5,7 @@
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
 #include "renderlib/ScaleBarTool.h"
+#include "renderlib/TimeStampTool.h"
 #include "renderlib/graphics/RenderGLPT.h"
 #include "renderlib/io/FileReader.h"
 #include "renderlib/renderlib.h"
@@ -127,6 +128,9 @@ OffscreenRenderer::render()
   BoundingBoxTool bbox;
   bbox.clear();
   bbox.draw(sceneView, m_myVolumeData.m_gesture);
+  TimeStampTool timestamp;
+  timestamp.clear();
+  timestamp.draw(sceneView, m_myVolumeData.m_gesture);
 
   m_fbo->bind();
   clearFramebuffer(sceneView.scene);
@@ -543,6 +547,13 @@ int
 OffscreenRenderer::ShowScaleBar(int32_t on)
 {
   ShowScaleBarCommand cmd({ on });
+  cmd.execute(&m_ec);
+  return 1;
+}
+int
+OffscreenRenderer::ShowTimeStamp(int32_t on)
+{
+  ShowTimeStampCommand cmd({ on });
   cmd.execute(&m_ec);
   return 1;
 }
