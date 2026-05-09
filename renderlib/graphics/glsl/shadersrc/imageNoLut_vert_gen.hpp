@@ -24,4 +24,5 @@ main()
 
 )";
 
-const std::string imageNoLut_vert_src = imageNoLut_vert_chunk_0;
+const std::string imageNoLut_vert_src = 
+    imageNoLut_vert_chunk_0;

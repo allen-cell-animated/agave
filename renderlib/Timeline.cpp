@@ -19,7 +19,8 @@ Timeline::forceInRange(int32_t t)
 
 Timeline::Timeline()
   : Timeline(0, 0)
-{}
+{
+}
 
 Timeline::Timeline(int32_t minTime, int32_t maxTime, WrapMode wrapMode)
   : m_MinTime(minTime)
@@ -27,7 +28,8 @@ Timeline::Timeline(int32_t minTime, int32_t maxTime, WrapMode wrapMode)
   , m_CurrentTime(minTime)
   , m_RangeSize(maxTime - minTime + 1)
   , m_wrapMode(wrapMode)
-{}
+{
+}
 
 int32_t
 Timeline::increment(int32_t delta)
@@ -51,4 +53,16 @@ Timeline::setRange(int32_t minT, int32_t maxT)
   m_RangeSize = m_MaxTime - m_MinTime + 1;
 
   m_CurrentTime = forceInRange(m_CurrentTime);
+}
+
+void
+Timeline::setTimeUnit(double timeUnit)
+{
+  m_TimeUnit = (timeUnit > 0.0) ? timeUnit : 1.0;
+}
+
+double
+Timeline::toPhysicalTime(int32_t t) const
+{
+  return static_cast<double>(t) * m_TimeUnit;
 }

@@ -1,12 +1,18 @@
 #include "ViewerWindow.h"
 
+#include <memory>
+
+#include "AppScene.h"
 #include "AxisHelperTool.h"
 #include "BoundingBoxTool.h"
 #include "IRenderWindow.h"
+#include "Light.h"
 #include "MoveTool.h"
 #include "RenderSettings.h"
 #include "RotateTool.h"
 #include "ScaleBarTool.h"
+#include "SceneLight.h"
+#include "TimeStampTool.h"
 #include "graphics/RenderGL.h"
 #include "graphics/RenderGLPT.h"
 #include "graphics/GestureGraphicsGL.h"
@@ -17,13 +23,13 @@ ViewerWindow::ViewerWindow(RenderSettings* rs)
   : m_renderSettings(rs)
   , m_renderer(new RenderGLPT(rs))
   , m_gestureRenderer(new GestureRendererGL())
-  , m_rendererType(1)
 {
   gesture.input.reset();
 
   m_tools.push_back(new ScaleBarTool());
   m_tools.push_back(new AxisHelperTool());
   m_tools.push_back(new BoundingBoxTool());
+  m_tools.push_back(new TimeStampTool());
 }
 
 ViewerWindow::~ViewerWindow()
@@ -95,7 +101,7 @@ ViewerWindow::updateCamera()
   if (!m_cameraAnim.empty()) {
     for (auto it = m_cameraAnim.begin(); it != m_cameraAnim.end();) {
       CameraAnimation& anim = *it;
-      anim.time += m_clock.timeIncrement;
+      anim.time += static_cast<float>(m_clock.timeIncrement);
 
       if (anim.time < anim.duration) { // alpha < 1.0) {
         float alpha = glm::smoothstep(0.0f, 1.0f, glm::clamp(anim.time / anim.duration, 0.0f, 1.0f));
@@ -128,6 +134,42 @@ ViewerWindow::updateCamera()
 
   sceneView.camera = renderCamera;
   sceneView.camera.Update();
+
+  // Update lights to maintain fixed direction relative to camera view when enabled.
+  if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
+    if (cameraEdit) {
+      // If we just started editing the camera, we need to capture the current view-space
+      // basis from the pre-transformed camera (m_CCamera) for the lights to
+      // maintain their orientation relative to the camera view during the edit.
+      if (!m_wasCameraBeingEdited) {
+        sceneView.scene->m_lighting.captureLightsViewSpaceBasis(m_CCamera);
+      }
+      // Restore the lights' view-space basis on the post-transformed camera
+      sceneView.scene->m_lighting.restoreLightsViewSpaceBasis(sceneView.camera, m_renderSettings);
+    }
+  }
+
+  // Track camera edit state for next frame
+  m_wasCameraBeingEdited = cameraEdit;
+}
+
+void
+ViewerWindow::beginCameraChange()
+{
+  if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
+    sceneView.scene->m_lighting.captureLightsViewSpaceBasis(m_CCamera);
+  }
+}
+
+void
+ViewerWindow::endCameraChange()
+{
+  m_CCamera.Update();
+  sceneView.camera = m_CCamera;
+  sceneView.camera.Update();
+  if (sceneView.scene && sceneView.scene->m_lighting.lockToCamera) {
+    sceneView.scene->m_lighting.restoreLightsViewSpaceBasis(sceneView.camera, m_renderSettings);
+  }
 }
 
 void
@@ -144,6 +186,7 @@ ViewerWindow::update(const SceneView::Viewport& viewport, const Clock& clock, Ge
     if (sceneView.scene->m_clipPlane) {
       if (sceneView.scene->m_clipPlane->m_enabled) {
         if (sceneView.scene->m_clipPlane->getTool()) {
+          // add to sceneTools, a temporary array per-update
           sceneTools.push_back(sceneView.scene->m_clipPlane->getTool());
         }
       }
@@ -299,17 +342,17 @@ ViewerWindow::setRenderer(int rendererType)
   switch (rendererType) {
     case 1:
       LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderer = std::make_unique<RenderGLPT>(m_renderSettings);
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     case 2:
       LOG_DEBUG << "Set OpenGL pathtrace Renderer";
-      m_renderer.reset(new RenderGLPT(m_renderSettings));
+      m_renderer = std::make_unique<RenderGLPT>(m_renderSettings);
       m_renderSettings->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       break;
     default:
       LOG_DEBUG << "Set OpenGL single pass Renderer";
-      m_renderer.reset(new RenderGL(m_renderSettings));
+      m_renderer = std::make_unique<RenderGL>(m_renderSettings);
   };
   m_rendererType = rendererType;
 

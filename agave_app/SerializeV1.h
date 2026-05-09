@@ -171,6 +171,8 @@ struct LightSettings_V1
   float bottomColorIntensity = 1.0f;
   float width = 1.0f;
   float height = 1.0f;
+  // quaternion in xyzw order; identity by default
+  std::array<float, 4> rotation = { 0.0f, 0.0f, 0.0f, 1.0f };
 
   bool operator==(const LightSettings_V1& other) const
   {
@@ -178,23 +180,25 @@ struct LightSettings_V1
            color == other.color && colorIntensity == other.colorIntensity && topColor == other.topColor &&
            topColorIntensity == other.topColorIntensity && middleColor == other.middleColor &&
            middleColorIntensity == other.middleColorIntensity && bottomColor == other.bottomColor &&
-           bottomColorIntensity == other.bottomColorIntensity && width == other.width && height == other.height;
+           bottomColorIntensity == other.bottomColorIntensity && width == other.width && height == other.height &&
+           rotation == other.rotation;
   }
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(LightSettings_V1,
-                                 type,
-                                 distance,
-                                 theta,
-                                 phi,
-                                 color,
-                                 colorIntensity,
-                                 topColor,
-                                 topColorIntensity,
-                                 middleColor,
-                                 middleColorIntensity,
-                                 bottomColor,
-                                 bottomColorIntensity,
-                                 width,
-                                 height)
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(LightSettings_V1,
+                                              type,
+                                              distance,
+                                              theta,
+                                              phi,
+                                              color,
+                                              colorIntensity,
+                                              topColor,
+                                              topColorIntensity,
+                                              middleColor,
+                                              middleColorIntensity,
+                                              bottomColor,
+                                              bottomColorIntensity,
+                                              width,
+                                              height,
+                                              rotation)
 };
 
 struct ViewerState_V1

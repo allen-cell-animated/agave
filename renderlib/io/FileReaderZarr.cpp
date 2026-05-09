@@ -238,7 +238,7 @@ getSpatialUnit(nlohmann::json axes)
   for (auto axis : axes) {
     // use first spatial axis.
     // identify spatial axis by type=space or name=z,y,x
-    std::string type = axis["type"];
+    std::string type = axis.value("type", "");
     if (type == "space") {
       auto unitobj = axis["unit"];
       if (unitobj.is_string()) {
@@ -246,12 +246,38 @@ getSpatialUnit(nlohmann::json axes)
         return unit;
       }
     }
-    std::string name = axis["name"];
+    std::string name = axis.value("name", "");
     std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::toupper(c); });
     if (name == "Z" || name == "Y" || name == "X") {
       auto unitobj = axis["unit"];
       if (unitobj.is_string()) {
         unit = unitobj;
+        return unit;
+      }
+    }
+  }
+  return unit;
+}
+
+std::string
+getTimeUnit(nlohmann::json axes)
+{
+  std::string unit = "s";
+  for (auto axis : axes) {
+    std::string type = axis.value("type", "");
+    if (type == "time") {
+      std::string u = axis.value("unit", "");
+      if (!u.empty()) {
+        unit = u;
+        return unit;
+      }
+    }
+    std::string name = axis.value("name", "");
+    std::transform(name.begin(), name.end(), name.begin(), [](unsigned char c) { return std::toupper(c); });
+    if (name == "T") {
+      std::string u = axis.value("unit", "");
+      if (!u.empty()) {
+        unit = u;
         return unit;
       }
     }
@@ -386,6 +412,7 @@ FileReaderZarr::loadMultiscaleDims(const std::string& filepath, uint32_t scene)
               zmd.path = pathstr;
               zmd.channelNames = channelNames;
               zmd.spatialUnits = VolumeDimensions::sanitizeUnitsString(getSpatialUnit(axes));
+              zmd.timeUnits = VolumeDimensions::sanitizeUnitsString(getTimeUnit(axes));
               multiscaleDims.push_back(zmd);
             }
           }

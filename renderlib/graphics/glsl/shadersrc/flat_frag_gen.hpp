@@ -18,4 +18,5 @@ void main() {
 
 )";
 
-const std::string flat_frag_src = flat_frag_chunk_0;
+const std::string flat_frag_src = 
+    flat_frag_chunk_0;

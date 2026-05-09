@@ -9,8 +9,6 @@
 
 QColorPushButton::QColorPushButton(QWidget* pParent)
   : QPushButton(pParent)
-  , m_Margin(4)
-  , m_Radius(4)
   , m_Color(Qt::gray)
 {
   setText("");
@@ -27,8 +25,12 @@ QColorPushButton::paintEvent(QPaintEvent* pPaintEvent)
 
   QPainter painter(this);
 
-  // Get button rectangle
-  QRect colorRectangle = pPaintEvent->rect();
+  // Use the widget's full rectangle, not pPaintEvent->rect(). The event rect
+  // is only the dirty sub-region (e.g. the strip newly exposed by scrolling),
+  // and painting our rounded swatch into that strip alone leaves stale pixels
+  // banding the rest of the button until the next full repaint. Qt will clip
+  // our drawing to the actual dirty region automatically.
+  QRect colorRectangle = rect();
 
   // Deflate it
   colorRectangle.adjust(m_Margin, m_Margin, -m_Margin, -m_Margin);
@@ -38,9 +40,26 @@ QColorPushButton::paintEvent(QPaintEvent* pPaintEvent)
 
   QPainterPath path;
   path.addRoundedRect(colorRectangle, m_Radius, m_Radius, Qt::AbsoluteSize);
+
+  if (isEnabled() && !m_GradientStops.isEmpty()) {
+    // Render the colormap gradient multiplied by the diffuse color, clipped
+    // to the rounded rect.
+    QLinearGradient gradient(colorRectangle.topLeft(), colorRectangle.topRight());
+    gradient.setStops(m_GradientStops);
+
+    painter.save();
+    painter.setClipPath(path);
+    painter.fillRect(colorRectangle, gradient);
+    painter.setCompositionMode(QPainter::CompositionMode_Multiply);
+    painter.fillRect(colorRectangle, m_Color);
+    painter.restore();
+  } else {
+    painter.fillPath(path, isEnabled() ? m_Color : Qt::lightGray);
+  }
+
   QPen pen(isEnabled() ? QColor(25, 25, 25) : Qt::darkGray, 0.5);
   painter.setPen(pen);
-  painter.fillPath(path, isEnabled() ? m_Color : Qt::lightGray);
+  painter.setBrush(Qt::NoBrush);
   painter.drawPath(path);
 }
 
@@ -49,6 +68,13 @@ QColorPushButton::mousePressEvent(QMouseEvent* pEvent)
 {
   QColor lastColor = m_Color;
   QColorDialog colorDialog;
+  colorDialog.setCustomColor(0, QColor(Qt::white));
+  colorDialog.setCustomColor(1, QColor(Qt::red));
+  colorDialog.setCustomColor(2, QColor(Qt::green));
+  colorDialog.setCustomColor(3, QColor(Qt::blue));
+  colorDialog.setCustomColor(4, QColor(Qt::cyan));
+  colorDialog.setCustomColor(5, QColor(Qt::magenta));
+  colorDialog.setCustomColor(6, QColor(Qt::yellow));
 
   connect(&colorDialog, SIGNAL(currentColorChanged(const QColor&)), this, SLOT(OnCurrentColorChanged(const QColor&)));
 
@@ -123,6 +149,13 @@ QColorPushButton::OnCurrentColorChanged(const QColor& color)
   emit currentColorChanged(m_Color);
 }
 
+void
+QColorPushButton::SetGradientStops(const QGradientStops& stops)
+{
+  m_GradientStops = stops;
+  update();
+}
+
 QColorSelector::QColorSelector(QWidget* pParent /*= NULL*/)
   : QFrame(pParent)
   , m_ColorButton()
@@ -161,7 +194,6 @@ QColorSelector::OnCurrentColorChanged(const QColor& color)
 
 QDoubleSlider::QDoubleSlider(QWidget* pParent /*= NULL*/)
   : QSlider(pParent)
-  , m_Multiplier(10000.0)
 {
   connect(this, SIGNAL(valueChanged(int)), this, SLOT(setValue(int)));
 
@@ -182,7 +214,7 @@ QDoubleSlider::setValue(double value, bool blockSignals)
 {
   QSlider::blockSignals(blockSignals);
 
-  QSlider::setValue(value * m_Multiplier);
+  QSlider::setValue(static_cast<int>(value * m_Multiplier));
 
   if (!blockSignals)
     emit valueChanged(value);
@@ -193,7 +225,7 @@ QDoubleSlider::setValue(double value, bool blockSignals)
 void
 QDoubleSlider::setRange(double rmin, double rmax)
 {
-  QSlider::setRange(rmin * m_Multiplier, rmax * m_Multiplier);
+  QSlider::setRange(static_cast<int>(rmin * m_Multiplier), static_cast<int>(rmax * m_Multiplier));
 
   emit rangeChanged(rmin, rmax);
 }
@@ -201,13 +233,13 @@ QDoubleSlider::setRange(double rmin, double rmax)
 void
 QDoubleSlider::setMinimum(double dmin)
 {
-  QSlider::setMinimum(dmin * m_Multiplier);
+  QSlider::setMinimum(static_cast<int>(dmin * m_Multiplier));
 
-  emit rangeChanged(minimum(), maximum());
+  emit rangeChanged(dminimum(), dmaximum());
 }
 
 double
-QDoubleSlider::minimum() const
+QDoubleSlider::dminimum() const
 {
   return QSlider::minimum() / m_Multiplier;
 }
@@ -215,13 +247,13 @@ QDoubleSlider::minimum() const
 void
 QDoubleSlider::setMaximum(double dmax)
 {
-  QSlider::setMaximum(dmax * m_Multiplier);
+  QSlider::setMaximum(static_cast<int>(dmax * m_Multiplier));
 
-  emit rangeChanged(minimum(), maximum());
+  emit rangeChanged(dminimum(), dmaximum());
 }
 
 double
-QDoubleSlider::maximum() const
+QDoubleSlider::dmaximum() const
 {
   return QSlider::maximum() / m_Multiplier;
 }
@@ -332,7 +364,7 @@ QNumericSlider::QNumericSlider(QWidget* pParent /*= NULL*/)
 QSize
 QNumericSlider::sizeHint() const
 {
-  return QSize(100, 20);
+  return { 100, 20 };
 }
 
 void

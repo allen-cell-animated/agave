@@ -244,6 +244,16 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_g == data.m_g);
     REQUIRE(cmd->m_data.m_b == data.m_b);
   }
+  SECTION("SetSkylightRotationCommand")
+  {
+    SetSkylightRotationCommandD data = { 0.1f, 0.2f, 0.3f, 0.9f };
+    auto cmd = testcodec<SetSkylightRotationCommand, SetSkylightRotationCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_skylight_rotation(0.1, 0.2, 0.3, 0.9)");
+    REQUIRE(cmd->m_data.m_x == data.m_x);
+    REQUIRE(cmd->m_data.m_y == data.m_y);
+    REQUIRE(cmd->m_data.m_z == data.m_z);
+    REQUIRE(cmd->m_data.m_w == data.m_w);
+  }
   SECTION("SetLightPosCommand")
   {
     SetLightPosCommandD data = { 1, 0.25, 0.5, 0.333 };
@@ -435,6 +445,13 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->toPythonString() == "show_scale_bar(1)");
     REQUIRE(cmd->m_data.m_on == data.m_on);
   }
+  SECTION("ShowTimeStampCommand")
+  {
+    ShowTimeStampCommandD data = { 1 };
+    auto cmd = testcodec<ShowTimeStampCommand, ShowTimeStampCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "show_time_stamp(1)");
+    REQUIRE(cmd->m_data.m_on == data.m_on);
+  }
   SECTION("SetFlipAxisCommand")
   {
     SetFlipAxisCommandD data = { 1, -1, -1 };
@@ -478,5 +495,12 @@ TEST_CASE("Commands can write and read from binary", "[command]")
     REQUIRE(cmd->m_data.m_channel == data.m_channel);
     REQUIRE(cmd->m_data.m_min == data.m_min);
     REQUIRE(cmd->m_data.m_max == data.m_max);
+  }
+  SECTION("SetTimeStampFormatCommand")
+  {
+    SetTimeStampFormatCommandD data = { 1 };
+    auto cmd = testcodec<SetTimeStampFormatCommand, SetTimeStampFormatCommandD>(data);
+    REQUIRE(cmd->toPythonString() == "set_time_stamp_format(1)");
+    REQUIRE(cmd->m_data.m_format == data.m_format);
   }
 }

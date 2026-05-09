@@ -105,6 +105,7 @@ public:
   int SetBoundingBoxColor(float, float, float) override;
   int ShowBoundingBox(int32_t) override;
   int ShowScaleBar(int32_t) override;
+  int ShowTimeStamp(int32_t) override;
   int SetFlipAxis(int32_t, int32_t, int32_t) override;
   int SetInterpolation(int32_t) override;
 

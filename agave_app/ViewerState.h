@@ -13,6 +13,7 @@
 #include <QString>
 
 class Light;
+class SceneLight;
 
 QString
 stateToPythonScript(const Serialize::ViewerState& state);
@@ -29,14 +30,21 @@ stateToGradientData(const Serialize::ViewerState& state, int channelIndex);
 ColorRamp
 stateToColorRamp(const Serialize::ViewerState& state, int channelIndex);
 
-Light
-stateToLight(const Serialize::ViewerState& state, int lightIndex);
+// Apply the serialized light settings at lightIndex to the given SceneLight,
+// including the saved rotation quaternion. The SceneLight must already wrap a
+// Light of the matching type, and its bounding-box-derived target must be set
+// (e.g. via Scene::initBounds) before calling so the transform is centered
+// correctly.
+void
+stateToLight(const Serialize::ViewerState& state, int lightIndex, SceneLight& sceneLight);
 
 Serialize::LoadSettings
 fromLoadSpec(const LoadSpec& loadSpec);
 
+// Capture both the Light parameters and the SceneLight's rotation quaternion
+// into a serializable LightSettings_V1.
 Serialize::LightSettings_V1
-fromLight(const Light& light);
+fromLight(const SceneLight& sceneLight);
 
 Serialize::CaptureSettings
 fromCaptureSettings(const CaptureSettings& captureSettings, int viewWidth, int viewHeight);
