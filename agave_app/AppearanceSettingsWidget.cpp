@@ -28,6 +28,18 @@ colormapToGradient(const std::vector<ColorControlPoint>& v)
   return stops;
 }
 
+// Returns gradient stops to use for displaying a channel's colormap as a
+// background swatch. For "Labels" and the no-colormap entry we return an
+// empty list so the swatch falls back to a solid diffuse color.
+static QGradientStops
+swatchStopsForColorRamp(const ColorRamp& cr)
+{
+  if (cr.m_name == "Labels" || cr.m_name == ColorRamp::NO_COLORMAP_NAME) {
+    return QGradientStops();
+  }
+  return colormapToGradient(cr.m_stops);
+}
+
 class GradientCombo : public QComboBox
 {
 public:
@@ -1220,7 +1232,11 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     std::string tip = "Enable/disable channel " + scene->m_volume->channel(i)->m_name;
     Section::CheckBoxInfo cbinfo = { channelenabled, tip, tip };
-    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, &cbinfo);
+    QColor cdiff = QColor::fromRgbF(scene->m_material.m_diffuse[i * 3 + 0],
+                                    scene->m_material.m_diffuse[i * 3 + 1],
+                                    scene->m_material.m_diffuse[i * 3 + 2]);
+    Section::ColorBoxInfo colorinfo = { cdiff, "Channel color", "Channel color" };
+    Section* section = new Section(QString::fromStdString(scene->m_volume->channel(i)->m_name), 0, &cbinfo, &colorinfo);
 
     auto* fullLayout = new QVBoxLayout();
 
@@ -1273,23 +1289,30 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
       "Set colormap for channel. ColorMap will be multiplied with Color. To use ColorMap only, set Color to white."));
     int idx = gradients->findData(QVariant(cr.m_name.c_str()), Qt::UserRole);
 
+    // Reflect the current colormap in the section's swatch. The combo's
+    // currentIndexChanged handler (registered below) keeps it in sync after
+    // user interaction.
+    section->setColormapStops(swatchStopsForColorRamp(cr));
+
     sectionLayout->addRow("ColorMap", gradients);
-    QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, this](int index) {
+    QObject::connect(gradients, &QComboBox::currentIndexChanged, [i, gradients, section, this](int index) {
       // get string from userdata
       std::string name = gradients->itemData(index).toString().toStdString();
 
+      ColorRamp ramp = ColorRamp::colormapFromName(name);
       if (name == "Labels") {
         if (m_scene) {
-          m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
+          m_scene->m_material.m_colormap[i] = ramp;
           m_scene->m_material.m_labels[i] = 1.0;
           m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
         }
 
       } else {
-        m_scene->m_material.m_colormap[i] = ColorRamp::colormapFromName(name);
+        m_scene->m_material.m_colormap[i] = ramp;
         m_scene->m_material.m_labels[i] = 0.0;
         m_qrendersettings->renderSettings()->m_DirtyFlags.SetFlag(TransferFunctionDirty);
       }
+      section->setColormapStops(swatchStopsForColorRamp(ramp));
     });
     // init after creating the callback, so that we can reinit a named colormap properly.
     gradients->setCurrentIndex(idx);
@@ -1297,14 +1320,17 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
     QColorPushButton* diffuseColorButton = new QColorPushButton();
     diffuseColorButton->setStatusTip(tr("Set color for channel"));
     diffuseColorButton->setToolTip(tr("Set color for channel"));
-    QColor cdiff = QColor::fromRgbF(scene->m_material.m_diffuse[i * 3 + 0],
-                                    scene->m_material.m_diffuse[i * 3 + 1],
-                                    scene->m_material.m_diffuse[i * 3 + 2]);
     diffuseColorButton->SetColor(cdiff, true);
     sectionLayout->addRow("Color", diffuseColorButton);
-    QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this](const QColor& c) {
+    QObject::connect(diffuseColorButton, &QColorPushButton::currentColorChanged, [i, this, section](const QColor& c) {
       this->OnDiffuseColorChanged(i, c);
+      section->setColor(c);
     });
+    QObject::connect(section, &Section::colorChanged, [i, this, diffuseColorButton](const QColor& c) {
+      this->OnDiffuseColorChanged(i, c);
+      diffuseColorButton->SetColor(c, true);
+    });
+
     // init
     this->OnDiffuseColorChanged(i, cdiff);
 
