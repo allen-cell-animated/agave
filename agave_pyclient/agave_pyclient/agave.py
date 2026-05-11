@@ -6,7 +6,6 @@ import json
 import math
 import numpy
 import queue
-import subprocess
 from PIL import Image
 from typing import List, Optional
 
@@ -213,9 +212,27 @@ class AgaveRenderer:
         auto_launch: bool = True,
         launch_retries: int = 10,
         launch_retry_delay: float = 1.0,
-        agave_process: Optional[subprocess.Popen] = None,
     ) -> None:
-        self.agave_process = agave_process
+        # Connection precedence (highest to lowest):
+        #
+        #   1. An AGAVE server already listening at ``url`` is always used
+        #      first, regardless of the other arguments. ``agave_path`` and
+        #      ``auto_launch`` are ignored when the initial connect succeeds.
+        #
+        #   2. If no server responds and ``auto_launch`` is False, the
+        #      connection error is re-raised immediately. ``agave_path`` is
+        #      not consulted.
+        #
+        #   3. If no server responds and ``auto_launch`` is True, an AGAVE
+        #      executable is located using:
+        #         a. ``agave_path`` if explicitly provided, else
+        #         b. :func:`guess_agave_path` (PATH, then standard install
+        #            locations for the current OS).
+        #      The executable is launched with ``--server --port=<port>``
+        #      where ``<port>`` is parsed from ``url``, then the connection
+        #      is retried up to ``launch_retries`` times spaced
+        #      ``launch_retry_delay`` seconds apart.
+        self.agave_process = None
         self.cb = CommandBuffer()
         self.session_name = ""
         if mode != "pathtrace" and mode != "raymarch":
@@ -1006,6 +1023,49 @@ class AgaveRenderer:
         self.cb.add_command(
             "LOAD_DATA", path, scene, multiresolution_level, time, channels, region
         )
+
+    def load_data_and_get_info(
+        self,
+        path: str,
+        scene: int = 0,
+        multiresolution_level: int = 0,
+        time: int = 0,
+        channels: List[int] = [],
+        region: List[int] = [],
+    ) -> dict:
+        """
+        Load a volume and return the server's metadata response as a dict.
+
+        Same arguments as :meth:`load_data`, but this variant immediately
+        flushes the command buffer to the server, waits for the JSON text
+        frame the server sends back, and returns the parsed dictionary.
+
+        The returned dict contains at least the following keys (see
+        ``LoadDataCommand::execute`` in ``renderlib/command.cpp``):
+
+        - ``commandId``           : int, id of the LOAD_DATA command
+        - ``x``, ``y``, ``z``, ``c``, ``t`` : int, image extents
+        - ``pixel_size_x/y/z``    : float, physical voxel size
+        - ``channel_names``       : list[str]
+        - ``channel_min_intensity``: list[int], one value per channel
+        - ``channel_max_intensity``: list[int], one value per channel
+        - ``volume_dimensions``   : nested dict mirroring the C++
+          ``VolumeDimensions`` struct
+
+        Note: any other commands queued in the buffer prior to calling
+        this method will be flushed at the same time.
+
+        Returns
+        -------
+        dict
+            Parsed JSON metadata for the loaded volume.
+        """
+        self.load_data(path, scene, multiresolution_level, time, channels, region)
+        buf = self.cb.make_buffer()
+        self.ws.send(buf, True)
+        # Reset the buffer for subsequent commands.
+        self.cb = CommandBuffer()
+        return self.ws.wait_for_json()
 
     def show_scale_bar(self, on: int):
         """
