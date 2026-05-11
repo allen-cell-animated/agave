@@ -38,9 +38,7 @@ def test_port_from_url_custom_default():
 
 def test_guess_agave_path_prefers_PATH(monkeypatch):
     """If `agave` is on PATH, that wins over any standard install location."""
-    monkeypatch.setattr(
-        find_agave.shutil, "which", lambda name: "/usr/local/bin/agave"
-    )
+    monkeypatch.setattr(find_agave.shutil, "which", lambda name: "/usr/local/bin/agave")
     # Make sure platform-specific fallbacks would also "succeed" — PATH still wins.
     monkeypatch.setattr(find_agave.os.path, "isfile", lambda p: True)
     monkeypatch.setattr(find_agave.sys, "platform", "linux")
