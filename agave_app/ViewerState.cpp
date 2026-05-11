@@ -106,8 +106,19 @@ stateToPythonScript(const Serialize::ViewerState& s)
   }
   std::string mode = renderlib::rendererTypeToString(rendererType);
   std::string appPath = qApp->applicationFilePath().toStdString();
-  // ss << "r = agave.AgaveRenderer(mode=\"" << mode << "\")" << std::endl;
-  ss << "r = agave.AgaveRenderer.launch_agave(\"" << appPath << "\", mode =\"" << mode << "\")" << std::endl;
+  // Escape the path for embedding inside a Python double-quoted string literal.
+  std::string escapedAppPath;
+  escapedAppPath.reserve(appPath.size());
+  for (char c : appPath) {
+    if (c == '\\' || c == '"') {
+      escapedAppPath.push_back('\\');
+    }
+    escapedAppPath.push_back(c);
+  }
+  // Connect to a running AGAVE server if one is available; otherwise launch
+  // the AGAVE executable that produced this script. Pass auto_launch=False or
+  // omit agave_path to customize this behavior.
+  ss << "r = agave.AgaveRenderer(agave_path=\"" << escapedAppPath << "\", mode=\"" << mode << "\")" << std::endl;
   ss << "with r:" << std::endl;
   std::string obj = "    r.";
 

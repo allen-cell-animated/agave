@@ -5,63 +5,27 @@ import io
 import json
 import math
 import numpy
-import os
 import queue
-import re
 from PIL import Image
 import subprocess
-import sys
-import time
-from typing import List
+from typing import List, Optional
 
 from .commandbuffer import CommandBuffer
+from .find_agave import (
+    find_matching_subdirectories,
+    guess_agave_path,
+    launch_agave_process,
+    port_from_url,
+    resolve_agave_path,
+    wait_for_connection,
+)
 
-
-def find_matching_subdirectories(root_dir, regex):
-    """
-    Finds subdirectories within a root directory that match a given regular expression.
-
-    Args:
-        root_dir: The path to the root directory to search within.
-        regex: The regular expression pattern to match against subdirectory names.
-
-    Returns:
-        A list of strings, where each string is the full path
-        to a matching subdirectory.
-        Returns an empty list if no matching subdirectories are found.
-    """
-    matching_dirs = []
-    for item in os.listdir(root_dir):
-        item_path = os.path.join(root_dir, item)
-        if os.path.isdir(item_path) and re.search(regex, item):
-            matching_dirs.append(item_path)
-    return matching_dirs
-
-
-def guess_agave_path() -> str | None:
-    if sys.platform == "win32":
-        # find versioned install directory of the form:
-        # "Program Files\\AGAVE #.#.#\\agave-install"
-        possible = find_matching_subdirectories(
-            "C:\\Program Files", "AGAVE [0-9]+.[0-9]+.[0-9]+"
-        )
-        if len(possible) == 0:
-            print("AGAVE not found in Program Files")
-            return None
-        # if there are multiple versions, pick the last one
-        path = os.path.join(possible[-1], "agave-install", "agave.exe")
-    elif sys.platform == "linux" or sys.platform == "linux2":
-        path = os.path.expanduser("~/agave/build/agave")
-    elif sys.platform == "darwin":
-        path = "/Applications/agave.app/Contents/MacOS/agave"
-    else:
-        print("Running on an unknown operating system")
-        print("Can't guess agave path")
-        return None
-    if not os.path.isfile(path):
-        print(f"AGAVE not found at {path}")
-        return None
-    return path
+__all__ = [
+    "AgaveClient",
+    "AgaveRenderer",
+    "find_matching_subdirectories",
+    "guess_agave_path",
+]
 
 
 def lerp(startframe, endframe, startval, endval):
@@ -210,78 +174,119 @@ class AgaveRenderer:
     Parameters
     ----------
     url: str
-        Full url to websocket server including port
+        Full url to websocket server including port.
     mode: str
-        "pathtrace" or "raymarch" (pathtrace is default)
+        "pathtrace" or "raymarch" (pathtrace is default).
+    agave_path: Optional[str]
+        Path to an AGAVE executable to launch if no running server is found.
+        If ``None``, a standard install location will be searched for via
+        :func:`guess_agave_path`. Ignored when ``auto_launch`` is False.
+    auto_launch: bool
+        If True (default), and no AGAVE instance can be reached at ``url``,
+        attempt to launch one locally. If False, only connect to an already
+        running instance and raise on failure.
+    launch_retries: int
+        Number of times to retry connecting after launching AGAVE.
+    launch_retry_delay: float
+        Seconds to wait between connection retries after launching AGAVE.
 
     Examples
     --------
-    Connect to an already running local AGAVE server instance
+    Connect to a running local AGAVE server, launching one if necessary:
 
     >>> agaveclient = AgaveRenderer()
 
+    Connect only — do not auto-launch:
+
+    >>> agaveclient = AgaveRenderer(auto_launch=False)
+
+    Launch a specific AGAVE executable:
+
+    >>> agaveclient = AgaveRenderer(agave_path="/path/to/agave")
     """
 
     def __init__(
-        self, url="ws://localhost:1235/", mode="pathtrace", agave_process=None
+        self,
+        url: str = "ws://localhost:1235/",
+        mode: str = "pathtrace",
+        agave_path: Optional[str] = None,
+        auto_launch: bool = True,
+        launch_retries: int = 10,
+        launch_retry_delay: float = 1.0,
+        agave_process: Optional[subprocess.Popen] = None,
     ) -> None:
         self.agave_process = agave_process
         self.cb = CommandBuffer()
         self.session_name = ""
         if mode != "pathtrace" and mode != "raymarch":
             mode = "pathtrace"
-        self.ws = AgaveClient(f"{url}?mode={mode}", protocols=["http-only", "chat"])
-        # self.ws.onOpened = self.onOpen
+        self._url = url
+        self._mode = mode
+
+        # 1. Try to connect to an already-running AGAVE instance.
+        try:
+            self._connect()
+            return
+        except Exception as connect_err:
+            if not auto_launch:
+                raise
+            print(
+                f"Could not connect to AGAVE at {url} ({connect_err}); "
+                "attempting to launch a local instance..."
+            )
+
+        # 2. Locate an AGAVE executable and launch it in server mode.
+        path = resolve_agave_path(agave_path)
+        port = port_from_url(url)
+        self.agave_process = launch_agave_process(path, port=port)
+
+        # 3. Retry connecting until the server is up.
+        try:
+            wait_for_connection(
+                self._connect,
+                self.agave_process,
+                retries=launch_retries,
+                retry_delay=launch_retry_delay,
+            )
+        except Exception:
+            # wait_for_connection has already terminated the process on failure.
+            self.agave_process = None
+            raise
+
+    def _connect(self) -> None:
+        """Open a websocket connection to the AGAVE server."""
+        self.ws = AgaveClient(
+            f"{self._url}?mode={self._mode}", protocols=["http-only", "chat"]
+        )
         self.ws.connect()
-        # self.ws.run_forever()
-        # except KeyboardInterrupt:
-        #     print("keyboard")
-        #     ws.close()
 
     @classmethod
     def launch_agave(
         cls,
-        path: str | None = None,
+        path: Optional[str] = None,
         port: int = 1235,
         mode: str = "pathtrace",
         retries: int = 10,
         retry_delay: float = 1.0,
     ):
-        if path is None or path == "":
-            guesspath = guess_agave_path()
-            if guesspath is None:
-                print(
-                    "AGAVE not found. Try passing a known AGAVE path to launch_agave."
-                )
-                return None
-            path = guesspath
+        """
+        Launch AGAVE locally and return a connected :class:`AgaveRenderer`.
 
+        Kept for backward compatibility; new code can simply use
+        ``AgaveRenderer(agave_path=path)`` which will auto-launch as needed.
+        """
         try:
-            a = subprocess.Popen(
-                [
-                    path,
-                    "--server",
-                    f"--port={port}",
-                ]
+            return cls(
+                url=f"ws://localhost:{port}/",
+                mode=mode,
+                agave_path=path,
+                auto_launch=True,
+                launch_retries=retries,
+                launch_retry_delay=retry_delay,
             )
-        except OSError as e:
-            print(f"Error launching AGAVE from {path}: {e}")
+        except Exception as e:
+            print(str(e))
             return None
-
-        for attempt in range(retries):
-            try:
-                return cls(f"ws://localhost:{port}/", mode=mode, agave_process=a)
-            except Exception:
-                if a.poll() is not None:
-                    print("AGAVE process exited unexpectedly.")
-                    return None
-                if attempt < retries - 1:
-                    time.sleep(retry_delay)
-        # All retries exhausted — clean up the subprocess we started
-        a.terminate()
-        a.wait()
-        print(f"Could not connect to AGAVE after {retries} attempts.")
-        return None
 
     def __enter__(self):
         return self
