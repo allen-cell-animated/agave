@@ -209,59 +209,50 @@ def test_wait_for_connection_detects_dead_process(monkeypatch):
 
 @pytest.fixture
 def patched_renderer(monkeypatch):
-    """Stub out everything AgaveRenderer.__init__ touches except its own logic."""
+    """Stub the find_agave helpers used by AgaveRenderer.__init__ and record calls."""
+    pytest.importorskip("ws4py")  # AgaveRenderer module imports ws4py at module load
     from agave_pyclient import agave as agave_mod
 
     calls = []
+    fake_proc = mock.Mock(spec=subprocess.Popen)
+    fake_proc.poll.return_value = None
 
-    def record(name, *, return_value=None, side_effect=None):
+    def record(name, return_value=None):
         def fn(*args, **kwargs):
             calls.append((name, args, kwargs))
-            if side_effect is not None:
-                if isinstance(side_effect, Exception):
-                    raise side_effect
-                return side_effect(*args, **kwargs)
             return return_value
 
         return fn
 
-    fake_proc = mock.Mock(spec=subprocess.Popen)
-    fake_proc.poll.return_value = None
-
     monkeypatch.setattr(
-        agave_mod, "resolve_agave_path",
-        record("resolve_agave_path", return_value="/resolved/agave"),
+        agave_mod, "resolve_agave_path", record("resolve_agave_path", "/resolved/agave")
     )
     monkeypatch.setattr(
-        agave_mod, "launch_agave_process",
-        record("launch_agave_process", return_value=fake_proc),
+        agave_mod, "launch_agave_process", record("launch_agave_process", fake_proc)
     )
     monkeypatch.setattr(
-        agave_mod, "wait_for_connection",
-        record("wait_for_connection", return_value=None),
+        agave_mod, "wait_for_connection", record("wait_for_connection", None)
     )
-    monkeypatch.setattr(agave_mod, "port_from_url", record("port_from_url", return_value=1235))
+    monkeypatch.setattr(agave_mod, "port_from_url", record("port_from_url", 1235))
 
     return agave_mod, calls, fake_proc
 
 
-def _make_renderer_skipping_init(agave_mod):
-    """Bypass __init__ and call it manually in each test for fine control."""
+def _new_renderer(agave_mod):
+    """Allocate an AgaveRenderer without running __init__."""
     return agave_mod.AgaveRenderer.__new__(agave_mod.AgaveRenderer)
 
 
-def test_init_connects_without_launching_when_server_running(patched_renderer, monkeypatch):
+def test_init_connects_without_launching_when_server_running(
+    patched_renderer, monkeypatch
+):
     agave_mod, calls, _ = patched_renderer
-    # First _connect call succeeds.
-    monkeypatch.setattr(
-        agave_mod.AgaveRenderer, "_connect", lambda self: None
-    )
+    monkeypatch.setattr(agave_mod.AgaveRenderer, "_connect", lambda self: None)
 
-    r = _make_renderer_skipping_init(agave_mod)
+    r = _new_renderer(agave_mod)
     agave_mod.AgaveRenderer.__init__(r)
 
     names = [c[0] for c in calls]
-    # No path resolution, no launch, no waiting — we connected on the first try.
     assert "resolve_agave_path" not in names
     assert "launch_agave_process" not in names
     assert "wait_for_connection" not in names
@@ -271,19 +262,15 @@ def test_init_connects_without_launching_when_server_running(patched_renderer, m
 def test_init_falls_through_to_launch_in_correct_order(patched_renderer, monkeypatch):
     agave_mod, calls, fake_proc = patched_renderer
 
-    # First _connect call fails, all subsequent steps are stubbed.
-    connect_calls = []
-
     def failing_connect(self):
-        connect_calls.append(1)
         raise ConnectionRefusedError("no server")
 
     monkeypatch.setattr(agave_mod.AgaveRenderer, "_connect", failing_connect)
 
-    r = _make_renderer_skipping_init(agave_mod)
+    r = _new_renderer(agave_mod)
     agave_mod.AgaveRenderer.__init__(r, agave_path="/explicit/agave")
 
-    # Order matters: resolve -> port_from_url -> launch -> wait_for_connection.
+    # Order: resolve -> port_from_url -> launch -> wait_for_connection.
     names = [c[0] for c in calls]
     assert names == [
         "resolve_agave_path",
@@ -291,13 +278,15 @@ def test_init_falls_through_to_launch_in_correct_order(patched_renderer, monkeyp
         "launch_agave_process",
         "wait_for_connection",
     ]
-    # The explicit path was forwarded.
+    # Explicit path forwarded to resolver.
     assert calls[0][1] == ("/explicit/agave",)
-    # The process from launch_agave_process was retained on self.
+    # Launched process retained on self.
     assert r.agave_process is fake_proc
 
 
-def test_init_auto_launch_false_reraises_without_launching(patched_renderer, monkeypatch):
+def test_init_auto_launch_false_reraises_without_launching(
+    patched_renderer, monkeypatch
+):
     agave_mod, calls, _ = patched_renderer
 
     def failing_connect(self):
@@ -305,35 +294,33 @@ def test_init_auto_launch_false_reraises_without_launching(patched_renderer, mon
 
     monkeypatch.setattr(agave_mod.AgaveRenderer, "_connect", failing_connect)
 
-    r = _make_renderer_skipping_init(agave_mod)
+    r = _new_renderer(agave_mod)
     with pytest.raises(ConnectionRefusedError):
         agave_mod.AgaveRenderer.__init__(r, auto_launch=False)
 
-    # None of the launch helpers should have been touched.
     names = [c[0] for c in calls]
     assert "resolve_agave_path" not in names
     assert "launch_agave_process" not in names
     assert "wait_for_connection" not in names
 
 
-def test_init_clears_process_when_wait_for_connection_fails(patched_renderer, monkeypatch):
+def test_init_clears_process_when_wait_for_connection_fails(
+    patched_renderer, monkeypatch
+):
     agave_mod, calls, fake_proc = patched_renderer
 
-    monkeypatch.setattr(
-        agave_mod.AgaveRenderer,
-        "_connect",
-        lambda self: (_ for _ in ()).throw(ConnectionRefusedError("no server")),
-    )
+    def failing_connect(self):
+        raise ConnectionRefusedError("no server")
 
-    # Make wait_for_connection raise; AgaveRenderer should null out agave_process
-    # (wait_for_connection is responsible for terminate/wait).
+    monkeypatch.setattr(agave_mod.AgaveRenderer, "_connect", failing_connect)
+
     def boom(*args, **kwargs):
         calls.append(("wait_for_connection", args, kwargs))
         raise RuntimeError("Could not connect to AGAVE after 1 attempts: x")
 
     monkeypatch.setattr(agave_mod, "wait_for_connection", boom)
 
-    r = _make_renderer_skipping_init(agave_mod)
+    r = _new_renderer(agave_mod)
     with pytest.raises(RuntimeError, match="Could not connect"):
         agave_mod.AgaveRenderer.__init__(r)
 

@@ -6,8 +6,8 @@ import json
 import math
 import numpy
 import queue
-from PIL import Image
 import subprocess
+from PIL import Image
 from typing import List, Optional
 
 from .commandbuffer import CommandBuffer
@@ -260,45 +260,25 @@ class AgaveRenderer:
         )
         self.ws.connect()
 
-    @classmethod
-    def launch_agave(
-        cls,
-        path: Optional[str] = None,
-        port: int = 1235,
-        mode: str = "pathtrace",
-        retries: int = 10,
-        retry_delay: float = 1.0,
-    ):
-        """
-        Launch AGAVE locally and return a connected :class:`AgaveRenderer`.
-
-        Kept for backward compatibility; new code can simply use
-        ``AgaveRenderer(agave_path=path)`` which will auto-launch as needed.
-        """
-        try:
-            return cls(
-                url=f"ws://localhost:{port}/",
-                mode=mode,
-                agave_path=path,
-                auto_launch=True,
-                launch_retries=retries,
-                launch_retry_delay=retry_delay,
-            )
-        except Exception as e:
-            print(str(e))
-            return None
-
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def close(self):
-        self.ws.close()
-        if self.agave_process:
-            self.agave_process.terminate()
-            self.agave_process.wait()
+    def close(self) -> None:
+        """Close the websocket and any AGAVE process started by this client."""
+        try:
+            if getattr(self, "ws", None) is not None:
+                self.ws.close()
+        except Exception:
+            pass
+        if self.agave_process is not None:
+            try:
+                self.agave_process.terminate()
+                self.agave_process.wait()
+            except Exception:
+                pass
             self.agave_process = None
 
     def session(self, name: str):
