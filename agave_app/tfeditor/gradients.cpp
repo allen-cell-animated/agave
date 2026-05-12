@@ -827,12 +827,14 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   QIcon logIcon = QIcon::fromTheme("view-logarithmic");
   if (!logIcon.isNull()) {
     yScaleButton->setIcon(logIcon);
+    yScaleButton->setFixedSize(20, 20);
   } else {
     yScaleButton->setText("Log");
+    int textWidth = yScaleButton->fontMetrics().horizontalAdvance(yScaleButton->text()) + 4;
+    yScaleButton->setFixedSize(std::max(20, textWidth), 20);
   }
   yScaleButton->setToolTip(tr("Toggle log Y scale"));
   yScaleButton->setAutoRaise(true);
-  yScaleButton->setFixedSize(20, 20);
   yScaleButton->setCheckable(true);
 
   editorButtonLayout->addWidget(copyButton);
