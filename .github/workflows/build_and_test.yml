@@ -241,3 +241,8 @@ jobs:
           ruff check agave_pyclient
           ruff format --check agave_pyclient
           pytest agave_pyclient/tests/
+      - name: Test build package
+        run: |
+          cd agave_pyclient
+          pip install build
+          python -m build
