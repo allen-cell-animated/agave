@@ -55,6 +55,9 @@ struct ImageGpu
 
   // similar to allocGpuInterleaved, change which channels are in the gpu volume buffer.
   void updateVolumeData4x16(ImageXYZC* img, int c0, int c1, int c2, int c3);
+  // optimized variant: specialized inner loop on N, N==1 fast path, PBO upload.
+  // kept side-by-side with updateVolumeData4x16 for A/B benchmarking; one will be removed.
+  void updateVolumeData4x16_optimized(ImageXYZC* img, int c0, int c1, int c2, int c3);
   void updateLutGPU(ImageXYZC* img, int c0, int c1, int c2, int c3, const VolumeDisplay& volumeDisplay);
 
   void setVolumeTextureFiltering(bool linear);
