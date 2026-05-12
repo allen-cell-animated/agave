@@ -10,17 +10,21 @@
 #include <curl/curl.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cctype>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <future>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <variant>
 #include <vector>
 
@@ -139,8 +143,12 @@ ensureCurlGlobalInit()
 }
 
 // Owns either a local file handle or a libcurl easy handle bound to an
-// HTTP(S) URL, and provides read-at-offset semantics. Single reader,
-// single thread of access (we don't parallelize ND2 yet).
+// HTTP(S) URL, and provides read-at-offset semantics.
+//
+// Threading: a single FileStream instance is *not* thread-safe and must be
+// used from one thread at a time. To read concurrently from the same
+// backing file or URL, construct multiple FileStream instances (one per
+// worker thread). HTTP clones can pass a known size to skip the HEAD probe.
 class FileStream
 {
 public:
@@ -149,7 +157,21 @@ public:
     , m_isHttp(isHttpUrl(path))
   {
     if (m_isHttp) {
-      openHttp();
+      openHttp(/*knownSize*/ 0, /*haveSize*/ false);
+    } else {
+      openLocal();
+    }
+  }
+  // Cheap "clone" constructor: opens an independent handle on the same
+  // backing path/URL, reusing a previously-discovered total size to skip
+  // the HEAD probe on HTTP. Caller must pass the size from a sibling
+  // FileStream of the same resource.
+  FileStream(const std::string& path, std::uint64_t knownSize)
+    : m_path(path)
+    , m_isHttp(isHttpUrl(path))
+  {
+    if (m_isHttp) {
+      openHttp(knownSize, /*haveSize*/ true);
     } else {
       openLocal();
     }
@@ -230,19 +252,33 @@ private:
     }
     return size * nmemb; // tell curl we consumed everything to avoid abort
   }
-  void openHttp()
+  void openHttp(std::uint64_t knownSize, bool haveSize)
   {
     ensureCurlGlobalInit();
     m_curl = curl_easy_init();
     if (!m_curl) {
       throw std::runtime_error("ND2: curl_easy_init failed");
     }
-    // HEAD request to discover content length and confirm reachability.
     curl_easy_setopt(m_curl, CURLOPT_URL, m_path.c_str());
-    curl_easy_setopt(m_curl, CURLOPT_NOBODY, 1L);
     curl_easy_setopt(m_curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(m_curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(m_curl, CURLOPT_CONNECTTIMEOUT, 30L);
+    // Encourage connection reuse for back-to-back range requests, which is
+    // the dominant access pattern when many workers each issue a stream of
+    // reads against the same NAS endpoint.
+    curl_easy_setopt(m_curl, CURLOPT_TCP_KEEPALIVE, 1L);
+
+    if (haveSize) {
+      // Skip the HEAD probe: caller already discovered Content-Length on a
+      // sibling handle. Configure for range GETs immediately.
+      m_size = knownSize;
+      curl_easy_setopt(m_curl, CURLOPT_HTTPGET, 1L);
+      curl_easy_setopt(m_curl, CURLOPT_WRITEFUNCTION, &FileStream::writeCb);
+      return;
+    }
+
+    // HEAD request to discover content length and confirm reachability.
+    curl_easy_setopt(m_curl, CURLOPT_NOBODY, 1L);
     CURLcode rc = curl_easy_perform(m_curl);
     if (rc != CURLE_OK) {
       std::string err = curl_easy_strerror(rc);
@@ -317,8 +353,11 @@ using ChunkMap = std::map<std::string, ChunkLoc>;
 
 // Reads exactly one chunk's payload from `start_position`. Optionally
 // validates that the chunk's name *starts with* `expectName`.
-std::vector<std::uint8_t>
-readNd2Chunk(FileStream& fs, std::uint64_t startPosition, const std::string& expectName = std::string())
+void
+readNd2ChunkInto(FileStream& fs,
+                 std::uint64_t startPosition,
+                 std::vector<std::uint8_t>& out,
+                 const std::string& expectName = std::string())
 {
   std::uint8_t header[kChunkHeaderSize];
   fs.readAt(startPosition, header, kChunkHeaderSize);
@@ -338,11 +377,36 @@ readNd2Chunk(FileStream& fs, std::uint64_t startPosition, const std::string& exp
       throw std::runtime_error("ND2: expected chunk name '" + expectName + "' but got '" + actual + "'");
     }
   }
-  std::vector<std::uint8_t> data(static_cast<std::size_t>(dataLen));
+  out.resize(static_cast<std::size_t>(dataLen));
   if (dataLen > 0) {
-    fs.readAt(startPosition + kChunkHeaderSize + nameLen, data.data(), dataLen);
+    fs.readAt(startPosition + kChunkHeaderSize + nameLen, out.data(), dataLen);
   }
-  return data;
+}
+
+std::vector<std::uint8_t>
+readNd2Chunk(FileStream& fs, std::uint64_t startPosition, const std::string& expectName = std::string())
+{
+  std::vector<std::uint8_t> out;
+  readNd2ChunkInto(fs, startPosition, out, expectName);
+  return out;
+}
+
+// Fast path for chunks whose location was looked up in the chunkmap: the
+// payload offset is `headerOffset + 16 + nameLen` and the size is already
+// known, so no per-chunk header round-trip is needed. This eliminates one
+// of the two reads per frame in the inner loop of loadFromFile -- a major
+// latency win on networked storage.
+void
+readKnownChunkPayloadInto(FileStream& fs,
+                          std::uint64_t headerOffset,
+                          std::size_t nameLen,
+                          std::uint64_t payloadSize,
+                          std::vector<std::uint8_t>& out)
+{
+  out.resize(static_cast<std::size_t>(payloadSize));
+  if (payloadSize > 0) {
+    fs.readAt(headerOffset + kChunkHeaderSize + nameLen, out.data(), payloadSize);
+  }
 }
 
 // Verify the file header chunk magic and read the (major, minor) version
@@ -941,70 +1005,122 @@ decodeChunkVariant(const std::vector<std::uint8_t>& data)
 
 // ----------------- frame chunk decompression -----------------
 
-// Decompress (or pass through) a frame's pixel-data payload. Input is the
-// raw chunk data with the leading 8-byte inner header *already skipped*.
-std::vector<std::uint8_t>
-decompressFrameBytes(const std::uint8_t* src, std::size_t srcSize, std::size_t expectedBytes)
+// Decompress (or pass through) a frame's pixel-data payload into a caller-
+// provided output buffer. Input is the raw chunk data with the leading
+// 8-byte inner header *already skipped*. `expectedBytes` is the known
+// uncompressed size (sizeX * sizeY * bytesPerPixel * componentCount) and is
+// used to pre-size `out` so the decoder writes contiguously into it without
+// reallocations or staging buffers.
+void
+decompressFrameBytesInto(const std::uint8_t* src,
+                         std::size_t srcSize,
+                         std::size_t expectedBytes,
+                         std::vector<std::uint8_t>& out)
 {
   if (srcSize >= 4 && std::memcmp(src, kLZ4Magic, 4) == 0) {
-    // LZ4 frame format.
+    // LZ4 frame format. Decompress directly into `out` when the expected
+    // size is known; otherwise fall back to a growing output.
     LZ4F_decompressionContext_t ctx = nullptr;
     if (LZ4F_isError(LZ4F_createDecompressionContext(&ctx, LZ4F_VERSION))) {
       throw std::runtime_error("ND2: LZ4 ctx creation failed");
     }
-    std::vector<std::uint8_t> out;
-    out.reserve(expectedBytes ? expectedBytes : srcSize * 4);
     const std::uint8_t* in = src;
     std::size_t remaining = srcSize;
-    std::uint8_t buf[64 * 1024];
-    while (remaining > 0) {
-      std::size_t outAvail = sizeof(buf);
-      std::size_t inUsed = remaining;
-      std::size_t hint = LZ4F_decompress(ctx, buf, &outAvail, in, &inUsed, nullptr);
-      if (LZ4F_isError(hint)) {
-        LZ4F_freeDecompressionContext(ctx);
-        throw std::runtime_error("ND2: LZ4 decompress error");
+    if (expectedBytes > 0) {
+      out.resize(expectedBytes);
+      std::size_t written = 0;
+      while (remaining > 0 && written < expectedBytes) {
+        std::size_t outAvail = expectedBytes - written;
+        std::size_t inUsed = remaining;
+        std::size_t hint = LZ4F_decompress(ctx, out.data() + written, &outAvail, in, &inUsed, nullptr);
+        if (LZ4F_isError(hint)) {
+          LZ4F_freeDecompressionContext(ctx);
+          throw std::runtime_error("ND2: LZ4 decompress error");
+        }
+        written += outAvail;
+        in += inUsed;
+        remaining -= inUsed;
+        if (hint == 0) {
+          break; // frame complete
+        }
+        if (inUsed == 0 && outAvail == 0) {
+          break; // defensive: no progress
+        }
       }
-      out.insert(out.end(), buf, buf + outAvail);
-      in += inUsed;
-      remaining -= inUsed;
-      if (hint == 0) {
-        break; // frame complete
-      }
-      if (inUsed == 0 && outAvail == 0) {
-        break; // defensive: no progress
+      out.resize(written);
+    } else {
+      out.clear();
+      out.reserve(srcSize * 4);
+      std::uint8_t buf[64 * 1024];
+      while (remaining > 0) {
+        std::size_t outAvail = sizeof(buf);
+        std::size_t inUsed = remaining;
+        std::size_t hint = LZ4F_decompress(ctx, buf, &outAvail, in, &inUsed, nullptr);
+        if (LZ4F_isError(hint)) {
+          LZ4F_freeDecompressionContext(ctx);
+          throw std::runtime_error("ND2: LZ4 decompress error");
+        }
+        out.insert(out.end(), buf, buf + outAvail);
+        in += inUsed;
+        remaining -= inUsed;
+        if (hint == 0) {
+          break;
+        }
+        if (inUsed == 0 && outAvail == 0) {
+          break;
+        }
       }
     }
     LZ4F_freeDecompressionContext(ctx);
-    return out;
+    return;
   }
   if (srcSize >= 1 && src[0] == kZlibFirstByte) {
-    // zlib stream
+    // zlib stream. When expected size is known, inflate directly into `out`.
     z_stream zs{};
     zs.next_in = const_cast<Bytef*>(src);
     zs.avail_in = static_cast<uInt>(srcSize);
     if (inflateInit(&zs) != Z_OK) {
       throw std::runtime_error("ND2: zlib init failed");
     }
-    std::vector<std::uint8_t> out;
-    out.reserve(expectedBytes ? expectedBytes : srcSize * 4);
-    std::uint8_t buf[64 * 1024];
-    int rc = Z_OK;
-    do {
-      zs.next_out = buf;
-      zs.avail_out = sizeof(buf);
-      rc = inflate(&zs, Z_NO_FLUSH);
-      if (rc != Z_OK && rc != Z_STREAM_END) {
+    if (expectedBytes > 0) {
+      out.resize(expectedBytes);
+      zs.next_out = out.data();
+      zs.avail_out = static_cast<uInt>(expectedBytes);
+      int rc = inflate(&zs, Z_FINISH);
+      if (rc != Z_STREAM_END && rc != Z_OK && rc != Z_BUF_ERROR) {
         inflateEnd(&zs);
         throw std::runtime_error("ND2: zlib inflate error");
       }
-      out.insert(out.end(), buf, buf + (sizeof(buf) - zs.avail_out));
-    } while (rc != Z_STREAM_END);
+      out.resize(expectedBytes - zs.avail_out);
+    } else {
+      out.clear();
+      out.reserve(srcSize * 4);
+      std::uint8_t buf[64 * 1024];
+      int rc = Z_OK;
+      do {
+        zs.next_out = buf;
+        zs.avail_out = sizeof(buf);
+        rc = inflate(&zs, Z_NO_FLUSH);
+        if (rc != Z_OK && rc != Z_STREAM_END) {
+          inflateEnd(&zs);
+          throw std::runtime_error("ND2: zlib inflate error");
+        }
+        out.insert(out.end(), buf, buf + (sizeof(buf) - zs.avail_out));
+      } while (rc != Z_STREAM_END);
+    }
     inflateEnd(&zs);
-    return out;
+    return;
   }
   // Raw / uncompressed.
-  return std::vector<std::uint8_t>(src, src + srcSize);
+  out.assign(src, src + srcSize);
+}
+
+std::vector<std::uint8_t>
+decompressFrameBytes(const std::uint8_t* src, std::size_t srcSize, std::size_t expectedBytes)
+{
+  std::vector<std::uint8_t> out;
+  decompressFrameBytesInto(src, srcSize, expectedBytes, out);
+  return out;
 }
 
 // ----------------- experiment-loop / dimension extraction -----------------
@@ -1380,6 +1496,59 @@ copyFrameToDest(const std::vector<std::uint8_t>& frameBytes,
   }
 }
 
+// Interleaved-source de-interleave: a single pass over `frameBytes` writes
+// pixels for every requested channel into its respective destination plane.
+// This replaces N strided gather passes (one per requested channel) with a
+// single pass, cutting memory bandwidth on the source frame from O(N*size)
+// to O(size).
+void
+copyFrameToDestMulti(const std::vector<std::uint8_t>& frameBytes,
+                     const Nd2Layout& L,
+                     const std::vector<std::uint32_t>& srcChannels,
+                     const std::vector<std::uint8_t*>& dstPlanes)
+{
+  const std::size_t pixels = static_cast<std::size_t>(L.sizeX) * static_cast<std::size_t>(L.sizeY);
+  const std::size_t bppSrcComp = (L.bitsPerComponent <= 8) ? 1u : 2u;
+  const std::size_t srcStride = bppSrcComp * L.componentCount;
+  const std::size_t expected = pixels * srcStride;
+  const std::size_t nch = srcChannels.size();
+  if (frameBytes.size() < expected) {
+    LOG_WARNING << "ND2: frame data short (" << frameBytes.size() << " < " << expected << ")";
+    return;
+  }
+
+  // Resolve the source-component byte offset for each requested channel
+  // once, outside the per-pixel loop.
+  std::vector<std::size_t> compByteOffsets(nch);
+  for (std::size_t k = 0; k < nch; ++k) {
+    std::size_t comp = 0;
+    if (srcChannels[k] < L.channelToComponent.size()) {
+      comp = static_cast<std::size_t>(L.channelToComponent[srcChannels[k]]);
+    }
+    compByteOffsets[k] = comp * bppSrcComp;
+  }
+
+  if (bppSrcComp == 2) {
+    const std::uint8_t* base = frameBytes.data();
+    for (std::size_t i = 0; i < pixels; ++i) {
+      const std::uint8_t* sp = base + i * srcStride;
+      for (std::size_t k = 0; k < nch; ++k) {
+        std::uint16_t v;
+        std::memcpy(&v, sp + compByteOffsets[k], 2);
+        reinterpret_cast<std::uint16_t*>(dstPlanes[k])[i] = v;
+      }
+    }
+  } else {
+    const std::uint8_t* base = frameBytes.data();
+    for (std::size_t i = 0; i < pixels; ++i) {
+      const std::uint8_t* sp = base + i * srcStride;
+      for (std::size_t k = 0; k < nch; ++k) {
+        reinterpret_cast<std::uint16_t*>(dstPlanes[k])[i] = static_cast<std::uint16_t>(sp[compByteOffsets[k]]);
+      }
+    }
+  }
+}
+
 } // namespace
 
 // ============================================================
@@ -1497,57 +1666,169 @@ FileReaderND2::loadFromFile(const LoadSpec& loadSpec)
     std::unique_ptr<std::uint8_t[]> dataPtr(new std::uint8_t[total]);
     std::memset(dataPtr.get(), 0, total);
 
-    // Read frames. Two cases:
-    //   (a) channels interleaved: each (T, S, Z) frame holds all channels
-    //       as components -> read the frame once, copy each requested
-    //       channel out via channelToComponent[].
-    //   (b) channels as separate frames: iterate (T, S, C, Z) and read
-    //       each frame independently.
-    if (L.channelsInterleaved) {
-      for (std::uint32_t z = 0; z < L.sizeZ; ++z) {
-        std::uint64_t fidx = frameIndex(L, time, scene, 0, z);
-        std::string name = "ImageDataSeq|" + std::to_string(fidx) + "!";
-        auto it = chunks.find(name);
-        if (it == chunks.end()) {
-          LOG_ERROR << "ND2 missing frame chunk " << name;
-          return empty;
-        }
-        auto raw = readNd2Chunk(fs, it->second.offset);
-        if (raw.size() < kFrameInnerHeaderSkip) {
-          LOG_ERROR << "ND2 frame too small";
-          return empty;
-        }
-        std::vector<std::uint8_t> body =
-          decompressFrameBytes(raw.data() + kFrameInnerHeaderSkip, raw.size() - kFrameInnerHeaderSkip, 0);
+    // Per-frame uncompressed size, used both to pre-size the decompression
+    // output and to validate frames.
+    const std::size_t bppSrcComp = (L.bitsPerComponent <= 8) ? 1u : 2u;
+    const std::size_t framePixels = static_cast<std::size_t>(L.sizeX) * L.sizeY;
+    const std::size_t expectedFrameBytes = framePixels * bppSrcComp * L.componentCount;
 
-        for (std::size_t outCh = 0; outCh < nch; ++outCh) {
-          std::uint32_t srcCh = chans[outCh];
-          std::uint8_t* dst = dataPtr.get() + (outCh * L.sizeZ + z) * planeBytes;
-          copyFrameToDest(body, L, srcCh, dst);
+    // ---- Build the flat list of work units. -----------------------------
+    // Each work unit reads exactly one ImageDataSeq frame chunk, and
+    // scatters its components into one or more disjoint destination
+    // planes. Tasks for different work units never write to the same
+    // destination bytes, so the parallel loop below is data-race free.
+    struct WorkUnit
+    {
+      std::uint64_t headerOffset;             // file offset of frame chunk header
+      std::uint64_t payloadSize;              // chunk payload byte count
+      std::size_t nameLen;                    // chunk name byte count (incl. trailing '!')
+      std::vector<std::uint32_t> srcChannels; // source channel indices to extract
+      std::vector<std::uint8_t*> dstPlanes;   // destination plane pointers (one per srcChannels entry)
+    };
+
+    auto findFrameChunk = [&](std::uint64_t fidx, WorkUnit& wu) -> bool {
+      std::string name = "ImageDataSeq|" + std::to_string(fidx) + "!";
+      auto it = chunks.find(name);
+      if (it == chunks.end()) {
+        LOG_ERROR << "ND2 missing frame chunk " << name;
+        return false;
+      }
+      wu.headerOffset = it->second.offset;
+      wu.payloadSize = it->second.size;
+      wu.nameLen = it->first.size();
+      return true;
+    };
+
+    std::vector<WorkUnit> workUnits;
+    if (L.channelsInterleaved) {
+      workUnits.reserve(L.sizeZ);
+      for (std::uint32_t z = 0; z < L.sizeZ; ++z) {
+        WorkUnit wu;
+        if (!findFrameChunk(frameIndex(L, time, scene, 0, z), wu)) {
+          return empty;
         }
+        wu.srcChannels = chans;
+        wu.dstPlanes.resize(nch);
+        for (std::size_t outCh = 0; outCh < nch; ++outCh) {
+          wu.dstPlanes[outCh] = dataPtr.get() + (outCh * L.sizeZ + z) * planeBytes;
+        }
+        workUnits.push_back(std::move(wu));
       }
     } else {
+      workUnits.reserve(static_cast<std::size_t>(L.sizeZ) * nch);
       for (std::size_t outCh = 0; outCh < nch; ++outCh) {
         std::uint32_t srcCh = chans[outCh];
         for (std::uint32_t z = 0; z < L.sizeZ; ++z) {
-          std::uint64_t fidx = frameIndex(L, time, scene, srcCh, z);
-          std::string name = "ImageDataSeq|" + std::to_string(fidx) + "!";
-          auto it = chunks.find(name);
-          if (it == chunks.end()) {
-            LOG_ERROR << "ND2 missing frame chunk " << name;
+          WorkUnit wu;
+          if (!findFrameChunk(frameIndex(L, time, scene, srcCh, z), wu)) {
             return empty;
           }
-          auto raw = readNd2Chunk(fs, it->second.offset);
-          if (raw.size() < kFrameInnerHeaderSkip) {
-            LOG_ERROR << "ND2 frame too small";
-            return empty;
-          }
-          std::vector<std::uint8_t> body =
-            decompressFrameBytes(raw.data() + kFrameInnerHeaderSkip, raw.size() - kFrameInnerHeaderSkip, 0);
-          std::uint8_t* dst = dataPtr.get() + (outCh * L.sizeZ + z) * planeBytes;
-          copyFrameToDest(body, L, srcCh, dst);
+          wu.srcChannels = { srcCh };
+          wu.dstPlanes = { dataPtr.get() + (outCh * L.sizeZ + z) * planeBytes };
+          workUnits.push_back(std::move(wu));
         }
       }
+    }
+
+    // ---- Worker count. --------------------------------------------------
+    // Goal is IO concurrency (hide NAS round-trip latency by keeping
+    // multiple in-flight requests), not CPU parallelism. Cap at a modest
+    // value so we don't overwhelm the storage backend; allow override via
+    // AGAVE_ND2_THREADS for benchmarking.
+    unsigned hwc = std::thread::hardware_concurrency();
+    if (hwc == 0) {
+      hwc = 4;
+    }
+    unsigned numWorkers = std::min<unsigned>(8u, hwc);
+    if (const char* env = std::getenv("AGAVE_ND2_THREADS")) {
+      int v = std::atoi(env);
+      if (v > 0) {
+        numWorkers = static_cast<unsigned>(v);
+      }
+    }
+    numWorkers = std::max<unsigned>(1u, numWorkers);
+    if (workUnits.size() < numWorkers) {
+      numWorkers = static_cast<unsigned>(workUnits.size());
+    }
+
+    // ---- Run workers. ---------------------------------------------------
+    // Each worker owns its own FileStream (independent file handle / curl
+    // easy handle) and its own scratch buffers. Work is pulled from a
+    // shared atomic counter; first failure flips the abort flag so later
+    // tasks short-circuit cleanly.
+    std::atomic<std::size_t> nextUnit{ 0 };
+    std::atomic<bool> aborted{ false };
+    std::mutex errMu;
+    std::string firstError;
+    const std::uint64_t fileSize = fs.size();
+
+    auto workerBody = [&](FileStream& workerFs) {
+      std::vector<std::uint8_t> rawScratch;
+      std::vector<std::uint8_t> bodyScratch;
+      rawScratch.reserve(expectedFrameBytes + kFrameInnerHeaderSkip);
+      bodyScratch.reserve(expectedFrameBytes);
+      while (!aborted.load(std::memory_order_relaxed)) {
+        std::size_t i = nextUnit.fetch_add(1, std::memory_order_relaxed);
+        if (i >= workUnits.size()) {
+          return;
+        }
+        const WorkUnit& wu = workUnits[i];
+        try {
+          readKnownChunkPayloadInto(workerFs, wu.headerOffset, wu.nameLen, wu.payloadSize, rawScratch);
+          if (rawScratch.size() < kFrameInnerHeaderSkip) {
+            throw std::runtime_error("ND2 frame too small");
+          }
+          decompressFrameBytesInto(rawScratch.data() + kFrameInnerHeaderSkip,
+                                   rawScratch.size() - kFrameInnerHeaderSkip,
+                                   expectedFrameBytes,
+                                   bodyScratch);
+          if (L.channelsInterleaved) {
+            copyFrameToDestMulti(bodyScratch, L, wu.srcChannels, wu.dstPlanes);
+          } else {
+            copyFrameToDest(bodyScratch, L, wu.srcChannels.front(), wu.dstPlanes.front());
+          }
+        } catch (const std::exception& e) {
+          {
+            std::lock_guard<std::mutex> lk(errMu);
+            if (firstError.empty()) {
+              firstError = e.what();
+            }
+          }
+          aborted.store(true, std::memory_order_relaxed);
+          return;
+        }
+      }
+    };
+
+    if (numWorkers <= 1) {
+      // Single-threaded fast path: reuse the already-open `fs`, no clones.
+      workerBody(fs);
+    } else {
+      // Spawn N-1 worker threads, each with its own FileStream clone, and
+      // run one worker on this thread. The first FileStream (`fs`) is used
+      // by the calling thread.
+      std::vector<std::thread> threads;
+      threads.reserve(numWorkers - 1);
+      // Pre-construct clones on this thread so any open failure is reported
+      // synchronously rather than from inside a worker.
+      std::vector<std::unique_ptr<FileStream>> clones;
+      clones.reserve(numWorkers - 1);
+      for (unsigned w = 1; w < numWorkers; ++w) {
+        clones.emplace_back(std::make_unique<FileStream>(filepath, fileSize));
+      }
+      for (unsigned w = 0; w < numWorkers - 1; ++w) {
+        FileStream* cs = clones[w].get();
+        threads.emplace_back([&, cs]() { workerBody(*cs); });
+      }
+      workerBody(fs);
+      for (auto& t : threads) {
+        t.join();
+      }
+    }
+
+    if (aborted.load()) {
+      LOG_ERROR << "ND2 frame read failed: " << firstError;
+      return empty;
     }
 
     auto* im = new ImageXYZC(L.sizeX,
@@ -1573,8 +1854,10 @@ FileReaderND2::loadFromFile(const LoadSpec& loadSpec)
     im->setChannelNames(channelNames);
 
     auto tEnd = std::chrono::high_resolution_clock::now();
-    LOG_DEBUG << "ND2 loaded '" << filepath << "' in "
-              << std::chrono::duration<double, std::milli>(tEnd - tStart).count() << "ms";
+    double ms = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
+    double mb = static_cast<double>(total) / (1024.0 * 1024.0);
+    LOG_DEBUG << "ND2 loaded '" << filepath << "' in " << ms << "ms (" << workUnits.size() << " frames, " << mb
+              << " MB out, " << numWorkers << " workers, " << (ms > 0.0 ? mb / (ms / 1000.0) : 0.0) << " MB/s)";
 
     return std::shared_ptr<ImageXYZC>(im);
   } catch (const std::exception& e) {
