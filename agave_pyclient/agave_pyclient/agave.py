@@ -122,6 +122,30 @@ class AgaveRenderer:
     Launch a specific AGAVE executable:
 
     >>> agaveclient = AgaveRenderer(agave_path="/path/to/agave")
+
+    Notes
+    -----
+    Connection precedence (highest to lowest):
+
+    1. An AGAVE server already listening at ``url`` is always used
+       first, regardless of the other arguments. ``agave_path`` and
+       ``auto_launch`` are ignored when the initial connect succeeds.
+
+    2. If no server responds and ``auto_launch`` is False, the
+       connection error is re-raised immediately. ``agave_path`` is
+       not consulted.
+
+    3. If no server responds and ``auto_launch`` is True, an AGAVE
+       executable is located using:
+
+       a. ``agave_path`` if explicitly provided, else
+       b. :func:`guess_agave_path` (PATH, then standard install
+          locations for the current OS).
+
+       The executable is launched with ``--server --port=<port>``
+       where ``<port>`` is parsed from ``url``, then the connection
+       is retried up to ``launch_retries`` times spaced
+       ``launch_retry_delay`` seconds apart.
     """
 
     def __init__(
@@ -133,25 +157,8 @@ class AgaveRenderer:
         launch_retries: int = 10,
         launch_retry_delay: float = 1.0,
     ) -> None:
-        # Connection precedence (highest to lowest):
-        #
-        #   1. An AGAVE server already listening at ``url`` is always used
-        #      first, regardless of the other arguments. ``agave_path`` and
-        #      ``auto_launch`` are ignored when the initial connect succeeds.
-        #
-        #   2. If no server responds and ``auto_launch`` is False, the
-        #      connection error is re-raised immediately. ``agave_path`` is
-        #      not consulted.
-        #
-        #   3. If no server responds and ``auto_launch`` is True, an AGAVE
-        #      executable is located using:
-        #         a. ``agave_path`` if explicitly provided, else
-        #         b. :func:`guess_agave_path` (PATH, then standard install
-        #            locations for the current OS).
-        #      The executable is launched with ``--server --port=<port>``
-        #      where ``<port>`` is parsed from ``url``, then the connection
-        #      is retried up to ``launch_retries`` times spaced
-        #      ``launch_retry_delay`` seconds apart.
+        # See class docstring "Notes" section for the connection-precedence
+        # rules that this constructor implements.
         self.agave_process = None
         self.cb = CommandBuffer()
         self.session_name = ""
