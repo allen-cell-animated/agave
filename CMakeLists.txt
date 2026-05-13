@@ -102,6 +102,12 @@ find_package(TIFF)
 
 find_package(OpenGL)
 
+# ZLIB is required by tensorstore (used in renderlib/io). We resolve it at the
+# top level so that the system/vcpkg-provided ZLIB::ZLIB imported target is
+# defined before tensorstore is configured, preventing tensorstore's bundled
+# zlib proxy from re-creating the same target.
+find_package(ZLIB REQUIRED)
+
 # CURL is required by tensorstore (used in renderlib/io). We resolve it at the
 # top level so that the system/vcpkg-provided CURL config (which defines
 # CURL::libcurl_shared) is used, rather than tensorstore's bundled curl proxy
