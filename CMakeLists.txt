@@ -102,6 +102,12 @@ find_package(TIFF)
 
 find_package(OpenGL)
 
+# CURL is required by tensorstore (used in renderlib/io). We resolve it at the
+# top level so that the system/vcpkg-provided CURL config (which defines
+# CURL::libcurl_shared) is used, rather than tensorstore's bundled curl proxy
+# that would otherwise be activated via its FetchContent OVERRIDE_FIND_PACKAGE.
+find_package(CURL REQUIRED)
+
 # normally CMAKE_INSTALL_PREFIX is meant to be outside of the build tree
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)

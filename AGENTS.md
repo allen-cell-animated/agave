@@ -27,7 +27,7 @@ git submodule update --init
 ### macOS (Homebrew)
 
 ```bash
-brew install spdlog libtiff nasm
+brew install spdlog libtiff nasm curl
 
 pip install aqtinstall
 aqt install-qt --outputdir ~/Qt mac desktop 6.9.3 -m qtwebsockets qtimageformats
@@ -46,7 +46,7 @@ Run from a **VS2022 x64 Native Tools Command Prompt**. Requires Perl, NASM, and 
 pip install aqtinstall
 aqt install-qt --outputdir C:\Qt windows desktop 6.9.3 win64_msvc2022_64 -m qtwebsockets qtimageformats
 
-vcpkg install spdlog zlib libjpeg-turbo liblzma tiff zstd --triplet x64-windows
+vcpkg install spdlog zlib libjpeg-turbo liblzma tiff zstd curl --triplet x64-windows
 
 mkdir build && cd build
 cmake -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>\scripts\buildsystems\vcpkg.cmake -G "Ninja Multi-Config" -DVCPKG_TARGET_TRIPLET=x64-windows ..
