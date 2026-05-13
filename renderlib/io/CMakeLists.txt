@@ -34,6 +34,10 @@ set(TENSORSTORE_USE_SYSTEM_TIFF ON)
 if(APPLE)
   set(TENSORSTORE_USE_SYSTEM_ZLIB ON)
 endif(APPLE)
+# Use the system/vcpkg-provided libcurl instead of tensorstore's bundled
+# bazel-style curl proxy (which is incompatible with vcpkg's CURL config).
+# CURL is found at the top-level CMakeLists.txt via find_package(CURL).
+set(TENSORSTORE_USE_SYSTEM_CURL ON)
 FetchContent_Declare(
 	tensorstore
         URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.78.tar.gz"

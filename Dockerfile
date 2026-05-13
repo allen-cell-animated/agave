@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     libegl1-mesa-dev \
     libtiff-dev \
     libzstd-dev \
+    libcurl4-openssl-dev \
     nasm \
     libglvnd0 \
     libgl1 \
