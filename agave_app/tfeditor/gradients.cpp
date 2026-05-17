@@ -1075,8 +1075,43 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 void
 GradientWidget::setHistogram(const Histogram& histogram)
 {
+  // m_gradientData is already up-to-date with respect to the new histogram.
+  //
+  // UI refresh: update the editor's histogram bars, refit the
+  // MINMAX slider range to the new data range, and re-sync all sliders to
+  // m_gradientData. Then forceDataUpdate() redraws the editor curve and
+  // emits a fresh LUT against the new histogram (necessary for PERCENTILE
+  // mode to adapt to the new distribution).
   m_histogram = histogram;
   m_editor->setHistogram(histogram);
+
+  const int dataMin = m_histogram.getDataMin();
+  const int dataMax = m_histogram.getDataMax();
+
+  {
+    QSignalBlocker b1(minu16Slider);
+    QSignalBlocker b2(maxu16Slider);
+    QSignalBlocker b3(windowSlider);
+    QSignalBlocker b4(levelSlider);
+    QSignalBlocker b5(isovalueSlider);
+    QSignalBlocker b6(isorangeSlider);
+    QSignalBlocker b7(pctLowSlider);
+    QSignalBlocker b8(pctHighSlider);
+
+    minu16Slider->setRange(dataMin, dataMax);
+    minu16Slider->setValue(m_gradientData->m_minu16);
+    maxu16Slider->setRange(dataMin, dataMax);
+    maxu16Slider->setValue(m_gradientData->m_maxu16);
+
+    windowSlider->setValue(m_gradientData->m_window);
+    levelSlider->setValue(m_gradientData->m_level);
+    isovalueSlider->setValue(m_gradientData->m_isovalue);
+    isorangeSlider->setValue(m_gradientData->m_isorange);
+    pctLowSlider->setValue(m_gradientData->m_pctLow);
+    pctHighSlider->setValue(m_gradientData->m_pctHigh);
+  }
+
+  forceDataUpdate();
 }
 
 void
