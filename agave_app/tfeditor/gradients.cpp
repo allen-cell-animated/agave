@@ -629,7 +629,8 @@ GradientEditor::onPlotMouseMove(QMouseEvent* event)
       if ((isMinMaxMode || isWindowLevelMode || isPercentileMode) && graph->data()->size() >= 4) {
         double minThresholdX = (graph->data()->begin() + 1)->key;
         double maxThresholdX = (graph->data()->begin() + 2)->key;
-        emit interactivePointsChanged(minThresholdX, maxThresholdX);
+        // Pass m_currentPointIndex so the receiver only rewrites the side that was actually dragged.
+        emit interactivePointsChanged(minThresholdX, maxThresholdX, m_currentPointIndex);
       }
 
       // emit( DataChanged() );
@@ -1479,49 +1480,72 @@ GradientWidget::onSetIsovalue(float isovalue, float width)
 }
 
 void
-GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensity)
+GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensity, int draggedIndex)
 {
-  // Handle different modes appropriately
+  // Only update the side that was actually dragged. Reading back the un-dragged side's
+  // editor key and writing it through to the slider/data causes accumulating drift,
+  // because the editor key is a float reconstruction (dataMin + relative*range) of the
+  // stored uint16/percentile and the inverse mapping is lossy:
+  //   - MINMAX:     uint16 -> float -> uint16  (off-by-one truncation drift)
+  //   - PERCENTILE: pct -> intensity -> bin -> pct  (drift up to one histogram bin width,
+  //                 which is far more than 1 intensity unit, and persists across drags).
+  // draggedIndex: 1 = low/min threshold, 2 = high/max threshold.
+  const bool draggingLow = (draggedIndex == 1);
+  const bool draggingHigh = (draggedIndex == 2);
+  if (!draggingLow && !draggingHigh) {
+    return;
+  }
+
+  const float dataMin = (float)m_histogram.getDataMin();
+  const float dataMax = (float)m_histogram.getDataMax();
+
   if (m_gradientData->m_activeMode == GradientEditMode::MINMAX) {
-    // Convert from graph coordinates (histogram data range) to u16 intensity values
-    uint16_t minu16 = static_cast<uint16_t>(minIntensity);
-    uint16_t maxu16 = static_cast<uint16_t>(maxIntensity);
-
-    // Ensure values are within valid range
-    minu16 = std::max(minu16, static_cast<uint16_t>(m_histogram.getDataMin()));
-    maxu16 = std::min(maxu16, static_cast<uint16_t>(m_histogram.getDataMax()));
-
-    // Update the data
-    m_gradientData->m_minu16 = minu16;
-    m_gradientData->m_maxu16 = maxu16;
-
-    // Update sliders without triggering their signals (to avoid feedback loops)
-    if (minu16Slider) {
-      minu16Slider->blockSignals(true);
-      minu16Slider->setValue(minu16);
-      minu16Slider->blockSignals(false);
-    }
-    if (maxu16Slider) {
-      maxu16Slider->blockSignals(true);
-      maxu16Slider->setValue(maxu16);
-      maxu16Slider->blockSignals(false);
+    if (draggingLow) {
+      // Round (not truncate) and clamp.
+      float clamped = std::max(dataMin, std::min(minIntensity, dataMax));
+      uint16_t minu16 = static_cast<uint16_t>(std::round(clamped));
+      // Don't allow crossing the existing max.
+      minu16 = std::min(minu16, m_gradientData->m_maxu16);
+      m_gradientData->m_minu16 = minu16;
+      if (minu16Slider) {
+        minu16Slider->blockSignals(true);
+        minu16Slider->setValue(minu16);
+        minu16Slider->blockSignals(false);
+      }
+    } else {
+      float clamped = std::max(dataMin, std::min(maxIntensity, dataMax));
+      uint16_t maxu16 = static_cast<uint16_t>(std::round(clamped));
+      maxu16 = std::max(maxu16, m_gradientData->m_minu16);
+      m_gradientData->m_maxu16 = maxu16;
+      if (maxu16Slider) {
+        maxu16Slider->blockSignals(true);
+        maxu16Slider->setValue(maxu16);
+        maxu16Slider->blockSignals(false);
+      }
     }
   } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL) {
-    // Convert intensities to normalized values (0-1 range)
-    uint16_t minInt = static_cast<uint16_t>(minIntensity);
-    uint16_t maxInt = static_cast<uint16_t>(maxIntensity);
-    float relativeMin = normalizeInt<uint16_t>(minInt, m_histogram.getDataMin(), m_histogram.getDataMax());
-    float relativeMax = normalizeInt<uint16_t>(maxInt, m_histogram.getDataMin(), m_histogram.getDataMax());
+    // window/level are coupled: derive the un-dragged endpoint from the stored window/level
+    // so it does NOT pick up float round-trip drift from the editor.
+    const float storedWindow = m_gradientData->m_window;
+    const float storedLevel = m_gradientData->m_level;
+    const float storedRelMin = storedLevel - 0.5f * storedWindow;
+    const float storedRelMax = storedLevel + 0.5f * storedWindow;
 
-    // Calculate window and level from the threshold points
-    float window = relativeMax - relativeMin;
-    float level = (relativeMax + relativeMin) * 0.5f;
-
-    // Update the data
+    float relMin = storedRelMin;
+    float relMax = storedRelMax;
+    const float range = std::max(1.0f, dataMax - dataMin);
+    if (draggingLow) {
+      relMin = (std::max(dataMin, std::min(minIntensity, dataMax)) - dataMin) / range;
+    } else {
+      relMax = (std::max(dataMin, std::min(maxIntensity, dataMax)) - dataMin) / range;
+    }
+    if (relMax < relMin) {
+      std::swap(relMin, relMax);
+    }
+    const float window = relMax - relMin;
+    const float level = 0.5f * (relMax + relMin);
     m_gradientData->m_window = window;
     m_gradientData->m_level = level;
-
-    // Update sliders without triggering their signals
     if (windowSlider) {
       windowSlider->blockSignals(true);
       windowSlider->setValue(window);
@@ -1533,15 +1557,13 @@ GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensit
       levelSlider->blockSignals(false);
     }
   } else if (m_gradientData->m_activeMode == GradientEditMode::PERCENTILE) {
-    // Convert intensities to u16 values first
-    uint16_t minu16 = static_cast<uint16_t>(std::max(minIntensity, (float)m_histogram.getDataMin()));
-    uint16_t maxu16 = static_cast<uint16_t>(std::min(maxIntensity, (float)m_histogram.getDataMax()));
-
-    // Calculate percentiles by converting intensity to bin index and using cumulative counts
-    float pctLow = 0.0f, pctHigh = 1.0f;
-
-    if (m_histogram.getPixelCount() > 0) {
-      // For low percentile
+    if (m_histogram.getPixelCount() == 0) {
+      return;
+    }
+    if (draggingLow) {
+      float clamped = std::max(dataMin, std::min(minIntensity, dataMax));
+      uint16_t minu16 = static_cast<uint16_t>(std::round(clamped));
+      float pctLow = 0.0f;
       if (minu16 <= m_histogram.getDataMin()) {
         pctLow = 0.0f;
       } else if (minu16 >= m_histogram.getDataMax()) {
@@ -1549,8 +1571,16 @@ GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensit
       } else {
         m_histogram.computePercentile(minu16, pctLow);
       }
-
-      // For high percentile
+      m_gradientData->m_pctLow = pctLow;
+      if (pctLowSlider) {
+        pctLowSlider->blockSignals(true);
+        pctLowSlider->setValue(pctLow);
+        pctLowSlider->blockSignals(false);
+      }
+    } else {
+      float clamped = std::max(dataMin, std::min(maxIntensity, dataMax));
+      uint16_t maxu16 = static_cast<uint16_t>(std::round(clamped));
+      float pctHigh = 1.0f;
       if (maxu16 <= m_histogram.getDataMin()) {
         pctHigh = 0.0f;
       } else if (maxu16 >= m_histogram.getDataMax()) {
@@ -1558,22 +1588,12 @@ GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensit
       } else {
         m_histogram.computePercentile(maxu16, pctHigh);
       }
-    }
-
-    // Update the data
-    m_gradientData->m_pctLow = pctLow;
-    m_gradientData->m_pctHigh = pctHigh;
-
-    // Update sliders without triggering their signals
-    if (pctLowSlider) {
-      pctLowSlider->blockSignals(true);
-      pctLowSlider->setValue(pctLow);
-      pctLowSlider->blockSignals(false);
-    }
-    if (pctHighSlider) {
-      pctHighSlider->blockSignals(true);
-      pctHighSlider->setValue(pctHigh);
-      pctHighSlider->blockSignals(false);
+      m_gradientData->m_pctHigh = pctHigh;
+      if (pctHighSlider) {
+        pctHighSlider->blockSignals(true);
+        pctHighSlider->setValue(pctHigh);
+        pctHighSlider->blockSignals(false);
+      }
     }
   }
 }
