@@ -104,7 +104,6 @@ find_package(CURL REQUIRED)
 
 find_package(OpenGL)
 
-
 # normally CMAKE_INSTALL_PREFIX is meant to be outside of the build tree
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
   set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
