@@ -29,15 +29,9 @@ add_subdirectory(libCZI)
 
 # end libczi dependency
 
-# tensorstore dependency for renderlib
+# Use these system/vcpkg-provided dependencies instead of tensorstore's bundled ones.
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
-# Use the system/vcpkg-provided zlib instead of tensorstore's bundled bazel-style
-# zlib proxy, which would otherwise re-create the ZLIB::ZLIB imported target
-# already defined by the system/vcpkg package and cause a CMake conflict.
 set(TENSORSTORE_USE_SYSTEM_ZLIB ON)
-# Use the system/vcpkg-provided libcurl instead of tensorstore's bundled
-# bazel-style curl proxy (which is incompatible with vcpkg's CURL config).
-# CURL is found at the top-level CMakeLists.txt via find_package(CURL).
 set(TENSORSTORE_USE_SYSTEM_CURL ON)
 FetchContent_Declare(
 	tensorstore
