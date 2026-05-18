@@ -1467,11 +1467,10 @@ GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensit
     // so it does NOT pick up float round-trip drift from the editor.
     const float storedWindow = m_gradientData->m_window;
     const float storedLevel = m_gradientData->m_level;
-    const float storedRelMin = storedLevel - 0.5f * storedWindow;
-    const float storedRelMax = storedLevel + 0.5f * storedWindow;
 
-    float relMin = storedRelMin;
-    float relMax = storedRelMax;
+    float relMin = storedLevel - 0.5f * storedWindow;
+    float relMax = storedLevel + 0.5f * storedWindow;
+
     const float range = std::max(1.0f, dataMax - dataMin);
     if (draggingLow) {
       relMin = (std::max(dataMin, std::min(minIntensity, dataMax)) - dataMin) / range;
