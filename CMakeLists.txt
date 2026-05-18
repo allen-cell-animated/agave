@@ -98,21 +98,12 @@ FetchContent_Declare(
     )
 FetchContent_MakeAvailable(glm)
 
-find_package(TIFF)
+find_package(TIFF REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(CURL REQUIRED)
 
 find_package(OpenGL)
 
-# ZLIB is required by tensorstore (used in renderlib/io). We resolve it at the
-# top level so that the system/vcpkg-provided ZLIB::ZLIB imported target is
-# defined before tensorstore is configured, preventing tensorstore's bundled
-# zlib proxy from re-creating the same target.
-find_package(ZLIB REQUIRED)
-
-# CURL is required by tensorstore (used in renderlib/io). We resolve it at the
-# top level so that the system/vcpkg-provided CURL config (which defines
-# CURL::libcurl_shared) is used, rather than tensorstore's bundled curl proxy
-# that would otherwise be activated via its FetchContent OVERRIDE_FIND_PACKAGE.
-find_package(CURL REQUIRED)
 
 # normally CMAKE_INSTALL_PREFIX is meant to be outside of the build tree
 if("${CMAKE_BUILD_TYPE}" STREQUAL "")
