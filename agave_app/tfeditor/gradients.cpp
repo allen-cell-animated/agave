@@ -1429,13 +1429,10 @@ GradientWidget::onSetIsovalue(float isovalue, float width)
 void
 GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensity, int draggedIndex)
 {
-  // Only update the side that was actually dragged. Reading back the un-dragged side's
-  // editor key and writing it through to the slider/data causes accumulating drift,
-  // because the editor key is a float reconstruction (dataMin + relative*range) of the
-  // stored uint16/percentile and the inverse mapping is lossy:
-  //   - MINMAX:     uint16 -> float -> uint16  (off-by-one truncation drift)
-  //   - PERCENTILE: pct -> intensity -> bin -> pct  (drift up to one histogram bin width,
-  //                 which is far more than 1 intensity unit, and persists across drags).
+  // Only update the side that was actually dragged.
+  // This is to avoid doing unnecessary updating of values that shouldn't be changing anyway.
+  // The math to update the values could actually cause rounding errors which cause drift.
+
   // draggedIndex: 1 = low/min threshold, 2 = high/max threshold.
   const bool draggingLow = (draggedIndex == 1);
   const bool draggingHigh = (draggedIndex == 2);
