@@ -1328,24 +1328,15 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
               m_gradientData->m_customControlPoints.end(),
               controlpoint_x_less_than);
     emit gradientStopsChanged(stops);
-  } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL) {
-    // extract window and level from the stops - use second and third points (threshold points)
-    std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
-    if (points.size() < 4) {
-      return;
-    }
-    std::sort(points.begin(), points.end(), controlpoint_x_less_than);
-    float low = points[1].first;  // Second point (low threshold)
-    float high = points[2].first; // Third point (high threshold)
-    float window = high - low;
-    float level = (high + low) * 0.5f;
-    m_gradientData->m_window = window;
-    m_gradientData->m_level = level;
-
-    // update the sliders to match:
-    windowSlider->setValue(window);
-    levelSlider->setValue(level);
-
+  } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL ||
+             m_gradientData->m_activeMode == GradientEditMode::PERCENTILE ||
+             m_gradientData->m_activeMode == GradientEditMode::MINMAX) {
+    // Threshold modes: do NOT update m_gradientData or sliders here. That is done by
+    // onInteractivePointsChanged with knowledge of which handle was dragged, so we don't
+    // corrupt the un-dragged side via a lossy float / percentile round-trip and don't
+    // re-trigger set_shade_points mid-drag (which would visually move the un-dragged
+    // handle). Just forward the stops so the renderer's LUT updates live during the drag.
+    emit gradientStopsChanged(stops);
   } else if (m_gradientData->m_activeMode == GradientEditMode::ISOVALUE) {
     // extract isovalue and range from the stops
     std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
@@ -1363,50 +1354,6 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     // update the sliders to match:
     isovalueSlider->setValue(isovalue);
     isorangeSlider->setValue(isorange);
-  } else if (m_gradientData->m_activeMode == GradientEditMode::PERCENTILE) {
-    // get percentiles from the stops and histogram - use second and third points (threshold points)
-    std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
-    if (points.size() < 4) {
-      return;
-    }
-    std::sort(points.begin(), points.end(), controlpoint_x_less_than);
-    float low = points[1].first;  // Second point (low threshold)
-    float high = points[2].first; // Third point (high threshold)
-    // calculate percentiles from the histogram:
-    uint16_t ulow =
-      m_histogram.getDataMin() + static_cast<uint16_t>(low * (m_histogram.getDataMax() - m_histogram.getDataMin()));
-    uint16_t uhigh =
-      m_histogram.getDataMin() + static_cast<uint16_t>(high * (m_histogram.getDataMax() - m_histogram.getDataMin()));
-    float pctLow = 0.0f, pctHigh = 1.0f;
-    m_histogram.computePercentile(ulow, pctLow);
-    m_histogram.computePercentile(uhigh, pctHigh);
-    m_gradientData->m_pctLow = pctLow;
-    m_gradientData->m_pctHigh = pctHigh;
-
-    // update the sliders to match:
-    pctLowSlider->setValue(pctLow);
-    pctHighSlider->setValue(pctHigh);
-  } else if (m_gradientData->m_activeMode == GradientEditMode::MINMAX) {
-    // get absolute min/max from the stops - use second and third points (threshold points)
-    std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
-    if (points.size() < 4) {
-      return;
-    }
-    std::sort(points.begin(), points.end(), controlpoint_x_less_than);
-    // turn the second and third points' x values into u16 intensities from the histogram range:
-    float low = points[1].first;  // Second point (min threshold)
-    float high = points[2].first; // Third point (max threshold)
-    // calculate percentiles from the histogram:
-    uint16_t ulow =
-      m_histogram.getDataMin() + static_cast<uint16_t>(low * (m_histogram.getDataMax() - m_histogram.getDataMin()));
-    uint16_t uhigh =
-      m_histogram.getDataMin() + static_cast<uint16_t>(high * (m_histogram.getDataMax() - m_histogram.getDataMin()));
-    m_gradientData->m_minu16 = ulow;
-    m_gradientData->m_maxu16 = uhigh;
-
-    // update the sliders to match:
-    minu16Slider->setValue(ulow);
-    maxu16Slider->setValue(uhigh);
   }
 }
 
