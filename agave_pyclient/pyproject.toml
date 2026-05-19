@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "agave_pyclient"
 version = "1.9.0"
-description = "A Python client for the Agave 3d volume renderer"
+description = "A Python client for the AGAVE 3d volume renderer"
 readme = "README.md"
 license = { text = "Allen Institute Software License" }
 requires-python = ">=3.10"
