@@ -42,7 +42,9 @@ public slots:
 
 signals:
   void gradientStopsChanged(const QGradientStops& stops);
-  void interactivePointsChanged(float minIntensity, float maxIntensity);
+  // draggedIndex is the editor point index that the user is moving (1 = low/min threshold,
+  // 2 = high/max threshold). The receiver must only update the slider/data for that side.
+  void interactivePointsChanged(float minIntensity, float maxIntensity, int draggedIndex);
 
 private:
   Histogram m_histogram;
@@ -81,7 +83,7 @@ public:
 
 public slots:
   void onGradientStopsChanged(const QGradientStops& stops);
-  void onInteractivePointsChanged(float minIntensity, float maxIntensity);
+  void onInteractivePointsChanged(float minIntensity, float maxIntensity, int draggedIndex);
 
 signals:
   void gradientStopsChanged(const QGradientStops& stops);

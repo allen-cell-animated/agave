@@ -406,7 +406,7 @@ contains a histogram, showing where the volume intensity is
 distributed (Y axis) along the intensity range (X axis). The white line
 shows how volume intensities X are remapped to new intensities Y.
 
-The graph itself can be zoomed and panned along the X axis. 
+The graph itself can be zoomed and panned along the X axis.
 To zoom, use the mouse wheel (or two finger drag up/down on touchpad). To pan, click and drag the graph.
 To reset the graph to fit the data, double-click anywhere in the graph area.
 
@@ -419,7 +419,7 @@ Min / Max
 Min/Max lets you remap the data range to a narrower range and clip
 data above and below the selected range. AGAVE provides two controls:
 a minimum intensity that will be remapped to 0, and a max intensity
-that will be remapped to 1 (full brightness).  
+that will be remapped to 1 (full brightness).
 You can also click and drag the point handles in the graph directly to adjust the min and max.
 
 Window / Level
@@ -428,7 +428,7 @@ Window / Level
 Window/Level lets you remap the data range to a narrower range and clip
 data above and below the selected range. AGAVE provides two controls:
 one to define how wide the range is (the window), and another to control
-where the window lies in the raw intensity range (the level).  
+where the window lies in the raw intensity range (the level).
 You can also click and drag the point handles in the graph directly to adjust the window and level.
 
 Isovalue
@@ -458,6 +458,27 @@ your own piecewise linear transfer function. You start by default with a
 another in the upper right. Click in the graph anywhere to create a new
 vertex. It will be represented by a white circle. Click the middle of a
 circle and drag to move it.
+
+Behavior on time change
+^^^^^^^^^^^^^^^^^^^^^^^
+
+When you change the current time in the `Time Panel`_, the transfer function
+is updated to keep your settings meaningful against the new timepoint's
+histogram. The behavior depends on the active mode:
+
+- **Min/Max**, **Window/Level**, **Isovalue**, and **Custom**: the control
+  points are preserved at the same absolute intensity values. If the new
+  timepoint has a different data range, the underlying parameters
+  (window, level, isovalue, custom control point positions) are
+  recomputed so that the same raw intensities continue to be selected.
+  This keeps the rendered image visually stable across timepoints.
+- **Histogram Percentile**: the percentile values are preserved instead
+  of the absolute intensities. The transfer function is recomputed from
+  those percentiles against the new timepoint's histogram, so it adapts
+  to changes in the intensity distribution from frame to frame.
+
+The histogram bars in the graph are always redrawn to reflect the new
+timepoint's data.
 
 Color settings
 ~~~~~~~~~~~~~~
@@ -653,6 +674,13 @@ will be loaded while dragging the slider; AGAVE will load the new time
 sample when the slider is released or the numeric input is incremented.
 If your dataset only has a single time, then the Time Panel will be
 hidden.
+
+When a new timepoint is loaded, each channel's transfer function is
+automatically updated against the new histogram. For most modes the
+absolute intensity thresholds are preserved; in Histogram Percentile
+mode the percentile values are preserved and the thresholds are
+recomputed. See `Transfer Function Editor`_ (Behavior on time change)
+for full details.
 
 
 Python Interface

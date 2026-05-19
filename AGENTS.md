@@ -12,7 +12,7 @@ AGAVE (Advanced GPU Accelerated Volume Explorer) is a C++17/Qt6 desktop applicat
 | `test/`           | C++ unit tests (Catch2)                                                                                                                           |
 | `webclient/`      | JavaScript client                                                                                                                                 |
 
-`agave_app` depends on `renderlib` for all rendering and data operations. Keep GUI concerns out of `renderlib`.
+`agave_app` depends on `renderlib` for all rendering and data operations. Keep GUI concerns out of `renderlib`. `renderlib` should have no Qt dependencies and be testable in isolation. The Python client and web client communicate with the C++ engine via a binary command protocol defined in `renderlib/command.h` and implemented in `renderlib/command.cpp`. Commands must be added in all three locations to stay in sync (see "Adding a New Command" below).
 
 ## Build and Test
 
@@ -27,7 +27,7 @@ git submodule update --init
 ### macOS (Homebrew)
 
 ```bash
-brew install spdlog libtiff nasm
+brew install spdlog libtiff nasm curl
 
 pip install aqtinstall
 aqt install-qt --outputdir ~/Qt mac desktop 6.9.3 -m qtwebsockets qtimageformats
@@ -46,7 +46,7 @@ Run from a **VS2022 x64 Native Tools Command Prompt**. Requires Perl, NASM, and 
 pip install aqtinstall
 aqt install-qt --outputdir C:\Qt windows desktop 6.9.3 win64_msvc2022_64 -m qtwebsockets qtimageformats
 
-vcpkg install spdlog zlib libjpeg-turbo liblzma tiff zstd --triplet x64-windows
+vcpkg install spdlog zlib libjpeg-turbo liblzma tiff zstd curl --triplet x64-windows
 
 mkdir build && cd build
 cmake -DCMAKE_TOOLCHAIN_FILE=<vcpkg-root>\scripts\buildsystems\vcpkg.cmake -G "Ninja Multi-Config" -DVCPKG_TARGET_TRIPLET=x64-windows ..

@@ -2,6 +2,8 @@
 
 """Top-level package for agave_pyclient."""
 
+from .agave import AgaveRenderer  # noqa: F401
+
 __author__ = "Daniel Toloudis, Allen Institute for Cell Science"
 __email__ = "danielt@alleninstitute.org"
 # Do not edit this string manually, always use bumpversion
@@ -11,6 +13,3 @@ __version__ = "1.9.0"
 
 def get_module_version() -> str:
     return __version__
-
-
-from .agave import AgaveRenderer  # noqa: F401

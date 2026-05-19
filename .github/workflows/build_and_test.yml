@@ -112,7 +112,7 @@ jobs:
           CXX: clang++
         run: |
           export MACOSX_DEPLOYMENT_TARGET=10.15
-          brew install spdlog nasm
+          brew install spdlog nasm curl
           if [ -d /usr/local/include/openssl ]; then
             mv /usr/local/include/openssl /usr/local/include/openssl.bak
           fi
@@ -143,7 +143,7 @@ jobs:
           CC: gcc
           CXX: g++
         run: |
-          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev nasm
+          sudo apt-get install libspdlog-dev libglm-dev libgl1-mesa-dev libegl1-mesa-dev libtiff-dev libzstd-dev libcurl4-openssl-dev nasm
       - name: linux build and test
         if: matrix.os == 'ubuntu-latest'
         env:
@@ -178,7 +178,7 @@ jobs:
           vc_arch: "x64"
         run: |
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.26100.0
-          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd
+          vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd curl
       - name: Remove bad Strawberry Perl patch binary in search path
         # https://github.com/actions/runner-images/issues/5459#issuecomment-1532856844
         if: matrix.os == 'windows-latest'
@@ -229,15 +229,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.10"
+          python-version: "3.12"
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           cd agave_pyclient
           pip install .[test]
-      - name: Lint with flake8
+      - name: Lint with ruff
         run: |
           cd agave_pyclient
-          flake8 agave_pyclient --count --verbose --show-source --statistics
-          black --check --exclude vendor agave_pyclient
+          ruff check agave_pyclient
+          ruff format --check agave_pyclient
           pytest agave_pyclient/tests/
+      - name: Test build package
+        run: |
+          cd agave_pyclient
+          pip install build
+          python -m build

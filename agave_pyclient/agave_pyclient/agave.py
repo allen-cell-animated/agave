@@ -1,15 +1,26 @@
 # require pillow, numpy, ws4py
-from ws4py.client.threadedclient import WebSocketClient
-import copy
-import io
-import json
 import math
 import numpy
-import queue
 from PIL import Image
-from typing import List
+from typing import List, Optional
 
+from .agave_client import AgaveClient
 from .commandbuffer import CommandBuffer
+from .find_agave import (
+    find_matching_subdirectories,
+    guess_agave_path,
+    launch_agave_process,
+    port_from_url,
+    resolve_agave_path,
+    wait_for_connection,
+)
+
+__all__ = [
+    "AgaveClient",
+    "AgaveRenderer",
+    "find_matching_subdirectories",
+    "guess_agave_path",
+]
 
 
 def lerp(startframe, endframe, startval, endval):
@@ -74,82 +85,6 @@ def get_vertical_axis(lookdir, up):
     return axis
 
 
-# assumptions: every commandbuffer send should result in one image.
-# also, they arrive in the order the buffers were sent.
-class AgaveClient(WebSocketClient):
-    def __init__(self, *args, **kwargs):
-        super(AgaveClient, self).__init__(*args, **kwargs)
-        self.onOpened = None
-        self.onClose = None
-        self.messages = queue.Queue()
-
-    def load_image(self, image_path, onLoaded=None):
-        self.get_info(image_path, callback=onLoaded)
-
-    def opened(self):
-        print("opened up")
-        if self.onOpened:
-            self.onOpened()
-
-    def wait_for_image(self):
-        while True:
-            m = self.receive()
-            if m is not None:
-                if m.is_binary:
-                    return io.BytesIO(m.data)
-                else:
-                    print("Non binary ws message returned")
-            else:
-                break
-        return None
-
-    def wait_for_json(self):
-        while True:
-            m = self.receive()
-            if m is not None:
-                if not m.is_binary:
-                    return json.loads(m.data)
-            print("binary ws message returned")
-            break
-        return None
-
-    def received_message(self, m):
-        self.messages.put(copy.deepcopy(m))
-
-    def closed(self, code, reason=None):
-        """
-        Puts a :exc:`StopIteration` as a message into the
-        `messages` queue.
-        """
-        # When the connection is closed, put a StopIteration
-        # on the message queue to signal there's nothing left
-        # to wait for
-        self.messages.put(StopIteration)
-        print("Closed down", code, reason)
-        if self.onClose:
-            self.onClose()
-
-    def receive(self, block=True):
-        """
-        Returns messages that were stored into the
-        `messages` queue and returns `None` when the
-        websocket is terminated or closed.
-        `block` is passed though the gevent queue `.get()` method, which if
-        True will block until an item in the queue is available. Set this to
-        False if you just want to check the queue, which will raise an
-        Empty exception you need to handle if there is no message to return.
-        """
-        # If the websocket was terminated and there are no messages
-        # left in the queue, return None immediately otherwise the client
-        # will block forever
-        if self.terminated and self.messages.empty():
-            return None
-        message = self.messages.get(block=block)
-        if message is StopIteration:
-            return None
-        return message
-
-
 class AgaveRenderer:
     """
     AgaveRenderer communicates with AGAVE running in server mode to perform GPU volume
@@ -158,30 +93,137 @@ class AgaveRenderer:
     Parameters
     ----------
     url: str
-        Full url to websocket server including port
+        Full url to websocket server including port.
     mode: str
-        "pathtrace" or "raymarch" (pathtrace is default)
+        "pathtrace" or "raymarch" (pathtrace is default).
+    agave_path: Optional[str]
+        Path to an AGAVE executable to launch if no running server is found.
+        If ``None``, a standard install location will be searched for via
+        :func:`guess_agave_path`. Ignored when ``auto_launch`` is False.
+    auto_launch: bool
+        If True (default), and no AGAVE instance can be reached at ``url``,
+        attempt to launch one locally. If False, only connect to an already
+        running instance and raise on failure.
+    launch_retries: int
+        Number of times to retry connecting after launching AGAVE.
+    launch_retry_delay: float
+        Seconds to wait between connection retries after launching AGAVE.
 
     Examples
     --------
-    Connect to an already running local AGAVE server instance
+    Connect to a running local AGAVE server, launching one if necessary:
 
     >>> agaveclient = AgaveRenderer()
 
+    Connect only — do not auto-launch:
+
+    >>> agaveclient = AgaveRenderer(auto_launch=False)
+
+    Launch a specific AGAVE executable:
+
+    >>> agaveclient = AgaveRenderer(agave_path="/path/to/agave")
+
+    Notes
+    -----
+    Connection precedence (highest to lowest):
+
+    1. An AGAVE server already listening at ``url`` is always used
+       first, regardless of the other arguments. ``agave_path`` and
+       ``auto_launch`` are ignored when the initial connect succeeds.
+
+    2. If no server responds and ``auto_launch`` is False, the
+       connection error is re-raised immediately. ``agave_path`` is
+       not consulted.
+
+    3. If no server responds and ``auto_launch`` is True, an AGAVE
+       executable is located using:
+
+       a. ``agave_path`` if explicitly provided, else
+       b. :func:`guess_agave_path` (PATH, then standard install
+          locations for the current OS).
+
+       The executable is launched with ``--server --port=<port>``
+       where ``<port>`` is parsed from ``url``, then the connection
+       is retried up to ``launch_retries`` times spaced
+       ``launch_retry_delay`` seconds apart.
     """
 
-    def __init__(self, url="ws://localhost:1235/", mode="pathtrace") -> None:
+    def __init__(
+        self,
+        url: str = "ws://localhost:1235/",
+        mode: str = "pathtrace",
+        agave_path: Optional[str] = None,
+        auto_launch: bool = True,
+        launch_retries: int = 10,
+        launch_retry_delay: float = 1.0,
+    ) -> None:
+        # See class docstring "Notes" section for the connection-precedence
+        # rules that this constructor implements.
+        self.agave_process = None
         self.cb = CommandBuffer()
         self.session_name = ""
         if mode != "pathtrace" and mode != "raymarch":
             mode = "pathtrace"
-        self.ws = AgaveClient(f"{url}?mode={mode}", protocols=["http-only", "chat"])
-        # self.ws.onOpened = self.onOpen
+        self._url = url
+        self._mode = mode
+
+        # 1. Try to connect to an already-running AGAVE instance.
+        try:
+            self._connect()
+            return
+        except Exception as connect_err:
+            if not auto_launch:
+                raise
+            print(
+                f"Could not connect to AGAVE at {url} ({connect_err}); "
+                "attempting to launch a local instance..."
+            )
+
+        # 2. Locate an AGAVE executable and launch it in server mode.
+        path = resolve_agave_path(agave_path)
+        port = port_from_url(url)
+        self.agave_process = launch_agave_process(path, port=port)
+
+        # 3. Retry connecting until the server is up.
+        try:
+            wait_for_connection(
+                self._connect,
+                self.agave_process,
+                retries=launch_retries,
+                retry_delay=launch_retry_delay,
+            )
+        except Exception:
+            # wait_for_connection has already terminated the process on failure.
+            self.agave_process = None
+            raise
+
+    def _connect(self) -> None:
+        """Open a websocket connection to the AGAVE server."""
+        self.ws = AgaveClient(
+            f"{self._url}?mode={self._mode}", protocols=["http-only", "chat"]
+        )
         self.ws.connect()
-        # self.ws.run_forever()
-        # except KeyboardInterrupt:
-        #     print("keyboard")
-        #     ws.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self) -> None:
+        """Close the websocket and any AGAVE process started by this client."""
+        try:
+            if getattr(self, "ws", None) is not None:
+                self.ws.close()
+        except Exception:
+            pass
+        if self.agave_process is not None:
+            try:
+                self.agave_process.terminate()
+                self.agave_process.wait()
+            except Exception:
+                pass
+            self.agave_process = None
 
     def session(self, name: str):
         """
@@ -909,6 +951,49 @@ class AgaveRenderer:
             "LOAD_DATA", path, scene, multiresolution_level, time, channels, region
         )
 
+    def load_data_and_get_info(
+        self,
+        path: str,
+        scene: int = 0,
+        multiresolution_level: int = 0,
+        time: int = 0,
+        channels: List[int] = [],
+        region: List[int] = [],
+    ) -> dict:
+        """
+        Load a volume and return the server's metadata response as a dict.
+
+        Same arguments as :meth:`load_data`, but this variant immediately
+        flushes the command buffer to the server, waits for the JSON text
+        frame the server sends back, and returns the parsed dictionary.
+
+        The returned dict contains at least the following keys (see
+        ``LoadDataCommand::execute`` in ``renderlib/command.cpp``):
+
+        - ``commandId``           : int, id of the LOAD_DATA command
+        - ``x``, ``y``, ``z``, ``c``, ``t`` : int, image extents
+        - ``pixel_size_x/y/z``    : float, physical voxel size
+        - ``channel_names``       : list[str]
+        - ``channel_min_intensity``: list[int], one value per channel
+        - ``channel_max_intensity``: list[int], one value per channel
+        - ``volume_dimensions``   : nested dict mirroring the C++
+          ``VolumeDimensions`` struct
+
+        Note: any other commands queued in the buffer prior to calling
+        this method will be flushed at the same time.
+
+        Returns
+        -------
+        dict
+            Parsed JSON metadata for the loaded volume.
+        """
+        self.load_data(path, scene, multiresolution_level, time, channels, region)
+        buf = self.cb.make_buffer()
+        self.ws.send(buf, True)
+        # Reset the buffer for subsequent commands.
+        self.cb = CommandBuffer()
+        return self.ws.wait_for_json()
+
     def show_scale_bar(self, on: int):
         """
         Turn scale bar display on or off
@@ -1073,7 +1158,7 @@ class AgaveRenderer:
 
         # then orbit the camera parametrically
         for i in range(0, number_of_frames):
-            self.session(f"{output_name}_{i+first_frame}.png")
+            self.session(f"{output_name}_{i + first_frame}.png")
             self.redraw()
             # first frame gets zero orbit, then onward:
             self.trackball_camera(0.0, direction * (360.0 / float(number_of_frames)))
@@ -1114,7 +1199,7 @@ class AgaveRenderer:
         for i in range(0, number_of_frames):
             quadrant = (i * 4) // number_of_frames
             quadrantdirection = 1 if quadrant == 0 or quadrant == 3 else -1
-            self.session(f"{output_name}_{i+first_frame}.png")
+            self.session(f"{output_name}_{i + first_frame}.png")
             self.redraw()
             # first frame gets zero orbit, then onward:
             self.trackball_camera(0.0, angledelta * direction * quadrantdirection)

@@ -29,11 +29,10 @@ add_subdirectory(libCZI)
 
 # end libczi dependency
 
-# tensorstore dependency for renderlib
+# Use these system/vcpkg-provided dependencies instead of tensorstore's bundled ones.
 set(TENSORSTORE_USE_SYSTEM_TIFF ON)
-if(APPLE)
-  set(TENSORSTORE_USE_SYSTEM_ZLIB ON)
-endif(APPLE)
+set(TENSORSTORE_USE_SYSTEM_ZLIB ON)
+set(TENSORSTORE_USE_SYSTEM_CURL ON)
 FetchContent_Declare(
 	tensorstore
         URL "https://github.com/google/tensorstore/archive/refs/tags/v0.1.78.tar.gz"
