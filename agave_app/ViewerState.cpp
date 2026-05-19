@@ -159,7 +159,7 @@ stateToPythonScript(const Serialize::ViewerState& s)
           .toPythonString()
      << std::endl;
   // TODO use value from viewport or render window capture settings?
-  // if user never went into capture, then this will be 32 the default, and will not re-create the viewport render.
+  // if user never went into capture, then this will be 32 by default, and will not re-create the viewport render.
   ss << obj << SetRenderIterationsCommand({ s.capture.samples }).toPythonString() << std::endl;
   ss << obj << SetPrimaryRayStepSizeCommand({ s.pathTracer.primaryStepSize }).toPythonString() << std::endl;
   ss << obj << SetSecondaryRayStepSizeCommand({ s.pathTracer.secondaryStepSize }).toPythonString() << std::endl;
