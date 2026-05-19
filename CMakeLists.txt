@@ -98,7 +98,9 @@ FetchContent_Declare(
     )
 FetchContent_MakeAvailable(glm)
 
-find_package(TIFF)
+find_package(TIFF REQUIRED)
+find_package(ZLIB REQUIRED)
+find_package(CURL REQUIRED)
 
 find_package(OpenGL)
 
