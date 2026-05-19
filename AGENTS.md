@@ -90,7 +90,7 @@ clang-tidy -p build --fix renderlib/RenderSettings.cpp
 ### Python
 
 - PEP 8 / snake_case
-- Tooling: black, flake8, pyright (see `pyrightconfig.json`)
+- Tooling: - `ruff check`, `ruff format`.
 
 ## Conventions
 

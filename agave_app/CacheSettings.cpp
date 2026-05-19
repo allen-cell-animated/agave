@@ -17,6 +17,9 @@
 #include <windows.h>
 #elif defined(__linux__)
 #include <sys/sysinfo.h>
+#else // macOS
+#include <mach/mach.h>
+#include <mach/mach_host.h>
 #endif
 
 namespace {
@@ -183,9 +186,24 @@ CacheSettings::availableMemoryBytes() const
     return static_cast<std::uint64_t>(info.freeram) * static_cast<std::uint64_t>(info.mem_unit);
   }
   return 0;
-#else
-  return 0;
+#else // macos
+  mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+  vm_statistics64_data_t vm_stats;
+  mach_port_t host_port = mach_host_self();
+
+  if (host_statistics64(host_port, HOST_VM_INFO64, (host_info64_t)&vm_stats, &count) == KERN_SUCCESS) {
+    // Get page size from the system
+    vm_size_t page_size;
+    host_page_size(host_port, &page_size);
+
+    // Calculate free memory
+    long long free_memory = (long long)vm_stats.free_count * page_size;
+    return static_cast<std::uint64_t>(free_memory);
+  } else {
+    return 0;
+  }
 #endif
+  return 0;
 }
 
 std::uint64_t
