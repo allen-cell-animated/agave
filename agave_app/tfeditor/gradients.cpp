@@ -629,7 +629,8 @@ GradientEditor::onPlotMouseMove(QMouseEvent* event)
       if ((isMinMaxMode || isWindowLevelMode || isPercentileMode) && graph->data()->size() >= 4) {
         double minThresholdX = (graph->data()->begin() + 1)->key;
         double maxThresholdX = (graph->data()->begin() + 2)->key;
-        emit interactivePointsChanged(minThresholdX, maxThresholdX);
+        // Pass m_currentPointIndex so the receiver only rewrites the side that was actually dragged.
+        emit interactivePointsChanged(minThresholdX, maxThresholdX, m_currentPointIndex);
       }
 
       // emit( DataChanged() );
@@ -1075,8 +1076,43 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 void
 GradientWidget::setHistogram(const Histogram& histogram)
 {
+  // m_gradientData is already up-to-date with respect to the new histogram.
+  //
+  // UI refresh: update the editor's histogram bars, refit the
+  // MINMAX slider range to the new data range, and re-sync all sliders to
+  // m_gradientData. Then forceDataUpdate() redraws the editor curve and
+  // emits a fresh LUT against the new histogram (necessary for PERCENTILE
+  // mode to adapt to the new distribution).
   m_histogram = histogram;
   m_editor->setHistogram(histogram);
+
+  const int dataMin = m_histogram.getDataMin();
+  const int dataMax = m_histogram.getDataMax();
+
+  {
+    QSignalBlocker b1(minu16Slider);
+    QSignalBlocker b2(maxu16Slider);
+    QSignalBlocker b3(windowSlider);
+    QSignalBlocker b4(levelSlider);
+    QSignalBlocker b5(isovalueSlider);
+    QSignalBlocker b6(isorangeSlider);
+    QSignalBlocker b7(pctLowSlider);
+    QSignalBlocker b8(pctHighSlider);
+
+    minu16Slider->setRange(dataMin, dataMax);
+    minu16Slider->setValue(m_gradientData->m_minu16);
+    maxu16Slider->setRange(dataMin, dataMax);
+    maxu16Slider->setValue(m_gradientData->m_maxu16);
+
+    windowSlider->setValue(m_gradientData->m_window);
+    levelSlider->setValue(m_gradientData->m_level);
+    isovalueSlider->setValue(m_gradientData->m_isovalue);
+    isorangeSlider->setValue(m_gradientData->m_isorange);
+    pctLowSlider->setValue(m_gradientData->m_pctLow);
+    pctHighSlider->setValue(m_gradientData->m_pctHigh);
+  }
+
+  forceDataUpdate();
 }
 
 void
@@ -1292,24 +1328,15 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
               m_gradientData->m_customControlPoints.end(),
               controlpoint_x_less_than);
     emit gradientStopsChanged(stops);
-  } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL) {
-    // extract window and level from the stops - use second and third points (threshold points)
-    std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
-    if (points.size() < 4) {
-      return;
-    }
-    std::sort(points.begin(), points.end(), controlpoint_x_less_than);
-    float low = points[1].first;  // Second point (low threshold)
-    float high = points[2].first; // Third point (high threshold)
-    float window = high - low;
-    float level = (high + low) * 0.5f;
-    m_gradientData->m_window = window;
-    m_gradientData->m_level = level;
-
-    // update the sliders to match:
-    windowSlider->setValue(window);
-    levelSlider->setValue(level);
-
+  } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL ||
+             m_gradientData->m_activeMode == GradientEditMode::PERCENTILE ||
+             m_gradientData->m_activeMode == GradientEditMode::MINMAX) {
+    // Threshold modes: do NOT update m_gradientData or sliders here. That is done by
+    // onInteractivePointsChanged with knowledge of which handle was dragged, so we don't
+    // corrupt the un-dragged side via a lossy float / percentile round-trip and don't
+    // re-trigger set_shade_points mid-drag (which would visually move the un-dragged
+    // handle). Just forward the stops so the renderer's LUT updates live during the drag.
+    emit gradientStopsChanged(stops);
   } else if (m_gradientData->m_activeMode == GradientEditMode::ISOVALUE) {
     // extract isovalue and range from the stops
     std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
@@ -1327,50 +1354,6 @@ GradientWidget::onGradientStopsChanged(const QGradientStops& stops)
     // update the sliders to match:
     isovalueSlider->setValue(isovalue);
     isorangeSlider->setValue(isorange);
-  } else if (m_gradientData->m_activeMode == GradientEditMode::PERCENTILE) {
-    // get percentiles from the stops and histogram - use second and third points (threshold points)
-    std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
-    if (points.size() < 4) {
-      return;
-    }
-    std::sort(points.begin(), points.end(), controlpoint_x_less_than);
-    float low = points[1].first;  // Second point (low threshold)
-    float high = points[2].first; // Third point (high threshold)
-    // calculate percentiles from the histogram:
-    uint16_t ulow =
-      m_histogram.getDataMin() + static_cast<uint16_t>(low * (m_histogram.getDataMax() - m_histogram.getDataMin()));
-    uint16_t uhigh =
-      m_histogram.getDataMin() + static_cast<uint16_t>(high * (m_histogram.getDataMax() - m_histogram.getDataMin()));
-    float pctLow = 0.0f, pctHigh = 1.0f;
-    m_histogram.computePercentile(ulow, pctLow);
-    m_histogram.computePercentile(uhigh, pctHigh);
-    m_gradientData->m_pctLow = pctLow;
-    m_gradientData->m_pctHigh = pctHigh;
-
-    // update the sliders to match:
-    pctLowSlider->setValue(pctLow);
-    pctHighSlider->setValue(pctHigh);
-  } else if (m_gradientData->m_activeMode == GradientEditMode::MINMAX) {
-    // get absolute min/max from the stops - use second and third points (threshold points)
-    std::vector<LutControlPoint> points = gradientStopsToVector(const_cast<QGradientStops&>(stops));
-    if (points.size() < 4) {
-      return;
-    }
-    std::sort(points.begin(), points.end(), controlpoint_x_less_than);
-    // turn the second and third points' x values into u16 intensities from the histogram range:
-    float low = points[1].first;  // Second point (min threshold)
-    float high = points[2].first; // Third point (max threshold)
-    // calculate percentiles from the histogram:
-    uint16_t ulow =
-      m_histogram.getDataMin() + static_cast<uint16_t>(low * (m_histogram.getDataMax() - m_histogram.getDataMin()));
-    uint16_t uhigh =
-      m_histogram.getDataMin() + static_cast<uint16_t>(high * (m_histogram.getDataMax() - m_histogram.getDataMin()));
-    m_gradientData->m_minu16 = ulow;
-    m_gradientData->m_maxu16 = uhigh;
-
-    // update the sliders to match:
-    minu16Slider->setValue(ulow);
-    maxu16Slider->setValue(uhigh);
   }
 }
 
@@ -1444,49 +1427,63 @@ GradientWidget::onSetIsovalue(float isovalue, float width)
 }
 
 void
-GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensity)
+GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensity, int draggedIndex)
 {
-  // Handle different modes appropriately
+  // Only update the side that was actually dragged.
+  // This is to avoid doing unnecessary updating of values that shouldn't be changing anyway.
+  // The math to update the values could actually cause rounding errors which cause drift.
+
+  // draggedIndex: 1 = low/min threshold, 2 = high/max threshold.
+  const bool draggingLow = (draggedIndex == 1);
+  const bool draggingHigh = (draggedIndex == 2);
+  if (!draggingLow && !draggingHigh) {
+    return;
+  }
+
+  const float dataMin = (float)m_histogram.getDataMin();
+  const float dataMax = (float)m_histogram.getDataMax();
+
   if (m_gradientData->m_activeMode == GradientEditMode::MINMAX) {
-    // Convert from graph coordinates (histogram data range) to u16 intensity values
-    uint16_t minu16 = static_cast<uint16_t>(minIntensity);
-    uint16_t maxu16 = static_cast<uint16_t>(maxIntensity);
-
-    // Ensure values are within valid range
-    minu16 = std::max(minu16, static_cast<uint16_t>(m_histogram.getDataMin()));
-    maxu16 = std::min(maxu16, static_cast<uint16_t>(m_histogram.getDataMax()));
-
-    // Update the data
-    m_gradientData->m_minu16 = minu16;
-    m_gradientData->m_maxu16 = maxu16;
-
-    // Update sliders without triggering their signals (to avoid feedback loops)
-    if (minu16Slider) {
-      minu16Slider->blockSignals(true);
-      minu16Slider->setValue(minu16);
-      minu16Slider->blockSignals(false);
+    // clamp the dragged value to the data range
+    float clamped = std::max(dataMin, std::min(draggingLow ? minIntensity : maxIntensity, dataMax));
+    uint16_t value = static_cast<uint16_t>(std::round(clamped));
+    // update the dragged side's value in m_gradientData.
+    if (draggingLow) {
+      value = std::min(value, m_gradientData->m_maxu16);
+      m_gradientData->m_minu16 = value;
+    } else {
+      value = std::max(value, m_gradientData->m_minu16);
+      m_gradientData->m_maxu16 = value;
     }
-    if (maxu16Slider) {
-      maxu16Slider->blockSignals(true);
-      maxu16Slider->setValue(maxu16);
-      maxu16Slider->blockSignals(false);
+    // pick which slider to update based on which side is being dragged
+    auto slider = draggingLow ? minu16Slider : maxu16Slider;
+    if (slider) {
+      slider->blockSignals(true);
+      slider->setValue(value);
+      slider->blockSignals(false);
     }
   } else if (m_gradientData->m_activeMode == GradientEditMode::WINDOW_LEVEL) {
-    // Convert intensities to normalized values (0-1 range)
-    uint16_t minInt = static_cast<uint16_t>(minIntensity);
-    uint16_t maxInt = static_cast<uint16_t>(maxIntensity);
-    float relativeMin = normalizeInt<uint16_t>(minInt, m_histogram.getDataMin(), m_histogram.getDataMax());
-    float relativeMax = normalizeInt<uint16_t>(maxInt, m_histogram.getDataMin(), m_histogram.getDataMax());
+    // window/level are coupled: derive the un-dragged endpoint from the stored window/level
+    // so it does NOT pick up float round-trip drift from the editor.
+    const float storedWindow = m_gradientData->m_window;
+    const float storedLevel = m_gradientData->m_level;
 
-    // Calculate window and level from the threshold points
-    float window = relativeMax - relativeMin;
-    float level = (relativeMax + relativeMin) * 0.5f;
+    float relMin = storedLevel - 0.5f * storedWindow;
+    float relMax = storedLevel + 0.5f * storedWindow;
 
-    // Update the data
+    const float range = std::max(1.0f, dataMax - dataMin);
+    if (draggingLow) {
+      relMin = (std::max(dataMin, std::min(minIntensity, dataMax)) - dataMin) / range;
+    } else {
+      relMax = (std::max(dataMin, std::min(maxIntensity, dataMax)) - dataMin) / range;
+    }
+    if (relMax < relMin) {
+      std::swap(relMin, relMax);
+    }
+    const float window = relMax - relMin;
+    const float level = 0.5f * (relMax + relMin);
     m_gradientData->m_window = window;
     m_gradientData->m_level = level;
-
-    // Update sliders without triggering their signals
     if (windowSlider) {
       windowSlider->blockSignals(true);
       windowSlider->setValue(window);
@@ -1498,47 +1495,28 @@ GradientWidget::onInteractivePointsChanged(float minIntensity, float maxIntensit
       levelSlider->blockSignals(false);
     }
   } else if (m_gradientData->m_activeMode == GradientEditMode::PERCENTILE) {
-    // Convert intensities to u16 values first
-    uint16_t minu16 = static_cast<uint16_t>(std::max(minIntensity, (float)m_histogram.getDataMin()));
-    uint16_t maxu16 = static_cast<uint16_t>(std::min(maxIntensity, (float)m_histogram.getDataMax()));
-
-    // Calculate percentiles by converting intensity to bin index and using cumulative counts
-    float pctLow = 0.0f, pctHigh = 1.0f;
-
-    if (m_histogram.getPixelCount() > 0) {
-      // For low percentile
-      if (minu16 <= m_histogram.getDataMin()) {
-        pctLow = 0.0f;
-      } else if (minu16 >= m_histogram.getDataMax()) {
-        pctLow = 1.0f;
-      } else {
-        m_histogram.computePercentile(minu16, pctLow);
-      }
-
-      // For high percentile
-      if (maxu16 <= m_histogram.getDataMin()) {
-        pctHigh = 0.0f;
-      } else if (maxu16 >= m_histogram.getDataMax()) {
-        pctHigh = 1.0f;
-      } else {
-        m_histogram.computePercentile(maxu16, pctHigh);
-      }
+    if (m_histogram.getPixelCount() == 0) {
+      return;
     }
 
-    // Update the data
-    m_gradientData->m_pctLow = pctLow;
-    m_gradientData->m_pctHigh = pctHigh;
-
-    // Update sliders without triggering their signals
-    if (pctLowSlider) {
-      pctLowSlider->blockSignals(true);
-      pctLowSlider->setValue(pctLow);
-      pctLowSlider->blockSignals(false);
+    float clamped = std::max(dataMin, std::min(draggingLow ? minIntensity : maxIntensity, dataMax));
+    uint16_t value = static_cast<uint16_t>(std::round(clamped));
+    float pct = draggingLow ? 0.0f : 1.0f;
+    if (value <= m_histogram.getDataMin()) {
+      pct = 0.0f;
+    } else if (value >= m_histogram.getDataMax()) {
+      pct = 1.0f;
+    } else {
+      m_histogram.computePercentile(value, pct);
     }
-    if (pctHighSlider) {
-      pctHighSlider->blockSignals(true);
-      pctHighSlider->setValue(pctHigh);
-      pctHighSlider->blockSignals(false);
+    if (draggingLow) {
+      m_gradientData->m_pctLow = pct;
+    } else {
+      m_gradientData->m_pctHigh = pct;
     }
+    auto slider = draggingLow ? pctLowSlider : pctHighSlider;
+    slider->blockSignals(true);
+    slider->setValue(pct);
+    slider->blockSignals(false);
   }
 }

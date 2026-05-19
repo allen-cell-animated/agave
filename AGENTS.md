@@ -12,7 +12,7 @@ AGAVE (Advanced GPU Accelerated Volume Explorer) is a C++17/Qt6 desktop applicat
 | `test/`           | C++ unit tests (Catch2)                                                                                                                           |
 | `webclient/`      | JavaScript client                                                                                                                                 |
 
-`agave_app` depends on `renderlib` for all rendering and data operations. Keep GUI concerns out of `renderlib`.
+`agave_app` depends on `renderlib` for all rendering and data operations. Keep GUI concerns out of `renderlib`. `renderlib` should have no Qt dependencies and be testable in isolation. The Python client and web client communicate with the C++ engine via a binary command protocol defined in `renderlib/command.h` and implemented in `renderlib/command.cpp`. Commands must be added in all three locations to stay in sync (see "Adding a New Command" below).
 
 ## Build and Test
 
