@@ -34,7 +34,7 @@ classifiers = [
 dependencies = [
     "numpy",
     "ws4py==0.5.1",
-    "Pillow==10.3.0",
+    "Pillow==12.2.0",
 ]
 
 [project.urls]
