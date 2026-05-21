@@ -892,6 +892,7 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   btnGroup->addButton(customButton, CUSTOM_BTNID);
   QHBoxLayout* hbox = new QHBoxLayout();
   hbox->setSpacing(0);
+  hbox->setContentsMargins(0, 0, 0, 0);
 
   int initialButtonId = WINDOW_LEVEL_BTNID;
   GradientEditMode m = m_gradientData->m_activeMode;
@@ -910,22 +911,27 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
 
   QWidget* firstPageWidget = new QWidget;
   auto* section0Layout = Controls::createAgaveFormLayout();
+  section0Layout->setContentsMargins(0, 0, 0, 0);
   firstPageWidget->setLayout(section0Layout);
 
   QWidget* secondPageWidget = new QWidget;
   auto* section1Layout = Controls::createAgaveFormLayout();
+  section1Layout->setContentsMargins(0, 0, 0, 0);
   secondPageWidget->setLayout(section1Layout);
 
   QWidget* thirdPageWidget = new QWidget;
   auto* section2Layout = Controls::createAgaveFormLayout();
+  section2Layout->setContentsMargins(0, 0, 0, 0);
   thirdPageWidget->setLayout(section2Layout);
 
   QWidget* fourthPageWidget = new QWidget;
   auto* section3Layout = Controls::createAgaveFormLayout();
+  section3Layout->setContentsMargins(0, 0, 0, 0);
   fourthPageWidget->setLayout(section3Layout);
 
   QWidget* fifthPageWidget = new QWidget;
   auto* section4Layout = Controls::createAgaveFormLayout();
+  section4Layout->setContentsMargins(0, 0, 0, 0);
   fifthPageWidget->setLayout(section4Layout);
 
   QStackedLayout* stackedLayout = new QStackedLayout(mainGroupLayout);
