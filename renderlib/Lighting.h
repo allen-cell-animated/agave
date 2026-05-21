@@ -61,7 +61,7 @@ public:
   size_t m_NoLights{ 0 };
   SceneLight* m_sceneLights[MAX_NO_LIGHTS]{ nullptr, nullptr, nullptr, nullptr };
 
-  bool lockToCamera = false;
+  bool lockToCamera = true;
   glm::mat3 m_capturedRelativeBasis[MAX_NO_LIGHTS] = { glm::mat3(1.0f),
                                                        glm::mat3(1.0f),
                                                        glm::mat3(1.0f),
