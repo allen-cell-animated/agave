@@ -14,8 +14,11 @@
 
 #include <QFormLayout>
 #include <QFrame>
+#include <QAbstractItemDelegate>
 #include <QItemDelegate>
 #include <QLinearGradient>
+#include <QPainter>
+#include <QPointer>
 #include <algorithm>
 
 static QGradientStops
@@ -40,6 +43,68 @@ swatchStopsForColorRamp(const ColorRamp& cr)
   return colormapToGradient(cr.m_stops);
 }
 
+// Item delegate for the colormap dropdown. Paints each item's BackgroundRole
+// brush (the colormap gradient) edge-to-edge with no inner border. The hover
+// / selected state is rendered as a translucent overlay plus a focus outline,
+// so the underlying colormap remains visible.
+class GradientItemDelegate : public QAbstractItemDelegate
+{
+public:
+  explicit GradientItemDelegate(QComboBox* combo)
+    : QAbstractItemDelegate(combo)
+    , m_combo(combo)
+  {
+  }
+
+  void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+  {
+    painter->save();
+    painter->setPen(Qt::NoPen);
+    QVariant bg = index.data(Qt::BackgroundRole);
+    if (bg.canConvert<QBrush>()) {
+      painter->setBrush(bg.value<QBrush>());
+    } else {
+      painter->setBrush(option.palette.base());
+    }
+    painter->drawRect(option.rect);
+
+    QString text = index.data(Qt::DisplayRole).toString();
+    if (!text.isEmpty()) {
+      painter->setPen(option.palette.color(QPalette::Text));
+      painter->drawText(option.rect, Qt::AlignCenter, text);
+    }
+
+    // Hover / selected state: translucent overlay + 1px outline so the
+    // colormap underneath remains visible.
+    if (option.state & (QStyle::State_Selected | QStyle::State_MouseOver)) {
+      QColor highlight = option.palette.color(QPalette::Highlight);
+      QColor overlay = highlight;
+      overlay.setAlpha(64);
+      painter->setPen(Qt::NoPen);
+      painter->setBrush(overlay);
+      painter->drawRect(option.rect);
+
+      painter->setPen(QPen(highlight, 1));
+      painter->setBrush(Qt::NoBrush);
+      painter->drawRect(option.rect.adjusted(0, 0, -1, -1));
+    }
+    painter->restore();
+  }
+
+  QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override
+  {
+    Q_UNUSED(index);
+    int height = option.fontMetrics.height() + 4;
+    if (m_combo) {
+      height = std::max(height, m_combo->sizeHint().height());
+    }
+    return { option.fontMetrics.averageCharWidth() * 10, height };
+  }
+
+private:
+  QPointer<QComboBox> m_combo;
+};
+
 class GradientCombo : public QComboBox
 {
 public:
@@ -63,14 +128,25 @@ public:
     QComboBox::paintEvent(e);
 
     QPainter painter(this);
-    painter.setPen(Qt::black);
+    painter.setPen(Qt::NoPen);
     painter.setBrush(itemData(currentIndex(), Qt::BackgroundRole).value<QBrush>());
     QStyleOptionComboBox option;
+    option.initFrom(this);
     option.rect = rect();
-    QRect r = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxEditField);
+    QRect arrowRect = style()->subControlRect(QStyle::CC_ComboBox, &option, QStyle::SC_ComboBoxArrow, this);
 
-    painter.drawRect(r.adjusted(0, 0, -1, -1));
-    painter.drawText(QRectF(0, 0, width(), height()), Qt::AlignCenter, itemText(currentIndex()));
+    // Fill the entire widget area to the left of the dropdown arrow.
+    QRect fillRect = rect();
+    fillRect.setRight(arrowRect.left() - 1);
+    painter.drawRect(fillRect);
+    painter.setPen(palette().color(QPalette::Text));
+    painter.drawText(fillRect, Qt::AlignCenter, itemText(currentIndex()));
+
+    // Draw a standard 1px border around the swatch using the palette's
+    // mid color (matches other framed widgets in the theme).
+    painter.setBrush(Qt::NoBrush);
+    painter.setPen(palette().color(QPalette::Mid));
+    painter.drawRect(fillRect.adjusted(0, 0, -1, -1));
   }
 };
 
@@ -78,6 +154,7 @@ static QComboBox*
 makeGradientCombo()
 {
   QComboBox* cb = new GradientCombo();
+  cb->setItemDelegate(new GradientItemDelegate(cb));
   const QStringList colorNames = QColor::colorNames();
   int index = 0;
   for (auto& gspec : getBuiltInGradients()) {
