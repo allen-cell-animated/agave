@@ -606,3 +606,67 @@ Controls::createAgaveFormLayout(QWidget* parent)
   layout->setColumnStretch(1, 100);
   return layout;
 }
+
+static void
+applyTipsToWidget(QWidget* w, const QString& toolTip, const QString& statusTip)
+{
+  if (!w) {
+    return;
+  }
+  if (!toolTip.isEmpty()) {
+    w->setToolTip(toolTip);
+  }
+  if (!statusTip.isEmpty()) {
+    w->setStatusTip(statusTip);
+  }
+}
+
+void
+Controls::addFormRow(QFormLayout* layout,
+                     const QString& labelText,
+                     QWidget* field,
+                     const QString& toolTip,
+                     const QString& statusTip)
+{
+  layout->addRow(labelText, field);
+  applyTipsToWidget(field, toolTip, statusTip);
+  applyTipsToWidget(layout->labelForField(field), toolTip, statusTip);
+}
+
+void
+Controls::addFormRow(QFormLayout* layout,
+                     const QString& labelText,
+                     QLayout* fieldLayout,
+                     const QString& toolTip,
+                     const QString& statusTip)
+{
+  layout->addRow(labelText, fieldLayout);
+  applyTipsToWidget(layout->labelForField(fieldLayout), toolTip, statusTip);
+}
+
+void
+Controls::addFormRow(AgaveFormLayout* layout,
+                     const QString& labelText,
+                     QWidget* field,
+                     const QString& toolTip,
+                     const QString& statusTip)
+{
+  // Apply to the field first so AgaveFormLayout::addRow's existing tooltip-copy
+  // logic also picks it up, then explicitly apply to the label as well.
+  applyTipsToWidget(field, toolTip, statusTip);
+  layout->addRow(labelText, field);
+  QLayoutItem* item = layout->itemAtPosition(layout->rowCount() - 1, 0);
+  applyTipsToWidget(item ? item->widget() : nullptr, toolTip, statusTip);
+}
+
+void
+Controls::addFormRow(AgaveFormLayout* layout,
+                     const QString& labelText,
+                     QLayout* fieldLayout,
+                     const QString& toolTip,
+                     const QString& statusTip)
+{
+  layout->addRow(labelText, fieldLayout);
+  QLayoutItem* item = layout->itemAtPosition(layout->rowCount() - 1, 0);
+  applyTipsToWidget(item ? item->widget() : nullptr, toolTip, statusTip);
+}
