@@ -1,16 +1,19 @@
 #include "AppearanceSettingsWidget.h"
+
+#include "Controls.h"
 #include "ObjectTransformMode.h"
 #include "QRenderSettings.h"
 #include "RangeWidget.h"
 #include "Section.h"
 
-#include "ImageXYZC.h"
+#include "tfeditor/gradients.h"
+
+#include "renderlib/ImageXYZC.h"
 #include "renderlib/AppScene.h"
 #include "renderlib/Colormap.h"
 #include "renderlib/Light.h"
 #include "renderlib/Logging.h"
 #include "renderlib/RenderSettings.h"
-#include "tfeditor/gradients.h"
 
 #include <QFormLayout>
 #include <QFrame>
@@ -190,7 +193,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
                                                      QAction* pToggleRotateAction,
                                                      QAction* pToggleTranslateAction)
   : QGroupBox(pParent)
-  , m_MainLayout()
+  , m_MainLayout(new QFormLayout())
   , m_DensityScaleSlider()
   , m_RendererType()
   , m_ShadingType()
@@ -200,8 +203,8 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   , m_qrendersettings(qrs)
   , m_transformMode(new ObjectTransformMode([this]() { return m_scene; }, qrs, this))
 {
-  Controls::initFormLayout(m_MainLayout);
-  setLayout(&m_MainLayout);
+  Controls::initFormLayout(*m_MainLayout);
+  setLayout(m_MainLayout);
 
   m_RendererType.setStatusTip(tr("Select volume rendering type"));
   m_RendererType.setToolTip(tr("Select volume rendering type"));
@@ -210,14 +213,14 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_RendererType.addItem("Path Traced", 1);
 
   m_RendererType.setCurrentIndex(1);
-  m_MainLayout.addRow("Renderer", &m_RendererType);
+  m_MainLayout->addRow("Renderer", &m_RendererType);
 
   m_DensityScaleSlider.setStatusTip(tr("Set scattering density for volume"));
   m_DensityScaleSlider.setToolTip(tr("Set scattering density for volume"));
   m_DensityScaleSlider.setRange(0.001, 100.0);
   m_DensityScaleSlider.setDecimals(3);
   m_DensityScaleSlider.setValue(rs->m_RenderSettings.m_DensityScale);
-  m_MainLayout.addRow("Scattering Density", &m_DensityScaleSlider);
+  m_MainLayout->addRow("Scattering Density", &m_DensityScaleSlider);
 
   m_ShadingType.setStatusTip(tr("Select volume shading style"));
   m_ShadingType.setToolTip(tr("Select volume shading style"));
@@ -225,14 +228,14 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_ShadingType.addItem("Phase Function Only", 1);
   m_ShadingType.addItem("Mixed", 2);
   m_ShadingType.setCurrentIndex(rs->m_RenderSettings.m_ShadingType);
-  m_MainLayout.addRow("Shading Type", &m_ShadingType);
+  m_MainLayout->addRow("Shading Type", &m_ShadingType);
 
   m_GradientFactorSlider.setStatusTip(tr("Mix between BRDF and Phase shading"));
   m_GradientFactorSlider.setToolTip(tr("Mix between BRDF and Phase shading"));
   m_GradientFactorSlider.setRange(0.0, 1.0);
   m_GradientFactorSlider.setDecimals(3);
   m_GradientFactorSlider.setValue(rs->m_RenderSettings.m_GradientFactor);
-  m_MainLayout.addRow("Shading Type Mixture", &m_GradientFactorSlider);
+  m_MainLayout->addRow("Shading Type Mixture", &m_GradientFactorSlider);
 
   QObject::connect(&m_DensityScaleSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetDensityScale(double)));
   QObject::connect(&m_GradientFactorSlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetGradientFactor(double)));
@@ -243,7 +246,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_StepSizePrimaryRaySlider.setRange(1.0, 100.0);
   m_StepSizePrimaryRaySlider.setValue(rs->m_RenderSettings.m_StepSizeFactor);
   m_StepSizePrimaryRaySlider.setDecimals(3);
-  m_MainLayout.addRow("Primary Ray Step Size", &m_StepSizePrimaryRaySlider);
+  m_MainLayout->addRow("Primary Ray Step Size", &m_StepSizePrimaryRaySlider);
 
   QObject::connect(
     &m_StepSizePrimaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizePrimaryRay(double)));
@@ -253,7 +256,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_StepSizeSecondaryRaySlider.setRange(1.0, 100.0);
   m_StepSizeSecondaryRaySlider.setValue(rs->m_RenderSettings.m_StepSizeFactorShadow);
   m_StepSizeSecondaryRaySlider.setDecimals(3);
-  m_MainLayout.addRow("Secondary Ray Step Size", &m_StepSizeSecondaryRaySlider);
+  m_MainLayout->addRow("Secondary Ray Step Size", &m_StepSizeSecondaryRaySlider);
 
   QObject::connect(
     &m_StepSizeSecondaryRaySlider, SIGNAL(valueChanged(double)), this, SLOT(OnSetStepSizeSecondaryRay(double)));
@@ -261,7 +264,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_interpolateCheckBox.setChecked(true);
   m_interpolateCheckBox.setStatusTip(tr("Interpolated volume sampling"));
   m_interpolateCheckBox.setToolTip(tr("Interpolated volume sampling"));
-  m_MainLayout.addRow("Interpolate", &m_interpolateCheckBox);
+  m_MainLayout->addRow("Interpolate", &m_interpolateCheckBox);
   QObject::connect(&m_interpolateCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
     this->OnInterpolateChecked(is_checked);
   });
@@ -269,7 +272,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_backgroundColorButton.setStatusTip(tr("Set background color"));
   m_backgroundColorButton.setToolTip(tr("Set background color"));
   m_backgroundColorButton.SetColor(QColor(0, 0, 0), true);
-  m_MainLayout.addRow("Background Color", &m_backgroundColorButton);
+  m_MainLayout->addRow("Background Color", &m_backgroundColorButton);
 
   QObject::connect(&m_backgroundColorButton, &QColorPushButton::currentColorChanged, [this](const QColor& c) {
     this->OnBackgroundColorChanged(c);
@@ -286,7 +289,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_boundingBoxColorButton.SetColor(QColor(255, 255, 255), true);
   bboxLayout->addWidget(&m_boundingBoxColorButton, 1);
 
-  m_MainLayout.addRow("Bounding Box", bboxLayout);
+  m_MainLayout->addRow("Bounding Box", bboxLayout);
 
   QObject::connect(&m_showBoundingBoxCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
     this->OnShowBoundsChecked(is_checked);
@@ -298,7 +301,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_showScaleBarCheckBox.setChecked(false);
   m_showScaleBarCheckBox.setStatusTip(tr("Show/hide scale bar"));
   m_showScaleBarCheckBox.setToolTip(tr("Show/hide scale bar"));
-  m_MainLayout.addRow("Scale Bar", &m_showScaleBarCheckBox);
+  m_MainLayout->addRow("Scale Bar", &m_showScaleBarCheckBox);
   QObject::connect(&m_showScaleBarCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
     this->OnShowScaleBarChecked(is_checked);
   });
@@ -306,7 +309,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_showTimeStampCheckBox.setChecked(false);
   m_showTimeStampCheckBox.setStatusTip(tr("Show/hide timestamps"));
   m_showTimeStampCheckBox.setToolTip(tr("Show/hide timestamps"));
-  m_MainLayout.addRow("Timestamps", &m_showTimeStampCheckBox);
+  m_MainLayout->addRow("Timestamps", &m_showTimeStampCheckBox);
   QObject::connect(&m_showTimeStampCheckBox, &QCheckBox::clicked, [this](const bool is_checked) {
     this->OnShowTimeStampChecked(is_checked);
   });
@@ -316,7 +319,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_timeStampFormatComboBox.setCurrentIndex(1);
   m_timeStampFormatComboBox.setStatusTip(tr("Choose timestamp display format"));
   m_timeStampFormatComboBox.setToolTip(tr("Choose timestamp display format"));
-  m_MainLayout.addRow("Timestamp Format", &m_timeStampFormatComboBox);
+  m_MainLayout->addRow("Timestamp Format", &m_timeStampFormatComboBox);
   QObject::connect(&m_timeStampFormatComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), [this](int index) {
     this->OnTimeStampFormatChanged(index);
   });
@@ -379,7 +382,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
     m_zFlipCheckBox, &QCheckBox::clicked, [this](bool flipValue) { this->OnFlipAxis(Axis::Z, flipValue); });
 
   m_scaleSection->setContentLayout(*scaleSectionLayout);
-  m_MainLayout.addRow(m_scaleSection);
+  m_MainLayout->addRow(m_scaleSection);
 
   m_clipRoiSection = new Section("ROI", 0);
   auto* roiSectionLayout = new QGridLayout();
@@ -418,15 +421,15 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   roiSectionLayout->setColumnStretch(1, 3);
 
   m_clipRoiSection->setContentLayout(*roiSectionLayout);
-  m_MainLayout.addRow(m_clipRoiSection);
+  m_MainLayout->addRow(m_clipRoiSection);
 
   Section* sectionCP = createClipPlaneSection(pToggleRotateAction, pToggleTranslateAction);
-  m_MainLayout.addRow(sectionCP);
+  m_MainLayout->addRow(sectionCP);
 
   QFrame* lineB = new QFrame();
   lineB->setFrameShape(QFrame::HLine);
   lineB->setFrameShadow(QFrame::Sunken);
-  m_MainLayout.addRow(lineB);
+  m_MainLayout->addRow(lineB);
 
   // create a "lock lights to camera" checkbox
   m_lockLightsToCameraCheckBox = new QCheckBox("Lock Lights to Camera");
@@ -434,7 +437,7 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   m_lockLightsToCameraCheckBox->setToolTip(tr("When checked, interactive volume rotation will not rotate lights"));
 
   m_lockLightsToCameraCheckBox->setChecked(m_scene ? m_scene->m_lighting.lockToCamera : true);
-  m_MainLayout.addRow(m_lockLightsToCameraCheckBox);
+  m_MainLayout->addRow(m_lockLightsToCameraCheckBox);
   QObject::connect(m_lockLightsToCameraCheckBox, &QCheckBox::clicked, [this](bool is_checked) {
     if (m_scene) {
       m_scene->setLockLightsToCamera(is_checked);
@@ -442,14 +445,14 @@ QAppearanceSettingsWidget::QAppearanceSettingsWidget(QWidget* pParent,
   });
 
   Section* section = createAreaLightingControls(pToggleRotateAction);
-  m_MainLayout.addRow(section);
+  m_MainLayout->addRow(section);
   Section* section2 = createSkyLightingControls(pToggleRotateAction);
-  m_MainLayout.addRow(section2);
+  m_MainLayout->addRow(section2);
 
   QFrame* lineA = new QFrame();
   lineA->setFrameShape(QFrame::HLine);
   lineA->setFrameShadow(QFrame::Sunken);
-  m_MainLayout.addRow(lineA);
+  m_MainLayout->addRow(lineA);
 
   QObject::connect(&m_RendererType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetRendererType(int)));
   QObject::connect(&m_ShadingType, SIGNAL(currentIndexChanged(int)), this, SLOT(OnSetShadingType(int)));
@@ -1460,7 +1463,7 @@ QAppearanceSettingsWidget::onNewImage(Scene* scene)
 
     section->setContentLayout(*fullLayout);
     // assumes per-channel sections are at the very end of the m_MainLayout
-    m_MainLayout.addRow(section);
+    m_MainLayout->addRow(section);
     m_channelSections.push_back(section);
   }
 }

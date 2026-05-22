@@ -557,6 +557,8 @@ AgaveFormLayout::addRow(const QString& label, QWidget* widget)
   int row = rowCount();
   auto* labelWidget = new QLabel(label);
   labelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  labelWidget->setToolTip(widget->toolTip());
+  labelWidget->setStatusTip(widget->statusTip());
   addWidget(labelWidget, row, 0, Qt::AlignLeft);
   addWidget(widget, row, 1);
 }
@@ -569,6 +571,13 @@ AgaveFormLayout::addRow(const QString& label, QLayout* layout)
   labelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   addWidget(labelWidget, row, 0, Qt::AlignLeft);
   addLayout(layout, row, 1);
+}
+
+void
+AgaveFormLayout::addRow(QWidget* section)
+{
+  int row = rowCount();
+  addWidget(section, row, 0, 1, 2);
 }
 
 QFormLayout*

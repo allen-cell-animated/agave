@@ -256,6 +256,7 @@ public:
   }
   void addRow(const QString& label, QWidget* widget);
   void addRow(const QString& label, QLayout* layout);
+  void addRow(QWidget* section);
 };
 
 class Controls
