@@ -17,6 +17,9 @@ QAppearanceWidget::QAppearanceWidget(QWidget* pParent,
 
   QScrollArea* scrollArea = new QScrollArea();
   scrollArea->setWidgetResizable(true);
+  // Make the inner appearance widget always shrink to the viewport's width;
+  // this prevents an expanded section from forcing a horizontal scrollbar.
+  m_AppearanceSettingsWidget.setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
   scrollArea->setWidget(&m_AppearanceSettingsWidget);
 
   m_MainLayout.addWidget(scrollArea, 1, 0);

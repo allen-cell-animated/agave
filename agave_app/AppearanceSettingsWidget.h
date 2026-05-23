@@ -93,7 +93,7 @@ public:
 private:
   Scene* m_scene{ nullptr };
 
-  QFormLayout m_MainLayout;
+  QFormLayout* m_MainLayout;
   QNumericSlider m_DensityScaleSlider;
   QComboBox m_RendererType;
   QComboBox m_ShadingType;
