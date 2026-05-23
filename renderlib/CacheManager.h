@@ -68,7 +68,8 @@ private:
   std::string diskCacheId(const CacheKey& key) const;
   std::uint64_t estimateImageBytes(const ImageXYZC& image) const;
   void touchEntry(std::list<CacheKey>::iterator it);
-  void evictIfNeeded(std::uint64_t incomingBytes);
+  // Precondition: caller must hold m_mutex.
+  void evictIfNeededLocked(std::uint64_t incomingBytes);
   void storeImageInMemory(const CacheKey& key, const std::shared_ptr<ImageXYZC>& image);
 
   std::shared_ptr<ImageXYZC> loadFromDisk(const CacheKey& key, const CacheConfig& config);
