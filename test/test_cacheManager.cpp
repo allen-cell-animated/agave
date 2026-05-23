@@ -23,7 +23,8 @@ makeImage(uint32_t x, uint32_t y, uint32_t z, uint32_t c)
   const std::uint64_t bytes = static_cast<std::uint64_t>(x) * y * z * c * kBytesPerPixel;
   auto* data = new uint8_t[bytes];
   std::memset(data, 0, bytes);
-  return std::make_shared<ImageXYZC>(x, y, z, c, ImageXYZC::IN_MEMORY_BPP, data, 1.0f, 1.0f, 1.0f, "units");
+  return std::make_shared<ImageXYZC>(
+    x, y, z, c, static_cast<uint32_t>(ImageXYZC::IN_MEMORY_BPP), data, 1.0f, 1.0f, 1.0f, "units");
 }
 
 LoadSpec
