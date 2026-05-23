@@ -127,7 +127,8 @@ CacheManager::setConfig(const CacheConfig& config)
     evictDiskIfNeeded(configCopy, 0);
   }
 
-  evictIfNeeded(0);
+  std::lock_guard<std::mutex> lock(m_mutex);
+  evictIfNeededLocked(0);
 }
 
 CacheConfig
@@ -304,7 +305,7 @@ CacheManager::touchEntry(std::list<CacheKey>::iterator it)
 }
 
 void
-CacheManager::evictIfNeeded(std::uint64_t incomingBytes)
+CacheManager::evictIfNeededLocked(std::uint64_t incomingBytes)
 {
   if (m_config.maxRamBytes == 0) {
     return;
@@ -341,7 +342,7 @@ CacheManager::storeImageInMemory(const CacheKey& key, const std::shared_ptr<Imag
     m_entries.erase(existing);
   }
 
-  evictIfNeeded(bytes);
+  evictIfNeededLocked(bytes);
 
   m_lruKeys.push_front(key);
   CacheEntry entry;
