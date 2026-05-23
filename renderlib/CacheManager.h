@@ -77,6 +77,11 @@ private:
   void loadDiskIndex(const CacheConfig& config);
   void evictDiskIfNeeded(const CacheConfig& config, std::uint64_t incomingBytes);
   std::uint64_t directorySizeBytes(const std::string& path) const;
+  // Writes a marker file to a directory we manage as our own disk cache root.
+  // clearDiskCache refuses to delete anything unless this marker is present,
+  // protecting against accidental wipes of user-typed paths (e.g. "C:\").
+  void writeCacheMarker(const std::string& path) const;
+  bool isAgaveCacheDir(const std::string& path) const;
 
   mutable std::mutex m_mutex;
   CacheConfig m_config;

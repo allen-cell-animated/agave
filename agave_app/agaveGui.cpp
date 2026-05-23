@@ -109,7 +109,19 @@ agaveGui::agaveGui(QWidget* parent)
     m_cacheSettings.applyToRenderlib(data);
   });
   connect(m_cacheSettingsDockWidget->widget()->clearDiskButton(), &QPushButton::clicked, this, [this]() {
-    CacheManager::instance().clearDiskCache();
+    // Show the path that will actually be cleared (the applied config), which
+    // may differ from the widget's current text if the user edited the path
+    // without clicking Apply.
+    QString cacheDir = QString::fromStdString(CacheManager::instance().getConfig().cacheDir);
+    QMessageBox::StandardButton reply = QMessageBox::question(
+      this,
+      tr("Clear disk cache"),
+      tr("Delete all cached volume data in:\n%1\n\nThis cannot be undone.").arg(cacheDir),
+      QMessageBox::Yes | QMessageBox::No,
+      QMessageBox::No);
+    if (reply == QMessageBox::Yes) {
+      CacheManager::instance().clearDiskCache();
+    }
   });
 
   m_tabs = new QTabWidget(this);
