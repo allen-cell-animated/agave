@@ -643,6 +643,31 @@ TEST_CASE("CacheManager normalizes equivalent filepaths to the same key", "[cach
   }
 
 #ifdef _WIN32
+  SECTION("UNC paths normalize across slash style and case on Windows")
+  {
+    resetCache();
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+
+    LoadSpec stored;
+    stored.filepath = "\\\\Server\\Share\\Path\\Foo.tif";
+    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+
+    // Same UNC path, lowercase, mixed slashes.
+    LoadSpec lookupSlash;
+    lookupSlash.filepath = "//server/share/path/foo.tif";
+    REQUIRE(CacheManager::instance().findImage(lookupSlash) != nullptr);
+
+    // Same UNC path, with a '..' segment in the relative tail.
+    LoadSpec lookupDotDot;
+    lookupDotDot.filepath = "\\\\server\\share\\path\\subdir\\..\\foo.tif";
+    REQUIRE(CacheManager::instance().findImage(lookupDotDot) != nullptr);
+
+    // Different UNC share — must NOT collide.
+    LoadSpec otherShare;
+    otherShare.filepath = "\\\\server\\othershare\\path\\foo.tif";
+    REQUIRE(CacheManager::instance().findImage(otherShare) == nullptr);
+  }
+
   SECTION("Forward and back slashes are equivalent on Windows")
   {
     resetCache();
