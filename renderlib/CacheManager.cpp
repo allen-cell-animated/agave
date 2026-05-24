@@ -48,6 +48,47 @@ toHex(std::size_t value)
   return stream.str();
 }
 
+// Paths beginning with these schemes are treated as remote; we don't try to
+// stat them and the cache key omits mtime/size for them.
+bool
+isRemotePath(const std::string& path)
+{
+  return path.rfind("http", 0) == 0 || path.rfind("s3:", 0) == 0 || path.rfind("gs:", 0) == 0;
+}
+
+// Returns (mtime_ns, file_size). Either or both may be 0 if the path is
+// remote, missing, or otherwise unreadable. For directories (zarr) file_size
+// is 0; mtime is the directory's last_write_time, which most filesystems
+// update when entries are added/removed at the top level. This is best-effort
+// invalidation — a zarr whose chunks were rewritten without touching the
+// root directory will not be invalidated by this check.
+std::pair<std::uint64_t, std::uint64_t>
+statForKey(const std::string& path)
+{
+  if (path.empty() || isRemotePath(path)) {
+    return { 0, 0 };
+  }
+  std::error_code ec;
+  std::filesystem::file_status status = std::filesystem::status(path, ec);
+  if (ec || !std::filesystem::exists(status)) {
+    return { 0, 0 };
+  }
+  std::uint64_t mtimeNs = 0;
+  auto writeTime = std::filesystem::last_write_time(path, ec);
+  if (!ec) {
+    mtimeNs = static_cast<std::uint64_t>(
+      std::chrono::duration_cast<std::chrono::nanoseconds>(writeTime.time_since_epoch()).count());
+  }
+  std::uint64_t size = 0;
+  if (std::filesystem::is_regular_file(status)) {
+    auto s = std::filesystem::file_size(path, ec);
+    if (!ec) {
+      size = static_cast<std::uint64_t>(s);
+    }
+  }
+  return { mtimeNs, size };
+}
+
 std::vector<std::string>
 channelNamesFromImage(const ImageXYZC& image)
 {
@@ -66,7 +107,8 @@ CacheKey::operator==(const CacheKey& other) const
 {
   return filepath == other.filepath && subpath == other.subpath && scene == other.scene && time == other.time &&
          channels == other.channels && minx == other.minx && maxx == other.maxx && miny == other.miny &&
-         maxy == other.maxy && minz == other.minz && maxz == other.maxz && isImageSequence == other.isImageSequence;
+         maxy == other.maxy && minz == other.minz && maxz == other.maxz && isImageSequence == other.isImageSequence &&
+         fileMtimeNs == other.fileMtimeNs && fileSize == other.fileSize;
 }
 
 std::size_t
@@ -84,6 +126,8 @@ CacheKeyHash::operator()(const CacheKey& key) const
   hashCombine(seed, std::hash<std::uint32_t>{}(key.minz));
   hashCombine(seed, std::hash<std::uint32_t>{}(key.maxz));
   hashCombine(seed, std::hash<bool>{}(key.isImageSequence));
+  hashCombine(seed, std::hash<std::uint64_t>{}(key.fileMtimeNs));
+  hashCombine(seed, std::hash<std::uint64_t>{}(key.fileSize));
   for (auto ch : key.channels) {
     hashCombine(seed, std::hash<std::uint32_t>{}(ch));
   }
@@ -329,6 +373,9 @@ CacheManager::makeKey(const LoadSpec& loadSpec) const
   key.minz = loadSpec.minz;
   key.maxz = loadSpec.maxz;
   key.isImageSequence = loadSpec.isImageSequence;
+  auto stat = statForKey(loadSpec.filepath);
+  key.fileMtimeNs = stat.first;
+  key.fileSize = stat.second;
   return key;
 }
 
@@ -339,6 +386,7 @@ CacheManager::keyToString(const CacheKey& key) const
   stream << key.filepath << "|" << key.subpath << "|" << key.scene << "|" << key.time << "|";
   stream << key.minx << "," << key.maxx << "," << key.miny << "," << key.maxy << "," << key.minz << "," << key.maxz
          << "|" << (key.isImageSequence ? 1 : 0) << "|";
+  stream << "m=" << key.fileMtimeNs << ",s=" << key.fileSize << "|";
   for (size_t i = 0; i < key.channels.size(); ++i) {
     if (i > 0) {
       stream << ",";

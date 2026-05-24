@@ -27,6 +27,14 @@ struct CacheKey
   std::uint32_t minz = 0;
   std::uint32_t maxz = 0;
   bool isImageSequence = false;
+  // last_write_time of the filepath (or directory) at the time the key was
+  // built, expressed as nanoseconds since epoch. Zero for remote URLs and for
+  // paths we couldn't stat. Folding this into the key invalidates cache
+  // entries when the source file is overwritten.
+  std::uint64_t fileMtimeNs = 0;
+  // file_size of filepath at the time the key was built. Zero for
+  // directories (zarr) and remote URLs.
+  std::uint64_t fileSize = 0;
 
   bool operator==(const CacheKey& other) const;
 };
