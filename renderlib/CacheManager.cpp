@@ -573,6 +573,22 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
     return;
   }
 
+  std::uint64_t bytes = estimateImageBytes(*image);
+  if (bytes == 0) {
+    return;
+  }
+  if (bytes > config.maxDiskBytes) {
+    // A single image larger than the entire disk cap; refuse rather than
+    // evict everything and overshoot.
+    LOG_WARNING << "Disk cache: skipping store of " << bytes
+                << " byte image — larger than disk cap " << config.maxDiskBytes;
+    return;
+  }
+
+  // Make room before writing, so we never temporarily exceed the cap on
+  // disk and don't waste a large write that would have to be undone.
+  evictDiskIfNeeded(config, bytes);
+
   writeCacheMarker(config.cacheDir);
 
   std::filesystem::path entryPath = std::filesystem::path(config.cacheDir) / diskCacheId(key);
@@ -606,6 +622,9 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
     tensorstore::OpenMode::create | tensorstore::OpenMode::open);
   auto result = openFuture.result();
   if (!result.ok()) {
+    std::error_code rmEc;
+    std::filesystem::remove_all(entryPath, rmEc);
+    LOG_WARNING << "Disk cache store: tensorstore open failed for " << dataPath.string();
     return;
   }
 
@@ -613,10 +632,12 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
   auto arr = tensorstore::Array(reinterpret_cast<uint16_t*>(image->ptr()), shape);
   auto writeResult = tensorstore::Write(tensorstore::UnownedToShared(arr), store).result();
   if (!writeResult.ok()) {
+    std::error_code rmEc;
+    std::filesystem::remove_all(entryPath, rmEc);
+    LOG_WARNING << "Disk cache store: tensorstore write failed for " << dataPath.string();
     return;
   }
 
-  std::uint64_t bytes = estimateImageBytes(*image);
   std::uint64_t accessTime = nowMillis();
   nlohmann::json meta = { { "key", keyToString(key) },
                           { "sizeX", sizeX },
@@ -636,6 +657,9 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
     std::ofstream metaOut(metaPath.string(), std::ios::trunc);
     metaOut << meta.dump(2);
   } catch (...) {
+    std::error_code rmEc;
+    std::filesystem::remove_all(entryPath, rmEc);
+    LOG_WARNING << "Disk cache store: meta.json write failed for " << metaPath.string();
     return;
   }
 
@@ -648,13 +672,15 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
     entry.lastAccess = accessTime;
     auto it = m_diskEntries.find(diskCacheId(key));
     if (it != m_diskEntries.end()) {
-      m_currentDiskBytes -= it->second.bytes;
+      if (m_currentDiskBytes >= it->second.bytes) {
+        m_currentDiskBytes -= it->second.bytes;
+      } else {
+        m_currentDiskBytes = 0;
+      }
     }
     m_diskEntries[diskCacheId(key)] = entry;
     m_currentDiskBytes += bytes;
   }
-
-  evictDiskIfNeeded(config, 0);
 }
 
 void
@@ -722,49 +748,49 @@ CacheManager::evictDiskIfNeeded(const CacheConfig& config, std::uint64_t incomin
     return;
   }
 
-  while (true) {
-    std::string oldestKey;
-    std::uint64_t oldestAccess = std::numeric_limits<std::uint64_t>::max();
-    std::uint64_t currentBytes = 0;
-    {
-      std::lock_guard<std::mutex> lock(m_mutex);
-      currentBytes = m_currentDiskBytes;
-      if ((currentBytes + incomingBytes) <= config.maxDiskBytes || m_diskEntries.empty()) {
-        break;
-      }
-      for (const auto& item : m_diskEntries) {
-        if (item.second.lastAccess < oldestAccess) {
-          oldestAccess = item.second.lastAccess;
-          oldestKey = item.first;
-        }
-      }
-    }
+  // Hold the lock for the entire eviction so a concurrent storeToDisk can't
+  // re-populate an entry we're about to delete on disk (which would
+  // otherwise let us nuke the fresh file). Each per-entry remove_all is a
+  // single small zarr directory, so keeping the lock held is acceptable.
+  std::lock_guard<std::mutex> lock(m_mutex);
 
-    if (oldestKey.empty()) {
+  if ((m_currentDiskBytes + incomingBytes) <= config.maxDiskBytes) {
+    return;
+  }
+
+  // Sort entries by lastAccess ascending so we evict the oldest first.
+  std::vector<std::pair<std::uint64_t, std::string>> byAge;
+  byAge.reserve(m_diskEntries.size());
+  for (const auto& kv : m_diskEntries) {
+    byAge.emplace_back(kv.second.lastAccess, kv.first);
+  }
+  std::sort(byAge.begin(), byAge.end());
+
+  for (const auto& aged : byAge) {
+    if ((m_currentDiskBytes + incomingBytes) <= config.maxDiskBytes) {
       break;
     }
-
-    std::string removePath;
-    std::uint64_t removedBytes = 0;
-    {
-      std::lock_guard<std::mutex> lock(m_mutex);
-      auto it = m_diskEntries.find(oldestKey);
-      if (it == m_diskEntries.end()) {
-        continue;
-      }
-      removePath = it->second.path;
-      removedBytes = it->second.bytes;
-      m_diskEntries.erase(it);
-      if (m_currentDiskBytes >= removedBytes) {
-        m_currentDiskBytes -= removedBytes;
-      } else {
-        m_currentDiskBytes = 0;
-      }
+    auto it = m_diskEntries.find(aged.second);
+    if (it == m_diskEntries.end()) {
+      continue;
     }
+    std::string path = it->second.path;
+    std::uint64_t bytes = it->second.bytes;
+    if (m_currentDiskBytes >= bytes) {
+      m_currentDiskBytes -= bytes;
+    } else {
+      m_currentDiskBytes = 0;
+    }
+    m_diskEntries.erase(it);
 
-    if (!removePath.empty()) {
-      std::error_code ec;
-      std::filesystem::remove_all(removePath, ec);
+    std::error_code ec;
+    std::filesystem::remove_all(path, ec);
+    if (ec) {
+      // On Windows this can fail if another thread (e.g. loadFromDisk)
+      // still holds tensorstore file handles into the same path. The
+      // bookkeeping has already been updated to reflect eviction; the
+      // stale files will be picked up by the next clearDiskCache.
+      LOG_WARNING << "Disk cache eviction: failed to remove " << path << ": " << ec.message();
     }
   }
 }
