@@ -25,9 +25,6 @@ public:
   CacheSettingsData defaultSettings() const;
   std::string configPath() const;
 
-  std::uint64_t availableMemoryBytes() const;
-  std::uint64_t availableDiskBytes(const std::string& path) const;
-
 private:
   bool canWriteCacheDir(const std::string& path) const;
 };
