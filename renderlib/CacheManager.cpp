@@ -12,6 +12,7 @@
 #include "json/json.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <filesystem>
 #include <functional>
@@ -54,6 +55,38 @@ bool
 isRemotePath(const std::string& path)
 {
   return path.rfind("http", 0) == 0 || path.rfind("s3:", 0) == 0 || path.rfind("gs:", 0) == 0;
+}
+
+// Normalize a filepath into a canonical form for cache key generation. Goals:
+//   - "/some/dir/./foo", "/some//dir//foo", and "/some/dir/x/../foo" all
+//     produce the same key (lexically_normal collapses these).
+//   - On Windows, "C:/foo", "C:\foo", and "c:\foo" all produce the same key
+//     (path treats both separators; lowercase normalizes case).
+//
+// We deliberately use lexically_normal (purely textual) rather than
+// weakly_canonical, because the latter resolves relative paths against the
+// process CWD — which would make bare names like "my_in_memory_array" passed
+// to loadFromArray_4D produce different keys when CWD changes. We also pass
+// remote URLs through unchanged, since lexically_normal would mangle the
+// "://" portion into "//".
+std::string
+normalizeFilepath(const std::string& path)
+{
+  if (path.empty() || isRemotePath(path)) {
+    return path;
+  }
+  std::filesystem::path p(path);
+  std::string normalized = p.lexically_normal().generic_string();
+#ifdef _WIN32
+  // NTFS and FAT are conventionally case-insensitive. (Case-sensitive
+  // Windows configurations — per-directory case sensitivity flag, ReFS,
+  // WSL paths reached via \\wsl$ — will see incorrect cache hits between
+  // case-only-different paths. Accept this for the common case.)
+  std::transform(normalized.begin(), normalized.end(), normalized.begin(), [](unsigned char c) {
+    return static_cast<char>(std::tolower(c));
+  });
+#endif
+  return normalized;
 }
 
 // Returns (mtime_ns, file_size). Either or both may be 0 if the path is
@@ -376,7 +409,7 @@ CacheKey
 CacheManager::makeKey(const LoadSpec& loadSpec) const
 {
   CacheKey key;
-  key.filepath = loadSpec.filepath;
+  key.filepath = normalizeFilepath(loadSpec.filepath);
   key.subpath = loadSpec.subpath;
   key.scene = loadSpec.scene;
   key.time = loadSpec.time;
@@ -388,7 +421,9 @@ CacheManager::makeKey(const LoadSpec& loadSpec) const
   key.minz = loadSpec.minz;
   key.maxz = loadSpec.maxz;
   key.isImageSequence = loadSpec.isImageSequence;
-  auto stat = statForKey(loadSpec.filepath);
+  // Use the normalized filepath for stat() too so equivalent paths produce
+  // identical fileMtimeNs / fileSize.
+  auto stat = statForKey(key.filepath);
   key.fileMtimeNs = stat.first;
   key.fileSize = stat.second;
   return key;

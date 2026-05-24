@@ -550,3 +550,125 @@ TEST_CASE("CacheManager invalidates entries when the source file mtime changes",
 
   std::filesystem::remove(srcFile, ec);
 }
+
+TEST_CASE("CacheManager normalizes equivalent filepaths to the same key", "[cache][normalize]")
+{
+  // These tests use synthetic paths that don't exist on disk; statForKey
+  // returns (0, 0) for them, so the cache key depends only on the
+  // (normalized) filepath string and the other LoadSpec fields.
+  const std::uint64_t oneImage = imageBytes(4, 4, 4, 1);
+
+  SECTION("'./' segment is normalized away")
+  {
+    resetCache();
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+
+    LoadSpec stored;
+    stored.filepath = "/some/dir/foo.tif";
+    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+
+    LoadSpec lookup;
+    lookup.filepath = "/some/dir/./foo.tif";
+    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+  }
+
+  SECTION("'..' segment is normalized away")
+  {
+    resetCache();
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+
+    LoadSpec stored;
+    stored.filepath = "/some/dir/foo.tif";
+    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+
+    LoadSpec lookup;
+    lookup.filepath = "/some/dir/subdir/../foo.tif";
+    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+  }
+
+  SECTION("Duplicate path separators are collapsed")
+  {
+    resetCache();
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+
+    LoadSpec stored;
+    stored.filepath = "/some/dir/foo.tif";
+    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+
+    LoadSpec lookup;
+    lookup.filepath = "/some//dir///foo.tif";
+    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+  }
+
+  SECTION("Bare names (no slashes) pass through unchanged")
+  {
+    resetCache();
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+
+    LoadSpec stored;
+    stored.filepath = "in_memory_array_42";
+    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+
+    LoadSpec lookup;
+    lookup.filepath = "in_memory_array_42";
+    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+  }
+
+  SECTION("Remote URLs are passed through without normalization")
+  {
+    resetCache();
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+
+    LoadSpec stored;
+    stored.filepath = "http://example.com/path/to/data.zarr";
+    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+
+    LoadSpec lookup;
+    lookup.filepath = "http://example.com/path/to/data.zarr";
+    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+  }
+
+  SECTION("Distinct paths still produce distinct keys (no false hits)")
+  {
+    resetCache();
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+
+    LoadSpec stored;
+    stored.filepath = "/some/dir/foo.tif";
+    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+
+    LoadSpec lookup;
+    lookup.filepath = "/some/dir/bar.tif";
+    REQUIRE(CacheManager::instance().findImage(lookup) == nullptr);
+  }
+
+#ifdef _WIN32
+  SECTION("Forward and back slashes are equivalent on Windows")
+  {
+    resetCache();
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+
+    LoadSpec stored;
+    stored.filepath = "C:/some/dir/foo.tif";
+    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+
+    LoadSpec lookup;
+    lookup.filepath = "C:\\some\\dir\\foo.tif";
+    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+  }
+
+  SECTION("Case differences are equivalent on Windows")
+  {
+    resetCache();
+    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+
+    LoadSpec stored;
+    stored.filepath = "C:/Some/Dir/Foo.tif";
+    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+
+    LoadSpec lookup;
+    lookup.filepath = "c:/some/dir/foo.tif";
+    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+  }
+#endif
+}
