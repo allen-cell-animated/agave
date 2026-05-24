@@ -62,7 +62,10 @@ public:
 
   std::shared_ptr<ImageXYZC> findImage(const LoadSpec& loadSpec);
   void storeImage(const LoadSpec& loadSpec, const std::shared_ptr<ImageXYZC>& image);
-  void clear();
+  // Drop all entries from the in-memory cache. Disk cache is untouched.
+  void clearMemoryCache();
+  // Drop all entries from the disk cache (refuses if the cache directory is
+  // missing the AGAVE marker file). Memory cache is untouched.
   void clearDiskCache();
 
   CacheStats getStats() const;
