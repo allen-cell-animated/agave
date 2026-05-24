@@ -301,7 +301,7 @@ CacheManager::storeImage(const LoadSpec& loadSpec, const std::shared_ptr<ImageXY
 }
 
 void
-CacheManager::clear()
+CacheManager::clearMemoryCache()
 {
   std::lock_guard<std::mutex> lock(m_mutex);
   m_entries.clear();

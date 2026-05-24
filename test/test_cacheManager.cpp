@@ -51,7 +51,7 @@ imageBytes(uint32_t x, uint32_t y, uint32_t z, uint32_t c)
 void
 resetCache()
 {
-  CacheManager::instance().clear();
+  CacheManager::instance().clearMemoryCache();
   CacheManager::instance().resetStats();
 }
 
@@ -345,14 +345,14 @@ TEST_CASE("CacheManager respects RAM limit and evicts LRU entries", "[cache]")
     REQUIRE(CacheManager::instance().findImage(makeSpec("c")) == nullptr);
   }
 
-  SECTION("clear() empties the cache")
+  SECTION("clearMemoryCache() empties the cache")
   {
     resetCache();
     CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
     CacheManager::instance().storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
     CacheManager::instance().storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
 
-    CacheManager::instance().clear();
+    CacheManager::instance().clearMemoryCache();
 
     REQUIRE(CacheManager::instance().findImage(makeSpec("a")) == nullptr);
     REQUIRE(CacheManager::instance().findImage(makeSpec("b")) == nullptr);
@@ -388,7 +388,7 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
     CacheManager::instance().storeImage(spec, img);
 
     // Drop RAM cache; disk cache survives.
-    CacheManager::instance().clear();
+    CacheManager::instance().clearMemoryCache();
     CacheManager::instance().resetStats();
 
     auto found = CacheManager::instance().findImage(spec);
@@ -424,7 +424,7 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
 
     // Drop RAM to force a disk-or-miss lookup; with no entry on disk we
     // should get a miss.
-    CacheManager::instance().clear();
+    CacheManager::instance().clearMemoryCache();
     REQUIRE(CacheManager::instance().findImage(spec) == nullptr);
   }
 
@@ -443,7 +443,7 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
     CacheManager::instance().storeImage(makeSpec("disk_c"), makeImage(4, 4, 4, 1));
 
     // Drop RAM so finds have to go through the disk tier.
-    CacheManager::instance().clear();
+    CacheManager::instance().clearMemoryCache();
 
     REQUIRE(CacheManager::instance().findImage(makeSpec("disk_a")) == nullptr);
     REQUIRE(CacheManager::instance().findImage(makeSpec("disk_b")) != nullptr);
@@ -504,7 +504,7 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
     // point it back at the original dir.
     TempCacheDir other;
     CacheManager::instance().setConfig(diskConfig(other.str(), oneImage * 4, 1ULL * 1024 * 1024));
-    CacheManager::instance().clear();
+    CacheManager::instance().clearMemoryCache();
 
     CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
     CacheManager::instance().resetStats();
