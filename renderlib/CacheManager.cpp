@@ -203,6 +203,21 @@ CacheManager::findImage(const LoadSpec& loadSpec)
         m_stats.ramHits++;
         LOG_DEBUG << "Cache stats: ram_hits=" << m_stats.ramHits << " disk_hits=" << m_stats.diskHits
                   << " misses=" << m_stats.misses << " disk_writes=" << m_stats.diskWrites;
+        // NOTE: we deliberately do not refresh the matching DiskEntry's
+        // lastAccess (or its on-disk meta.json) on a RAM hit. The disk LRU
+        // is only consulted when an entry has fallen out of RAM, and
+        // loadFromDisk refreshes the disk lastAccess at that point — so
+        // within a session the disk bookkeeping is fresh whenever it
+        // actually matters.
+        //
+        // TODO: edge case — an entry that stays RAM-resident for an entire
+        // session never has its disk lastAccess bumped, so at the next
+        // session start it can look "older" than entries that were only
+        // served from disk in the previous session, and may be the first
+        // thing evicted from disk on cold start. If that ever shows up as
+        // a real cold-start problem, fix by bumping the in-memory
+        // DiskEntry.lastAccess here (no on-disk write needed) and letting
+        // the existing flush-on-eviction-or-shutdown path persist it.
         return it->second.image;
       }
     }
