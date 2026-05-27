@@ -150,7 +150,7 @@ CacheSettings::applyToRenderlib(const CacheSettingsData& data) const
 {
   ::CacheConfig config = toRenderlibConfig(*this, data);
   if (config.enableDisk && !config.cacheDir.empty()) {
-    if (!canWriteCacheDir(config.cacheDir)) {
+    if (!CacheManager::canWriteCacheDir(config.cacheDir)) {
       LOG_WARNING << "Cache disk disabled: cache directory not writable: " << config.cacheDir;
       config.enableDisk = false;
       config.maxDiskBytes = 0;
@@ -164,29 +164,4 @@ CacheSettings::applyToRenderlib(const CacheSettingsData& data) const
   LOG_INFO << "Cache config applied: enabled=" << (applied.enabled ? 1 : 0) << " ram_bytes=" << applied.maxRamBytes
            << " disk_enabled=" << (applied.enableDisk ? 1 : 0) << " disk_bytes=" << applied.maxDiskBytes
            << " cache_dir=" << applied.cacheDir;
-}
-
-bool
-CacheSettings::canWriteCacheDir(const std::string& path) const
-{
-  if (path.empty()) {
-    return false;
-  }
-
-  QString qPath = QString::fromStdString(path);
-  QDir dir(qPath);
-  if (!dir.exists()) {
-    if (!dir.mkpath(".")) {
-      return false;
-    }
-  }
-
-  QString testPath = dir.filePath(".agave_cache_write_test");
-  QFile testFile(testPath);
-  if (!testFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-    return false;
-  }
-  testFile.write("test");
-  testFile.close();
-  return testFile.remove();
 }
