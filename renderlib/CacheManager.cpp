@@ -293,11 +293,13 @@ CacheManager::storeImage(const LoadSpec& loadSpec, const std::shared_ptr<ImageXY
     configCopy = m_config;
   }
 
+  const auto key = makeKey(loadSpec);
+
   if (configCopy.enabled && configCopy.enableDisk && configCopy.maxDiskBytes > 0) {
-    storeToDisk(makeKey(loadSpec), image, configCopy);
+    storeToDisk(key, image, configCopy);
   }
 
-  storeImageInMemory(makeKey(loadSpec), image);
+  storeImageInMemory(key, image);
 }
 
 void
