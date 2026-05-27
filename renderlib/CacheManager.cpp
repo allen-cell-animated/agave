@@ -555,6 +555,11 @@ CacheManager::loadFromDisk(const CacheKey& key, const CacheConfig& config)
   std::uint32_t sizeZ = meta["sizeZ"].get<std::uint32_t>();
   std::uint32_t sizeC = meta["sizeC"].get<std::uint32_t>();
   std::uint32_t bpp = meta.value("bpp", static_cast<std::uint32_t>(ImageXYZC::IN_MEMORY_BPP));
+  if (bpp != static_cast<std::uint32_t>(ImageXYZC::IN_MEMORY_BPP)) {
+    LOG_ERROR << "Disk cache load: unsupported bpp " << bpp << " in " << metaPath.string() << " (expected "
+              << ImageXYZC::IN_MEMORY_BPP << "); skipping cache entry";
+    return nullptr;
+  }
   float sx = meta.value("physicalSizeX", 1.0f);
   float sy = meta.value("physicalSizeY", 1.0f);
   float sz = meta.value("physicalSizeZ", 1.0f);
@@ -630,8 +635,8 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
   if (bytes > config.maxDiskBytes) {
     // A single image larger than the entire disk cap; refuse rather than
     // evict everything and overshoot.
-    LOG_WARNING << "Disk cache: skipping store of " << bytes
-                << " byte image — larger than disk cap " << config.maxDiskBytes;
+    LOG_WARNING << "Disk cache: skipping store of " << bytes << " byte image — larger than disk cap "
+                << config.maxDiskBytes;
     return;
   }
 
