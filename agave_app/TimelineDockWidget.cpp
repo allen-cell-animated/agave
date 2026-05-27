@@ -83,7 +83,9 @@ QTimelineWidget::OnTimeChanged(int newTime)
     loadSpec.time = newTime;
 
     QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-    std::shared_ptr<ImageXYZC> image = FileReader::loadAndCache(loadSpec);
+    // Reuse the reader created at file-open time so we skip re-opening the file
+    // and re-parsing metadata on every time-step.
+    std::shared_ptr<ImageXYZC> image = FileReader::loadAndCache(loadSpec, m_reader);
     QApplication::restoreOverrideCursor();
     if (!image) {
       // TODO FIXME if we fail to set the new time, then reset the GUI to previous time
