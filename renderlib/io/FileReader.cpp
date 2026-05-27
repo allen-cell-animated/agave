@@ -64,23 +64,28 @@ FileReader::getReader(const std::string& filepath, bool isImageSequence)
 }
 
 std::shared_ptr<ImageXYZC>
-FileReader::loadAndCache(const LoadSpec& loadSpec)
+FileReader::loadAndCache(const LoadSpec& loadSpec, std::shared_ptr<IFileReader> reader)
 {
   auto cached = CacheManager::instance().findImage(loadSpec);
   if (cached) {
     return cached;
   }
 
-  VolumeDimensions dims;
-
   std::shared_ptr<ImageXYZC> image;
 
-  std::string filepath = loadSpec.filepath;
+  const std::string& filepath = loadSpec.filepath;
 
-  std::unique_ptr<IFileReader> reader(FileReader::getReader(filepath, loadSpec.isImageSequence));
+  // Fall back to constructing a new reader if the caller didn't supply one.
+  // A reused reader can skip re-opening the file and re-parsing metadata (notably
+  // valuable for time-series stepping on OME-Zarr/TIFF/CZI).
+  std::shared_ptr<IFileReader> ownedReader;
   if (!reader) {
-    LOG_ERROR << "Could not find a reader for file " << filepath;
-    return nullptr;
+    ownedReader.reset(FileReader::getReader(filepath, loadSpec.isImageSequence));
+    if (!ownedReader) {
+      LOG_ERROR << "Could not find a reader for file " << filepath;
+      return nullptr;
+    }
+    reader = ownedReader;
   }
 
   image = reader->loadFromFile(loadSpec);
