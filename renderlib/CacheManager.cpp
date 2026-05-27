@@ -317,6 +317,13 @@ CacheManager::clearDiskCache()
   {
     std::lock_guard<std::mutex> lock(m_mutex);
     cacheDir = m_config.cacheDir;
+
+    if (!isAgaveCacheDir(cacheDir)) {
+      LOG_WARNING << "Refusing to clear disk cache: directory missing AGAVE cache marker file (" << kCacheMarkerFilename
+                  << "): " << cacheDir;
+      return;
+    }
+
     knownEntryPaths.reserve(m_diskEntries.size());
     for (const auto& kv : m_diskEntries) {
       knownEntryPaths.push_back(kv.second.path);
@@ -326,12 +333,6 @@ CacheManager::clearDiskCache()
   }
 
   if (cacheDir.empty()) {
-    return;
-  }
-
-  if (!isAgaveCacheDir(cacheDir)) {
-    LOG_WARNING << "Refusing to clear disk cache: directory missing AGAVE cache marker file (" << kCacheMarkerFilename
-                << "): " << cacheDir;
     return;
   }
 
