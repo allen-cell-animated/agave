@@ -38,7 +38,7 @@ AboutDialog::AboutDialog()
 
   label = new QLabel(this);
   label->setText("AGAVE is made possible through the hard work and dedication of engineers, designers, and scientists "
-                 "in Cell Science at the Allen "
+                 "in the cell science accelerator at the Allen "
                  "Institute and through the continued philanthropy of the Paul Allen estate."
                  "<br>"
                  "<br>"
