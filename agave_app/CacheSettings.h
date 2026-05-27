@@ -24,7 +24,4 @@ public:
 
   CacheSettingsData defaultSettings() const;
   std::string configPath() const;
-
-private:
-  bool canWriteCacheDir(const std::string& path) const;
 };

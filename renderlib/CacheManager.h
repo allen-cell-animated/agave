@@ -57,6 +57,11 @@ public:
 
   static CacheManager& instance();
 
+  // Verify that `path` is (or can be made) a writable directory. Creates the
+  // directory if it does not exist, then probes it by writing and deleting a
+  // small marker file. Returns false on any failure.
+  static bool canWriteCacheDir(const std::string& path);
+
   void setConfig(const CacheConfig& config);
   CacheConfig getConfig() const;
 
