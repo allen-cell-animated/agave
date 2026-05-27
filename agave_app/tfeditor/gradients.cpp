@@ -972,12 +972,20 @@ GradientWidget::GradientWidget(const Histogram& histogram, GradientData* dataObj
   minu16Slider->setRange(m_histogram.getDataMin(), m_histogram.getDataMax());
   minu16Slider->setSingleStep(1);
   minu16Slider->setValue(m_gradientData->m_minu16);
-  Controls::addFormRow(section0Layout, "Min u16", minu16Slider, tr("Set minimum u16 value"), tr("Minimum u16 value"));
+  Controls::addFormRow(section0Layout,
+                       "Min u16",
+                       minu16Slider,
+                       tr("Set minimum 16-bit intensity value"),
+                       tr("Minimum 16-bit intensity value"));
   maxu16Slider = new QIntSlider();
   maxu16Slider->setRange(m_histogram.getDataMin(), m_histogram.getDataMax());
   maxu16Slider->setSingleStep(1);
   maxu16Slider->setValue(m_gradientData->m_maxu16);
-  Controls::addFormRow(section0Layout, "Max u16", maxu16Slider, tr("Set maximum u16 value"), tr("Maximum u16 value"));
+  Controls::addFormRow(section0Layout,
+                       "Max u16",
+                       maxu16Slider,
+                       tr("Set maximum 16-bit intensity value"),
+                       tr("Maximum 16-bit intensity value"));
   connect(minu16Slider, &QIntSlider::valueChanged, [this](int i) {
     this->m_gradientData->m_minu16 = i;
     this->onSetMinMax(i, this->m_gradientData->m_maxu16);
