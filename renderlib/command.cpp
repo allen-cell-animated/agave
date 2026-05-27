@@ -663,7 +663,7 @@ LoadDataCommand::execute(ExecutionContext* c)
   c->m_loadSpec.maxz = m_data.m_zmax;
 
   // TODO can we load time sequences of separate files here?
-  std::unique_ptr<IFileReader> reader(FileReader::getReader(m_data.m_path));
+  std::shared_ptr<IFileReader> reader(FileReader::getReader(m_data.m_path));
   if (!reader) {
     LOG_ERROR << "Could not find a reader for file " << m_data.m_path;
     return;
@@ -671,7 +671,7 @@ LoadDataCommand::execute(ExecutionContext* c)
 
   VolumeDimensions dims = reader->loadDimensions(m_data.m_path, m_data.m_scene);
 
-  std::shared_ptr<ImageXYZC> image = FileReader::loadAndCache(c->m_loadSpec);
+  std::shared_ptr<ImageXYZC> image = FileReader::loadAndCache(c->m_loadSpec, reader);
   if (!image) {
     return;
   }

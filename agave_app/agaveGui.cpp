@@ -113,12 +113,12 @@ agaveGui::agaveGui(QWidget* parent)
     // may differ from the widget's current text if the user edited the path
     // without clicking Apply.
     QString cacheDir = QString::fromStdString(CacheManager::instance().getConfig().cacheDir);
-    QMessageBox::StandardButton reply = QMessageBox::question(
-      this,
-      tr("Clear disk cache"),
-      tr("Delete all cached volume data in:\n%1\n\nThis cannot be undone.").arg(cacheDir),
-      QMessageBox::Yes | QMessageBox::No,
-      QMessageBox::No);
+    QMessageBox::StandardButton reply =
+      QMessageBox::question(this,
+                            tr("Clear disk cache"),
+                            tr("Delete all cached volume data in:\n%1\n\nThis cannot be undone.").arg(cacheDir),
+                            QMessageBox::Yes | QMessageBox::No,
+                            QMessageBox::No);
     if (reply == QMessageBox::Yes) {
       CacheManager::instance().clearDiskCache();
     }
@@ -861,7 +861,7 @@ agaveGui::open(const std::string& file, const Serialize::ViewerState* vs, bool i
   // We can update the render and gui progressively as chunks are loaded.
   // Also, this would allow renders to be cancelled during loading.
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-  std::shared_ptr<ImageXYZC> image = FileReader::loadAndCache(loadSpec);
+  std::shared_ptr<ImageXYZC> image = FileReader::loadAndCache(loadSpec, reader);
   QApplication::restoreOverrideCursor();
   if (!image) {
     LOG_DEBUG << "Failed to open " << file;
