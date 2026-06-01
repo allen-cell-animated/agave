@@ -34,8 +34,8 @@ aqt install-qt --outputdir ~/Qt mac desktop 6.9.3 -m qtwebsockets qtimageformats
 export Qt6_DIR=~/Qt/6.9.3/macos
 
 mkdir build && cd build
-cmake ..
-make
+cmake .. -G Ninja
+cmake --build .
 ```
 
 ### Windows
