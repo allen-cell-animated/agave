@@ -795,7 +795,12 @@ CacheManager::loadDiskIndex(const CacheConfig& config)
   std::unordered_map<std::string, DiskEntry> entries;
   std::uint64_t totalBytes = 0;
 
-  for (const auto& dirEntry : std::filesystem::directory_iterator(root)) {
+  std::error_code iterEc;
+  for (const auto& dirEntry : std::filesystem::directory_iterator(root, iterEc)) {
+    if (iterEc) {
+      LOG_WARNING << "loadDiskIndex: error reading cache directory " << root.string() << ": " << iterEc.message();
+      break;
+    }
     if (!dirEntry.is_directory()) {
       continue;
     }
