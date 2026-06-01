@@ -216,7 +216,7 @@ CacheManager::setConfig(const CacheConfig& config)
   CacheConfig configCopy;
   bool rebuildDiskIndex = false;
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     m_config = config;
     if (!m_config.enabled) {
       m_entries.clear();
@@ -246,14 +246,14 @@ CacheManager::setConfig(const CacheConfig& config)
     evictDiskIfNeeded(configCopy, 0);
   }
 
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   evictIfNeededLocked(0);
 }
 
 CacheConfig
 CacheManager::getConfig() const
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   return m_config;
 }
 
@@ -263,7 +263,7 @@ CacheManager::findImage(const LoadSpec& loadSpec)
   CacheConfig configCopy;
   CacheKey key = makeKey(loadSpec);
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     configCopy = m_config;
     if (m_config.enabled && m_config.maxRamBytes > 0) {
       auto it = m_entries.find(key);
@@ -296,7 +296,7 @@ CacheManager::findImage(const LoadSpec& loadSpec)
     auto diskImage = loadFromDisk(key, configCopy);
     if (diskImage) {
       {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        std::scoped_lock lock(m_mutex);
         m_stats.diskHits++;
         LOG_DEBUG << "Cache stats: ram_hits=" << m_stats.ramHits << " disk_hits=" << m_stats.diskHits
                   << " misses=" << m_stats.misses << " disk_writes=" << m_stats.diskWrites;
@@ -307,7 +307,7 @@ CacheManager::findImage(const LoadSpec& loadSpec)
   }
 
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     m_stats.misses++;
     LOG_DEBUG << "Cache stats: ram_hits=" << m_stats.ramHits << " disk_hits=" << m_stats.diskHits
               << " misses=" << m_stats.misses << " disk_writes=" << m_stats.diskWrites;
@@ -325,7 +325,7 @@ CacheManager::storeImage(const LoadSpec& loadSpec, const std::shared_ptr<ImageXY
 
   CacheConfig configCopy;
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     configCopy = m_config;
   }
 
@@ -341,7 +341,7 @@ CacheManager::storeImage(const LoadSpec& loadSpec, const std::shared_ptr<ImageXY
 void
 CacheManager::clearMemoryCache()
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   m_entries.clear();
   m_lruKeys.clear();
   m_currentRamBytes = 0;
@@ -353,7 +353,7 @@ CacheManager::clearDiskCache()
   std::string cacheDir;
   std::vector<std::string> knownEntryPaths;
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     cacheDir = m_config.cacheDir;
 
     if (!isAgaveCacheDir(cacheDir)) {
@@ -433,14 +433,14 @@ CacheManager::isAgaveCacheDir(const std::string& path) const
 CacheManager::CacheStats
 CacheManager::getStats() const
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   return m_stats;
 }
 
 void
 CacheManager::resetStats()
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   m_stats = CacheStats{};
 }
 
@@ -531,7 +531,7 @@ CacheManager::evictIfNeededLocked(std::uint64_t incomingBytes)
 void
 CacheManager::storeImageInMemory(const CacheKey& key, const std::shared_ptr<ImageXYZC>& image)
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   if (!m_config.enabled || m_config.maxRamBytes == 0) {
     return;
   }
@@ -650,7 +650,7 @@ CacheManager::loadFromDisk(const CacheKey& key, const CacheConfig& config)
   }
 
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     auto it = m_diskEntries.find(diskCacheId(key));
     if (it != m_diskEntries.end()) {
       it->second.lastAccess = meta["lastAccess"].get<std::uint64_t>();
@@ -758,7 +758,7 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
   }
 
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     m_stats.diskWrites++;
     DiskEntry entry;
     entry.path = entryPath.string();
@@ -830,7 +830,7 @@ CacheManager::loadDiskIndex(const CacheConfig& config)
     }
   }
 
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   m_diskEntries = std::move(entries);
   m_currentDiskBytes = totalBytes;
 }
@@ -846,7 +846,7 @@ CacheManager::evictDiskIfNeeded(const CacheConfig& config, std::uint64_t incomin
   // re-populate an entry we're about to delete on disk (which would
   // otherwise let us nuke the fresh file). Each per-entry remove_all is a
   // single small zarr directory, so keeping the lock held is acceptable.
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
 
   if ((m_currentDiskBytes + incomingBytes) <= config.maxDiskBytes) {
     return;
