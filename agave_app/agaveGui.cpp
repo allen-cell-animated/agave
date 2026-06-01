@@ -629,6 +629,7 @@ agaveGui::onRenderAction()
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
+  m_cacheSettingsDockWidget->setEnabled(false);
   if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
     m_captureSettings.width = m_glView->width();
     m_captureSettings.height = m_glView->height();
@@ -663,6 +664,7 @@ agaveGui::onRenderAction()
     m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
     m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
     m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    m_cacheSettingsDockWidget->setEnabled(true);
     m_glView->setEnabled(true);
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);
