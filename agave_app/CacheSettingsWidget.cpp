@@ -1,9 +1,6 @@
 #include "CacheSettingsWidget.h"
 
-#include <QFileDialog>
 #include <QFormLayout>
-#include <QHBoxLayout>
-#include <QLabel>
 
 CacheSettingsWidget::CacheSettingsWidget(QWidget* parent)
   : QWidget(parent)
@@ -23,13 +20,10 @@ CacheSettingsWidget::CacheSettingsWidget(QWidget* parent)
   m_diskLimitGB->setSuffix(tr(" GB"));
   m_diskLimitGB->setSingleStep(10);
 
-  m_cacheDirEdit = new QLineEdit(this);
-  m_browseButton = new QPushButton(tr("Browse"), this);
-  connect(m_browseButton, &QPushButton::clicked, this, &CacheSettingsWidget::browseForCacheDir);
-
-  auto* dirLayout = new QHBoxLayout();
-  dirLayout->addWidget(m_cacheDirEdit);
-  dirLayout->addWidget(m_browseButton);
+  m_cacheDirLabel = new QLabel(this);
+  m_cacheDirLabel->setText(QString::fromStdString(CacheSettings().defaultSettings().cacheDir));
+  m_cacheDirLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+  m_cacheDirLabel->setWordWrap(true);
 
   m_applyButton = new QPushButton(tr("Apply"), this);
   m_clearDiskButton = new QPushButton(tr("Clear disk cache"), this);
@@ -38,7 +32,7 @@ CacheSettingsWidget::CacheSettingsWidget(QWidget* parent)
   layout->addRow(m_enableDisk);
   layout->addRow(tr("RAM limit"), m_ramLimitMB);
   layout->addRow(tr("Disk limit"), m_diskLimitGB);
-  layout->addRow(tr("Cache directory"), dirLayout);
+  layout->addRow(tr("Cache directory"), m_cacheDirLabel);
   layout->addRow(QString(), m_applyButton);
   layout->addRow(QString(), m_clearDiskButton);
   setLayout(layout);
@@ -51,7 +45,7 @@ CacheSettingsWidget::setSettings(const CacheSettingsData& data)
   m_enableDisk->setChecked(data.enableDisk);
   m_ramLimitMB->setValue(static_cast<int>(data.maxRamBytes / (1024ULL * 1024ULL)));
   m_diskLimitGB->setValue(static_cast<int>(data.maxDiskBytes / (1024ULL * 1024ULL * 1024ULL)));
-  m_cacheDirEdit->setText(QString::fromStdString(data.cacheDir));
+  m_cacheDirLabel->setText(QString::fromStdString(data.cacheDir));
 }
 
 CacheSettingsData
@@ -62,15 +56,6 @@ CacheSettingsWidget::getSettings() const
   data.enableDisk = m_enableDisk->isChecked();
   data.maxRamBytes = static_cast<std::uint64_t>(m_ramLimitMB->value()) * 1024ULL * 1024ULL;
   data.maxDiskBytes = static_cast<std::uint64_t>(m_diskLimitGB->value()) * 1024ULL * 1024ULL * 1024ULL;
-  data.cacheDir = m_cacheDirEdit->text().toStdString();
+  data.cacheDir = CacheSettings().defaultSettings().cacheDir;
   return data;
-}
-
-void
-CacheSettingsWidget::browseForCacheDir()
-{
-  QString dir = QFileDialog::getExistingDirectory(this, tr("Select cache directory"));
-  if (!dir.isEmpty()) {
-    m_cacheDirEdit->setText(dir);
-  }
 }
