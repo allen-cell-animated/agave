@@ -11,66 +11,68 @@ QCameraWidget::QCameraWidget(QWidget* pParent, QCamera* cam, RenderSettings* rs)
   setLayout(&m_MainLayout);
 
   // Exposure, controls how bright or dim overall scene is
-  m_ExposureSlider.setStatusTip(tr("Set Exposure"));
-  m_ExposureSlider.setToolTip(tr("Set camera exposure"));
   m_ExposureSlider.setRange(0.0f, 1.0f);
   m_ExposureSlider.setValue(cam->GetFilm().GetExposure());
   m_ExposureSlider.setDecimals(2);
   m_ExposureSlider.setSingleStep(0.01);
 
-  m_MainLayout.addRow("Exposure", &m_ExposureSlider);
+  Controls::addFormRow(&m_MainLayout, "Exposure", &m_ExposureSlider, tr("Set camera exposure"), tr("Set Exposure"));
 
   connect(&m_ExposureSlider, &QNumericSlider::valueChanged, this, &QCameraWidget::SetExposure);
 
   // Number of render iterations per viewport update
-  m_ExposureIterationsSpinner.setStatusTip(tr("Set Exposure Time"));
-  m_ExposureIterationsSpinner.setToolTip(tr("Set number of samples to accumulate per viewport update"));
   m_ExposureIterationsSpinner.addItem("1", 1);
   m_ExposureIterationsSpinner.addItem("2", 2);
   m_ExposureIterationsSpinner.addItem("4", 4);
   m_ExposureIterationsSpinner.addItem("8", 8);
   m_ExposureIterationsSpinner.setCurrentIndex(
     m_ExposureIterationsSpinner.findData(cam->GetFilm().GetExposureIterations()));
-  m_MainLayout.addRow("Exposure Time", &m_ExposureIterationsSpinner);
+  Controls::addFormRow(&m_MainLayout,
+                       "Exposure Time",
+                       &m_ExposureIterationsSpinner,
+                       tr("Set number of samples to accumulate per viewport update"),
+                       tr("Set Exposure Time"));
   connect(&m_ExposureIterationsSpinner, &QComboBox::currentIndexChanged, this, &QCameraWidget::SetExposureIterations);
 
-  m_NoiseReduction.setStatusTip(tr("Enable denoising pass"));
-  m_NoiseReduction.setToolTip(tr("Enable denoising pass"));
   m_NoiseReduction.setCheckState(rs->m_DenoiseParams.m_Enabled ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
-  m_MainLayout.addRow("Noise Reduction", &m_NoiseReduction);
+  Controls::addFormRow(
+    &m_MainLayout, "Noise Reduction", &m_NoiseReduction, tr("Enable denoising pass"), tr("Enable denoising pass"));
 
   connect(&m_NoiseReduction, &QCheckBox::stateChanged, this, &QCameraWidget::OnNoiseReduction);
 
-  m_ApertureSizeSlider.setStatusTip(tr("Set camera aperture size"));
-  m_ApertureSizeSlider.setToolTip(tr("Set camera aperture size"));
   m_ApertureSizeSlider.setRange(0.0, 0.1);
   m_ApertureSizeSlider.setSuffix(" mm");
   m_ApertureSizeSlider.setDecimals(2);
   m_ApertureSizeSlider.setValue(0.0);
   m_ApertureSizeSlider.setSingleStep(0.01);
-  m_MainLayout.addRow("Aperture Size", &m_ApertureSizeSlider);
+  Controls::addFormRow(&m_MainLayout,
+                       "Aperture Size",
+                       &m_ApertureSizeSlider,
+                       tr("Set camera aperture size"),
+                       tr("Set camera aperture size"));
 
   connect(&m_ApertureSizeSlider, &QNumericSlider::valueChanged, this, &QCameraWidget::SetAperture);
 
-  m_FieldOfViewSlider.setStatusTip(tr("Set camera field of view angle"));
-  m_FieldOfViewSlider.setToolTip(tr("Set camera field of view angle"));
   m_FieldOfViewSlider.setRange(10.0, 150.0);
   m_FieldOfViewSlider.setDecimals(2);
   m_FieldOfViewSlider.setValue(cam->GetProjection().GetFieldOfView());
   m_FieldOfViewSlider.setSuffix(" deg.");
-  m_MainLayout.addRow("Field of view", &m_FieldOfViewSlider);
+  Controls::addFormRow(&m_MainLayout,
+                       "Field of view",
+                       &m_FieldOfViewSlider,
+                       tr("Set camera field of view angle"),
+                       tr("Set camera field of view angle"));
 
   connect(&m_FieldOfViewSlider, &QNumericSlider::valueChanged, this, &QCameraWidget::SetFieldOfView);
 
   // Focal distance
-  m_FocalDistanceSlider.setStatusTip(tr("Set focal distance"));
-  m_FocalDistanceSlider.setToolTip(tr("Set focal distance"));
   m_FocalDistanceSlider.setRange(0.0, 15.0);
   m_FocalDistanceSlider.setDecimals(2);
   m_FocalDistanceSlider.setValue(0.0);
   m_FocalDistanceSlider.setSuffix(" m");
 
-  m_MainLayout.addRow("Focal distance", &m_FocalDistanceSlider);
+  Controls::addFormRow(
+    &m_MainLayout, "Focal distance", &m_FocalDistanceSlider, tr("Set focal distance"), tr("Set focal distance"));
 
   connect(&m_FocalDistanceSlider, &QNumericSlider::valueChanged, this, &QCameraWidget::SetFocalDistance);
 

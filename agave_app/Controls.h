@@ -256,6 +256,7 @@ public:
   }
   void addRow(const QString& label, QWidget* widget);
   void addRow(const QString& label, QLayout* layout);
+  void addRow(QWidget* section);
 };
 
 class Controls
@@ -265,6 +266,33 @@ public:
   static void initFormLayout(QFormLayout& layout);
 
   static AgaveFormLayout* createAgaveFormLayout(QWidget* parent = nullptr);
+
+  // Add a row to a QFormLayout and apply the given toolTip/statusTip to BOTH the
+  // field widget and the auto-created label. Empty strings are skipped so existing
+  // tooltips/statusTips on the widget are not erased.
+  static void addFormRow(QFormLayout* layout,
+                         const QString& labelText,
+                         QWidget* field,
+                         const QString& toolTip,
+                         const QString& statusTip = QString());
+  static void addFormRow(QFormLayout* layout,
+                         const QString& labelText,
+                         QLayout* fieldLayout,
+                         const QString& toolTip,
+                         const QString& statusTip = QString());
+
+  // Same as above but for AgaveFormLayout. The label is located at column 0 of
+  // the just-added row.
+  static void addFormRow(AgaveFormLayout* layout,
+                         const QString& labelText,
+                         QWidget* field,
+                         const QString& toolTip,
+                         const QString& statusTip = QString());
+  static void addFormRow(AgaveFormLayout* layout,
+                         const QString& labelText,
+                         QLayout* fieldLayout,
+                         const QString& toolTip,
+                         const QString& statusTip = QString());
 };
 
 /**

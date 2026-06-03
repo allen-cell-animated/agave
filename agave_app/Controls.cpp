@@ -557,6 +557,8 @@ AgaveFormLayout::addRow(const QString& label, QWidget* widget)
   int row = rowCount();
   auto* labelWidget = new QLabel(label);
   labelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  labelWidget->setToolTip(widget->toolTip());
+  labelWidget->setStatusTip(widget->statusTip());
   addWidget(labelWidget, row, 0, Qt::AlignLeft);
   addWidget(widget, row, 1);
 }
@@ -569,6 +571,13 @@ AgaveFormLayout::addRow(const QString& label, QLayout* layout)
   labelWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   addWidget(labelWidget, row, 0, Qt::AlignLeft);
   addLayout(layout, row, 1);
+}
+
+void
+AgaveFormLayout::addRow(QWidget* section)
+{
+  int row = rowCount();
+  addWidget(section, row, 0, 1, 2);
 }
 
 QFormLayout*
@@ -596,4 +605,68 @@ Controls::createAgaveFormLayout(QWidget* parent)
   layout->setColumnStretch(0, 1);
   layout->setColumnStretch(1, 100);
   return layout;
+}
+
+static void
+applyTipsToWidget(QWidget* w, const QString& toolTip, const QString& statusTip)
+{
+  if (!w) {
+    return;
+  }
+  if (!toolTip.isEmpty()) {
+    w->setToolTip(toolTip);
+  }
+  if (!statusTip.isEmpty()) {
+    w->setStatusTip(statusTip);
+  }
+}
+
+void
+Controls::addFormRow(QFormLayout* layout,
+                     const QString& labelText,
+                     QWidget* field,
+                     const QString& toolTip,
+                     const QString& statusTip)
+{
+  layout->addRow(labelText, field);
+  applyTipsToWidget(field, toolTip, statusTip);
+  applyTipsToWidget(layout->labelForField(field), toolTip, statusTip);
+}
+
+void
+Controls::addFormRow(QFormLayout* layout,
+                     const QString& labelText,
+                     QLayout* fieldLayout,
+                     const QString& toolTip,
+                     const QString& statusTip)
+{
+  layout->addRow(labelText, fieldLayout);
+  applyTipsToWidget(layout->labelForField(fieldLayout), toolTip, statusTip);
+}
+
+void
+Controls::addFormRow(AgaveFormLayout* layout,
+                     const QString& labelText,
+                     QWidget* field,
+                     const QString& toolTip,
+                     const QString& statusTip)
+{
+  // Apply to the field first so AgaveFormLayout::addRow's existing tooltip-copy
+  // logic also picks it up, then explicitly apply to the label as well.
+  applyTipsToWidget(field, toolTip, statusTip);
+  layout->addRow(labelText, field);
+  QLayoutItem* item = layout->itemAtPosition(layout->rowCount() - 1, 0);
+  applyTipsToWidget(item ? item->widget() : nullptr, toolTip, statusTip);
+}
+
+void
+Controls::addFormRow(AgaveFormLayout* layout,
+                     const QString& labelText,
+                     QLayout* fieldLayout,
+                     const QString& toolTip,
+                     const QString& statusTip)
+{
+  layout->addRow(labelText, fieldLayout);
+  QLayoutItem* item = layout->itemAtPosition(layout->rowCount() - 1, 0);
+  applyTipsToWidget(item ? item->widget() : nullptr, toolTip, statusTip);
 }
