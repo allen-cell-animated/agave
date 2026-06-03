@@ -109,10 +109,8 @@ agaveGui::agaveGui(QWidget* parent)
     m_cacheSettings.applyToRenderlib(data);
   });
   connect(m_cacheSettingsDockWidget->widget()->clearDiskButton(), &QPushButton::clicked, this, [this]() {
-    // Show the path that will actually be cleared (the applied config), which
-    // may differ from the widget's current text if the user edited the path
-    // without clicking Apply.
-    QString cacheDir = QString::fromStdString(CacheManager::instance().getConfig().cacheDir);
+    // Show the directory that will actually be cleared.
+    QString cacheDir = QString::fromStdString(CacheManager::instance().getCacheDirectory());
     QMessageBox::StandardButton reply =
       QMessageBox::question(this,
                             tr("Clear disk cache"),
@@ -629,6 +627,7 @@ agaveGui::onRenderAction()
   m_glView->doneCurrent();
   m_glView->setEnabled(false);
   m_glView->setUpdatesEnabled(false);
+  m_cacheSettingsDockWidget->setEnabled(false);
   if (m_captureSettings.width == 0 && m_captureSettings.height == 0) {
     m_captureSettings.width = m_glView->width();
     m_captureSettings.height = m_glView->height();
@@ -663,6 +662,7 @@ agaveGui::onRenderAction()
     m_renderSettings.m_DirtyFlags.SetFlag(LightsDirty);
     m_renderSettings.m_DirtyFlags.SetFlag(RenderParamsDirty);
     m_renderSettings.m_DirtyFlags.SetFlag(TransferFunctionDirty);
+    m_cacheSettingsDockWidget->setEnabled(true);
     m_glView->setEnabled(true);
     m_glView->resizeGL(m_glView->width(), m_glView->height());
     m_glView->setUpdatesEnabled(true);

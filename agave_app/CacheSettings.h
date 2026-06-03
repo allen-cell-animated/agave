@@ -9,7 +9,6 @@ struct CacheSettingsData
   bool enableDisk = true;
   std::uint64_t maxRamBytes = 4ULL * 1024ULL * 1024ULL * 1024ULL;
   std::uint64_t maxDiskBytes = 100ULL * 1024ULL * 1024ULL * 1024ULL;
-  std::string cacheDir;
 };
 
 class CacheSettings

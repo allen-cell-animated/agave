@@ -17,7 +17,7 @@ struct CacheKey
 {
   std::string filepath;
   std::string subpath;
-  int scene = 0;
+  std::uint32_t scene = 0;
   std::uint32_t time = 0;
   std::vector<std::uint32_t> channels;
   std::uint32_t minx = 0;
@@ -55,12 +55,23 @@ public:
     std::uint64_t diskWrites = 0;
   };
 
-  static CacheManager& instance();
+  // Construct a cache rooted at `cacheDir`. An empty `cacheDir` disables the
+  // disk tier (the cache is RAM-only). The directory is fixed for the lifetime
+  // of the instance and is never derived from per-apply CacheConfig. Production
+  // code uses the process-wide singleton (initialize() + instance()); this
+  // constructor is public so tests can create isolated, throwaway caches with
+  // their own directories.
+  explicit CacheManager(std::string cacheDir = {});
 
-  // Verify that `path` is (or can be made) a writable directory. Creates the
-  // directory if it does not exist, then probes it by writing and deleting a
-  // small marker file. Returns false on any failure.
-  static bool canWriteCacheDir(const std::string& path);
+  // The process-wide singleton. initialize() creates it rooted at `cacheDir`
+  // and must be called exactly once, at app startup, before the cache is used;
+  // a second call throws std::logic_error. The platform-appropriate path is
+  // resolved by the GUI layer (renderlib has no Qt and so cannot resolve
+  // QStandardPaths itself) and injected here. If initialize() is never called,
+  // instance() lazily yields a RAM-only (disk-inert) manager.
+  static void initialize(const std::string& cacheDir);
+  static CacheManager& instance();
+  std::string getCacheDirectory() const;
 
   void setConfig(const CacheConfig& config);
   CacheConfig getConfig() const;
@@ -77,7 +88,11 @@ public:
   void resetStats();
 
 private:
-  CacheManager() = default;
+  // Verify that `path` is (or can be made) a writable directory. Creates the
+  // directory if it does not exist, then probes it by writing and deleting a
+  // small marker file. Returns false on any failure. Probed once, at
+  // initialize() time, since the cache root is fixed for the process lifetime.
+  static bool canWriteCacheDir(const std::string& path);
 
   CacheKey makeKey(const LoadSpec& loadSpec) const;
   std::string keyToString(const CacheKey& key) const;
@@ -88,9 +103,12 @@ private:
   void evictIfNeededLocked(std::uint64_t incomingBytes);
   void storeImageInMemory(const CacheKey& key, const std::shared_ptr<ImageXYZC>& image);
 
-  std::shared_ptr<ImageXYZC> loadFromDisk(const CacheKey& key, const CacheConfig& config);
-  void storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>& image, const CacheConfig& config);
-  void loadDiskIndex(const CacheConfig& config);
+  std::shared_ptr<ImageXYZC> loadFromDisk(const CacheKey& key, const CacheConfig& config, const std::string& cacheDir);
+  void storeToDisk(const CacheKey& key,
+                   const std::shared_ptr<ImageXYZC>& image,
+                   const CacheConfig& config,
+                   const std::string& cacheDir);
+  void loadDiskIndex(const CacheConfig& config, const std::string& cacheDir);
   void evictDiskIfNeeded(const CacheConfig& config, std::uint64_t incomingBytes);
   std::uint64_t directorySizeBytes(const std::string& path) const;
   // Writes a marker file to a directory we manage as our own disk cache root.
@@ -101,6 +119,10 @@ private:
 
   mutable std::mutex m_mutex;
   CacheConfig m_config;
+  // The disk cache root, fixed at construction. Distinct from m_diskIndexRoot,
+  // which tracks the root the in-memory index was last built against (used to
+  // decide when a rebuild is needed).
+  const std::string m_cacheDir;
   std::uint64_t m_currentRamBytes = 0;
   std::list<CacheKey> m_lruKeys;
 

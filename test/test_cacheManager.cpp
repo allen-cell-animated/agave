@@ -15,6 +15,11 @@
 #include <string>
 #include <thread>
 
+// These tests construct their own CacheManager instances (each with its own
+// cache directory) rather than touching the process-wide singleton. That keeps
+// every case fully isolated and means we never need to reach into CacheManager
+// internals or reset shared state.
+
 namespace {
 
 // Bytes per pixel that CacheManager uses when estimating an image's RAM cost.
@@ -47,14 +52,6 @@ imageBytes(uint32_t x, uint32_t y, uint32_t z, uint32_t c)
   return static_cast<std::uint64_t>(x) * y * z * c * kBytesPerPixel;
 }
 
-// Reset the singleton CacheManager to a known state for each test.
-void
-resetCache()
-{
-  CacheManager::instance().clearMemoryCache();
-  CacheManager::instance().resetStats();
-}
-
 CacheConfig
 ramOnlyConfig(std::uint64_t maxRamBytes)
 {
@@ -63,6 +60,17 @@ ramOnlyConfig(std::uint64_t maxRamBytes)
   cfg.enableDisk = false;
   cfg.maxRamBytes = maxRamBytes;
   cfg.maxDiskBytes = 0;
+  return cfg;
+}
+
+CacheConfig
+diskConfig(std::uint64_t maxRamBytes, std::uint64_t maxDiskBytes)
+{
+  CacheConfig cfg;
+  cfg.enabled = true;
+  cfg.enableDisk = true;
+  cfg.maxRamBytes = maxRamBytes;
+  cfg.maxDiskBytes = maxDiskBytes;
   return cfg;
 }
 
@@ -110,18 +118,6 @@ private:
   std::filesystem::path m_path;
 };
 
-CacheConfig
-diskConfig(const std::string& cacheDir, std::uint64_t maxRamBytes, std::uint64_t maxDiskBytes)
-{
-  CacheConfig cfg;
-  cfg.enabled = true;
-  cfg.enableDisk = true;
-  cfg.maxRamBytes = maxRamBytes;
-  cfg.maxDiskBytes = maxDiskBytes;
-  cfg.cacheDir = cacheDir;
-  return cfg;
-}
-
 // Count subdirectories under `dir` (used to verify entry-dir counts after
 // store/evict/clear operations).
 int
@@ -145,154 +141,148 @@ TEST_CASE("CacheManager respects RAM limit and evicts LRU entries", "[cache]")
   // Each 4x4x4x1 image is 4*4*4*1*2 = 128 bytes.
   const std::uint64_t oneImage = imageBytes(4, 4, 4, 1);
 
+  // Fresh, RAM-only cache for each section (Catch2 re-runs the body per leaf).
+  CacheManager cache;
+
   SECTION("Store and retrieve a single image (RAM hit)")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+    cache.setConfig(ramOnlyConfig(oneImage * 4));
 
     auto img = makeImage(4, 4, 4, 1);
     auto spec = makeSpec("a");
 
-    CacheManager::instance().storeImage(spec, img);
-    auto retrieved = CacheManager::instance().findImage(spec);
+    cache.storeImage(spec, img);
+    auto retrieved = cache.findImage(spec);
 
     REQUIRE(retrieved != nullptr);
     REQUIRE(retrieved.get() == img.get());
 
-    auto stats = CacheManager::instance().getStats();
+    auto stats = cache.getStats();
     REQUIRE(stats.ramHits == 1);
     REQUIRE(stats.misses == 0);
   }
 
   SECTION("Miss returns null and increments miss counter")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
+    cache.setConfig(ramOnlyConfig(oneImage * 4));
 
-    auto retrieved = CacheManager::instance().findImage(makeSpec("missing"));
+    auto retrieved = cache.findImage(makeSpec("missing"));
     REQUIRE(retrieved == nullptr);
-    REQUIRE(CacheManager::instance().getStats().misses == 1);
+    REQUIRE(cache.getStats().misses == 1);
   }
 
   SECTION("Cache stays under maxRamBytes when limit is reached")
   {
-    resetCache();
     // Limit is exactly 2 images. Storing a 3rd must evict.
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 2));
+    cache.setConfig(ramOnlyConfig(oneImage * 2));
 
-    CacheManager::instance().storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
 
     // "a" was the least recently used and must be evicted.
-    REQUIRE(CacheManager::instance().findImage(makeSpec("a")) == nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("b")) != nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("c")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("a")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("b")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("c")) != nullptr);
   }
 
   SECTION("LRU ordering is updated on access (touched entry survives eviction)")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 2));
+    cache.setConfig(ramOnlyConfig(oneImage * 2));
 
-    CacheManager::instance().storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
 
     // Touch "a" so that "b" becomes least recently used.
-    REQUIRE(CacheManager::instance().findImage(makeSpec("a")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("a")) != nullptr);
 
-    CacheManager::instance().storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
 
-    REQUIRE(CacheManager::instance().findImage(makeSpec("a")) != nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("b")) == nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("c")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("a")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("b")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("c")) != nullptr);
   }
 
   SECTION("Storing many images keeps total RAM usage bounded")
   {
-    resetCache();
     const std::uint64_t cap = oneImage * 3;
-    CacheManager::instance().setConfig(ramOnlyConfig(cap));
+    cache.setConfig(ramOnlyConfig(cap));
 
     for (int i = 0; i < 20; ++i) {
-      CacheManager::instance().storeImage(makeSpec("file_" + std::to_string(i)), makeImage(4, 4, 4, 1));
+      cache.storeImage(makeSpec("file_" + std::to_string(i)), makeImage(4, 4, 4, 1));
     }
 
     // Count how many of the 20 inserts are still resident. With a cap of 3
     // images, no more than 3 can be present at once.
-    CacheManager::instance().resetStats();
+    cache.resetStats();
     int present = 0;
     for (int i = 0; i < 20; ++i) {
-      if (CacheManager::instance().findImage(makeSpec("file_" + std::to_string(i)))) {
+      if (cache.findImage(makeSpec("file_" + std::to_string(i)))) {
         present++;
       }
     }
     REQUIRE(present <= 3);
     // The most recently inserted entries should still be in the cache.
     REQUIRE(present >= 1);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("file_19")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("file_19")) != nullptr);
   }
 
   SECTION("Image larger than maxRamBytes is not stored")
   {
-    resetCache();
     // Cap at less than the size of one image.
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage / 2));
+    cache.setConfig(ramOnlyConfig(oneImage / 2));
 
-    CacheManager::instance().storeImage(makeSpec("too_big"), makeImage(4, 4, 4, 1));
-    REQUIRE(CacheManager::instance().findImage(makeSpec("too_big")) == nullptr);
+    cache.storeImage(makeSpec("too_big"), makeImage(4, 4, 4, 1));
+    REQUIRE(cache.findImage(makeSpec("too_big")) == nullptr);
   }
 
   SECTION("Re-storing the same key replaces the entry without exceeding the limit")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 2));
+    cache.setConfig(ramOnlyConfig(oneImage * 2));
 
     auto first = makeImage(4, 4, 4, 1);
     auto second = makeImage(4, 4, 4, 1);
     auto spec = makeSpec("a");
 
-    CacheManager::instance().storeImage(spec, first);
-    CacheManager::instance().storeImage(spec, second);
+    cache.storeImage(spec, first);
+    cache.storeImage(spec, second);
 
     // Fill the cache up to the limit with another entry. If the duplicate
     // key had double-counted bytes, this would evict "a".
-    CacheManager::instance().storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
 
-    auto retrieved = CacheManager::instance().findImage(spec);
+    auto retrieved = cache.findImage(spec);
     REQUIRE(retrieved != nullptr);
     REQUIRE(retrieved.get() == second.get());
-    REQUIRE(CacheManager::instance().findImage(makeSpec("b")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("b")) != nullptr);
   }
 
   SECTION("Disabling the cache clears all entries")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-    CacheManager::instance().storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
-    REQUIRE(CacheManager::instance().findImage(makeSpec("a")) != nullptr);
+    cache.setConfig(ramOnlyConfig(oneImage * 4));
+    cache.storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
+    REQUIRE(cache.findImage(makeSpec("a")) != nullptr);
 
     CacheConfig disabled;
     disabled.enabled = false;
-    CacheManager::instance().setConfig(disabled);
+    cache.setConfig(disabled);
 
-    REQUIRE(CacheManager::instance().findImage(makeSpec("a")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("a")) == nullptr);
   }
 
   SECTION("Shrinking the limit evicts existing entries")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-    CacheManager::instance().storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
+    cache.setConfig(ramOnlyConfig(oneImage * 4));
+    cache.storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
 
     // Reconfigure to a smaller limit; oldest entries must be evicted.
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage));
+    cache.setConfig(ramOnlyConfig(oneImage));
 
     int present = 0;
     for (const char* name : { "a", "b", "c" }) {
-      if (CacheManager::instance().findImage(makeSpec(name))) {
+      if (cache.findImage(makeSpec(name))) {
         present++;
       }
     }
@@ -301,61 +291,58 @@ TEST_CASE("CacheManager respects RAM limit and evicts LRU entries", "[cache]")
 
   SECTION("Reducing cache size immediately evicts LRU entries to fit")
   {
-    resetCache();
     // Fill the cache exactly to its 4-image cap.
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-    CacheManager::instance().storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("d"), makeImage(4, 4, 4, 1));
+    cache.setConfig(ramOnlyConfig(oneImage * 4));
+    cache.storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("d"), makeImage(4, 4, 4, 1));
 
     // All four are resident. LRU order (most recent first) is: d, c, b, a.
     // Reset stats so the find() calls below count cleanly.
-    CacheManager::instance().resetStats();
+    cache.resetStats();
 
     // User shrinks the cache to hold only 2 images. Eviction must occur
     // synchronously inside setConfig() — not lazily on the next store.
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 2));
+    cache.setConfig(ramOnlyConfig(oneImage * 2));
 
     // The two least recently used entries ("a" and "b") must be gone, and
     // the two most recently used ("c" and "d") must still be present.
-    REQUIRE(CacheManager::instance().findImage(makeSpec("a")) == nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("b")) == nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("c")) != nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("d")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("a")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("b")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("c")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("d")) != nullptr);
 
-    auto stats = CacheManager::instance().getStats();
+    auto stats = cache.getStats();
     REQUIRE(stats.misses == 2);
     REQUIRE(stats.ramHits == 2);
   }
 
   SECTION("Reducing cache size below a single image evicts everything")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 3));
-    CacheManager::instance().storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
+    cache.setConfig(ramOnlyConfig(oneImage * 3));
+    cache.storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("c"), makeImage(4, 4, 4, 1));
 
     // Shrink below the size of a single entry — everything must go.
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage / 2));
+    cache.setConfig(ramOnlyConfig(oneImage / 2));
 
-    REQUIRE(CacheManager::instance().findImage(makeSpec("a")) == nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("b")) == nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("c")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("a")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("b")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("c")) == nullptr);
   }
 
   SECTION("clearMemoryCache() empties the cache")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-    CacheManager::instance().storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
+    cache.setConfig(ramOnlyConfig(oneImage * 4));
+    cache.storeImage(makeSpec("a"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("b"), makeImage(4, 4, 4, 1));
 
-    CacheManager::instance().clearMemoryCache();
+    cache.clearMemoryCache();
 
-    REQUIRE(CacheManager::instance().findImage(makeSpec("a")) == nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("b")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("a")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("b")) == nullptr);
   }
 }
 
@@ -368,35 +355,35 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
   // test. Total disk usage per test is well under a megabyte.
   const std::uint64_t oneImage = imageBytes(4, 4, 4, 1);
 
-  SECTION("Initializing disk cache writes the AGAVE marker file")
+  // Fresh temp dir + cache rooted at it for each section.
+  TempCacheDir tmp;
+  CacheManager cache(tmp.str());
+
+  SECTION("Enabling the disk tier writes the AGAVE marker file")
   {
-    resetCache();
-    TempCacheDir tmp;
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    cache.setConfig(diskConfig(oneImage * 4, 1ULL * 1024 * 1024));
 
     REQUIRE(std::filesystem::exists(tmp.path() / ".agave-cache-dir"));
   }
 
   SECTION("Round-trip: store, drop RAM, find reloads from disk with bit-identical data")
   {
-    resetCache();
-    TempCacheDir tmp;
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    cache.setConfig(diskConfig(oneImage * 4, 1ULL * 1024 * 1024));
 
     auto img = makeImageWithPattern(4, 4, 4, 1);
     auto spec = makeSpec("disk_roundtrip");
-    CacheManager::instance().storeImage(spec, img);
+    cache.storeImage(spec, img);
 
     // Drop RAM cache; disk cache survives.
-    CacheManager::instance().clearMemoryCache();
-    CacheManager::instance().resetStats();
+    cache.clearMemoryCache();
+    cache.resetStats();
 
-    auto found = CacheManager::instance().findImage(spec);
+    auto found = cache.findImage(spec);
     REQUIRE(found != nullptr);
     // The reloaded image is a fresh instance, not the same shared_ptr.
     REQUIRE(found.get() != img.get());
 
-    auto stats = CacheManager::instance().getStats();
+    auto stats = cache.getStats();
     REQUIRE(stats.diskHits == 1);
     REQUIRE(stats.ramHits == 0);
 
@@ -411,43 +398,39 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
 
   SECTION("An image larger than maxDiskBytes is not written to disk")
   {
-    resetCache();
-    TempCacheDir tmp;
     // Cap is below a single image, so storeToDisk must refuse outright.
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, oneImage / 2));
+    cache.setConfig(diskConfig(oneImage * 4, oneImage / 2));
 
     auto spec = makeSpec("too_big_for_disk");
-    CacheManager::instance().storeImage(spec, makeImage(4, 4, 4, 1));
+    cache.storeImage(spec, makeImage(4, 4, 4, 1));
 
     // No entry subdirectory should have been created.
     REQUIRE(countSubdirs(tmp.path()) == 0);
 
     // Drop RAM to force a disk-or-miss lookup; with no entry on disk we
     // should get a miss.
-    CacheManager::instance().clearMemoryCache();
-    REQUIRE(CacheManager::instance().findImage(spec) == nullptr);
+    cache.clearMemoryCache();
+    REQUIRE(cache.findImage(spec) == nullptr);
   }
 
   SECTION("Disk eviction removes the oldest entry to stay under the cap")
   {
-    resetCache();
-    TempCacheDir tmp;
     // Cap large enough for two entries' raw byte estimate but not three.
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, oneImage * 2));
+    cache.setConfig(diskConfig(oneImage * 4, oneImage * 2));
 
-    CacheManager::instance().storeImage(makeSpec("disk_a"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("disk_a"), makeImage(4, 4, 4, 1));
     // Sleep briefly so lastAccess timestamps are distinct on fast disks.
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
-    CacheManager::instance().storeImage(makeSpec("disk_b"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("disk_b"), makeImage(4, 4, 4, 1));
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
-    CacheManager::instance().storeImage(makeSpec("disk_c"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("disk_c"), makeImage(4, 4, 4, 1));
 
     // Drop RAM so finds have to go through the disk tier.
-    CacheManager::instance().clearMemoryCache();
+    cache.clearMemoryCache();
 
-    REQUIRE(CacheManager::instance().findImage(makeSpec("disk_a")) == nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("disk_b")) != nullptr);
-    REQUIRE(CacheManager::instance().findImage(makeSpec("disk_c")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("disk_a")) == nullptr);
+    REQUIRE(cache.findImage(makeSpec("disk_b")) != nullptr);
+    REQUIRE(cache.findImage(makeSpec("disk_c")) != nullptr);
 
     // After eviction there should be at most two entry subdirectories on
     // disk (the marker file is not a directory).
@@ -456,15 +439,13 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
 
   SECTION("clearDiskCache removes entry subdirectories but keeps the marker")
   {
-    resetCache();
-    TempCacheDir tmp;
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    cache.setConfig(diskConfig(oneImage * 4, 1ULL * 1024 * 1024));
 
-    CacheManager::instance().storeImage(makeSpec("clear_a"), makeImage(4, 4, 4, 1));
-    CacheManager::instance().storeImage(makeSpec("clear_b"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("clear_a"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("clear_b"), makeImage(4, 4, 4, 1));
     REQUIRE(countSubdirs(tmp.path()) >= 2);
 
-    CacheManager::instance().clearDiskCache();
+    cache.clearDiskCache();
 
     REQUIRE(countSubdirs(tmp.path()) == 0);
     REQUIRE(std::filesystem::exists(tmp.path() / ".agave-cache-dir"));
@@ -472,11 +453,9 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
 
   SECTION("clearDiskCache refuses to touch a directory without the AGAVE marker")
   {
-    resetCache();
-    TempCacheDir tmp;
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    cache.setConfig(diskConfig(oneImage * 4, 1ULL * 1024 * 1024));
 
-    CacheManager::instance().storeImage(makeSpec("guarded_a"), makeImage(4, 4, 4, 1));
+    cache.storeImage(makeSpec("guarded_a"), makeImage(4, 4, 4, 1));
     int subdirsBefore = countSubdirs(tmp.path());
     REQUIRE(subdirsBefore >= 1);
 
@@ -486,38 +465,62 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
     std::filesystem::remove(tmp.path() / ".agave-cache-dir", ec);
     REQUIRE_FALSE(ec);
 
-    CacheManager::instance().clearDiskCache();
+    cache.clearDiskCache();
 
     REQUIRE(countSubdirs(tmp.path()) == subdirsBefore);
   }
 
-  SECTION("Re-pointing setConfig at a previously-used cache dir rebuilds the disk index")
+  SECTION("A fresh cache instance rebuilds the disk index from an existing cache dir")
   {
-    resetCache();
-    TempCacheDir tmp;
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    cache.setConfig(diskConfig(oneImage * 4, 1ULL * 1024 * 1024));
+    cache.storeImage(makeSpec("persistent"), makeImage(4, 4, 4, 1));
 
-    CacheManager::instance().storeImage(makeSpec("persistent"), makeImage(4, 4, 4, 1));
+    // Simulate a session restart: a brand-new CacheManager rooted at the same
+    // directory must rebuild its disk index on first use and serve the
+    // persisted entry from disk.
+    CacheManager restarted(tmp.str());
+    restarted.setConfig(diskConfig(oneImage * 4, 1ULL * 1024 * 1024));
 
-    // Simulate a session restart: switch the cache dir somewhere else
-    // (forcing the manager to drop its in-memory disk bookkeeping), then
-    // point it back at the original dir.
-    TempCacheDir other;
-    CacheManager::instance().setConfig(diskConfig(other.str(), oneImage * 4, 1ULL * 1024 * 1024));
-    CacheManager::instance().clearMemoryCache();
-
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
-    CacheManager::instance().resetStats();
-
-    auto found = CacheManager::instance().findImage(makeSpec("persistent"));
+    auto found = restarted.findImage(makeSpec("persistent"));
     REQUIRE(found != nullptr);
-    REQUIRE(CacheManager::instance().getStats().diskHits == 1);
+    REQUIRE(restarted.getStats().diskHits == 1);
+  }
+}
+
+TEST_CASE("CacheManager cache directory is fixed at construction", "[cache][disk]")
+{
+  const std::uint64_t oneImage = imageBytes(4, 4, 4, 1);
+
+  SECTION("getCacheDirectory reflects the constructed path")
+  {
+    TempCacheDir tmp;
+    CacheManager cache(tmp.str());
+    REQUIRE(cache.getCacheDirectory() == tmp.str());
+  }
+
+  SECTION("A cache constructed with no directory is RAM-only")
+  {
+    CacheManager cache; // empty cache directory
+    REQUIRE(cache.getCacheDirectory().empty());
+
+    // Even with a disk-enabled config, an empty root keeps the disk tier inert.
+    cache.setConfig(diskConfig(oneImage * 4, 1ULL * 1024 * 1024));
+
+    auto spec = makeSpec("no_dir");
+    cache.storeImage(spec, makeImage(4, 4, 4, 1));
+
+    // RAM still serves it within the session...
+    REQUIRE(cache.findImage(spec) != nullptr);
+
+    // ...but nothing was persisted to disk, so once RAM is dropped it misses.
+    cache.clearMemoryCache();
+    REQUIRE(cache.findImage(spec) == nullptr);
   }
 }
 
 TEST_CASE("CacheManager invalidates entries when the source file mtime changes", "[cache][mtime]")
 {
-  resetCache();
+  CacheManager cache;
 
   // Use a real file on disk so the cache key picks up its mtime via
   // std::filesystem::last_write_time. We bump the file's mtime explicitly
@@ -531,12 +534,12 @@ TEST_CASE("CacheManager invalidates entries when the source file mtime changes",
     out << "initial content";
   }
 
-  CacheManager::instance().setConfig(ramOnlyConfig(imageBytes(4, 4, 4, 1) * 4));
+  cache.setConfig(ramOnlyConfig(imageBytes(4, 4, 4, 1) * 4));
 
   LoadSpec spec;
   spec.filepath = srcFile.string();
-  CacheManager::instance().storeImage(spec, makeImage(4, 4, 4, 1));
-  REQUIRE(CacheManager::instance().findImage(spec) != nullptr);
+  cache.storeImage(spec, makeImage(4, 4, 4, 1));
+  REQUIRE(cache.findImage(spec) != nullptr);
 
   // Bump the file's last_write_time well into the future; subsequent
   // makeKey calls now produce a different key and must miss.
@@ -546,7 +549,7 @@ TEST_CASE("CacheManager invalidates entries when the source file mtime changes",
   std::filesystem::last_write_time(srcFile, futureTime, ec);
   REQUIRE_FALSE(ec);
 
-  REQUIRE(CacheManager::instance().findImage(spec) == nullptr);
+  REQUIRE(cache.findImage(spec) == nullptr);
 
   std::filesystem::remove(srcFile, ec);
 }
@@ -558,142 +561,118 @@ TEST_CASE("CacheManager normalizes equivalent filepaths to the same key", "[cach
   // (normalized) filepath string and the other LoadSpec fields.
   const std::uint64_t oneImage = imageBytes(4, 4, 4, 1);
 
+  CacheManager cache;
+  cache.setConfig(ramOnlyConfig(oneImage * 4));
+
   SECTION("'./' segment is normalized away")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-
     LoadSpec stored;
     stored.filepath = "/some/dir/foo.tif";
-    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+    cache.storeImage(stored, makeImage(4, 4, 4, 1));
 
     LoadSpec lookup;
     lookup.filepath = "/some/dir/./foo.tif";
-    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+    REQUIRE(cache.findImage(lookup) != nullptr);
   }
 
   SECTION("'..' segment is normalized away")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-
     LoadSpec stored;
     stored.filepath = "/some/dir/foo.tif";
-    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+    cache.storeImage(stored, makeImage(4, 4, 4, 1));
 
     LoadSpec lookup;
     lookup.filepath = "/some/dir/subdir/../foo.tif";
-    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+    REQUIRE(cache.findImage(lookup) != nullptr);
   }
 
   SECTION("Duplicate path separators are collapsed")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-
     LoadSpec stored;
     stored.filepath = "/some/dir/foo.tif";
-    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+    cache.storeImage(stored, makeImage(4, 4, 4, 1));
 
     LoadSpec lookup;
     lookup.filepath = "/some//dir///foo.tif";
-    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+    REQUIRE(cache.findImage(lookup) != nullptr);
   }
 
   SECTION("Bare names (no slashes) pass through unchanged")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-
     LoadSpec stored;
     stored.filepath = "in_memory_array_42";
-    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+    cache.storeImage(stored, makeImage(4, 4, 4, 1));
 
     LoadSpec lookup;
     lookup.filepath = "in_memory_array_42";
-    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+    REQUIRE(cache.findImage(lookup) != nullptr);
   }
 
   SECTION("Remote URLs are passed through without normalization")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-
     LoadSpec stored;
     stored.filepath = "http://example.com/path/to/data.zarr";
-    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+    cache.storeImage(stored, makeImage(4, 4, 4, 1));
 
     LoadSpec lookup;
     lookup.filepath = "http://example.com/path/to/data.zarr";
-    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+    REQUIRE(cache.findImage(lookup) != nullptr);
   }
 
   SECTION("Distinct paths still produce distinct keys (no false hits)")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-
     LoadSpec stored;
     stored.filepath = "/some/dir/foo.tif";
-    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+    cache.storeImage(stored, makeImage(4, 4, 4, 1));
 
     LoadSpec lookup;
     lookup.filepath = "/some/dir/bar.tif";
-    REQUIRE(CacheManager::instance().findImage(lookup) == nullptr);
+    REQUIRE(cache.findImage(lookup) == nullptr);
   }
 
 #ifdef _WIN32
   SECTION("UNC paths normalize across slash style and case on Windows")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-
     LoadSpec stored;
     stored.filepath = "\\\\Server\\Share\\Path\\Foo.tif";
-    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+    cache.storeImage(stored, makeImage(4, 4, 4, 1));
 
     // Same UNC path, lowercase, mixed slashes.
     LoadSpec lookupSlash;
     lookupSlash.filepath = "//server/share/path/foo.tif";
-    REQUIRE(CacheManager::instance().findImage(lookupSlash) != nullptr);
+    REQUIRE(cache.findImage(lookupSlash) != nullptr);
 
     // Same UNC path, with a '..' segment in the relative tail.
     LoadSpec lookupDotDot;
     lookupDotDot.filepath = "\\\\server\\share\\path\\subdir\\..\\foo.tif";
-    REQUIRE(CacheManager::instance().findImage(lookupDotDot) != nullptr);
+    REQUIRE(cache.findImage(lookupDotDot) != nullptr);
 
     // Different UNC share — must NOT collide.
     LoadSpec otherShare;
     otherShare.filepath = "\\\\server\\othershare\\path\\foo.tif";
-    REQUIRE(CacheManager::instance().findImage(otherShare) == nullptr);
+    REQUIRE(cache.findImage(otherShare) == nullptr);
   }
 
   SECTION("Forward and back slashes are equivalent on Windows")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-
     LoadSpec stored;
     stored.filepath = "C:/some/dir/foo.tif";
-    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+    cache.storeImage(stored, makeImage(4, 4, 4, 1));
 
     LoadSpec lookup;
     lookup.filepath = "C:\\some\\dir\\foo.tif";
-    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+    REQUIRE(cache.findImage(lookup) != nullptr);
   }
 
   SECTION("Case differences are equivalent on Windows")
   {
-    resetCache();
-    CacheManager::instance().setConfig(ramOnlyConfig(oneImage * 4));
-
     LoadSpec stored;
     stored.filepath = "C:/Some/Dir/Foo.tif";
-    CacheManager::instance().storeImage(stored, makeImage(4, 4, 4, 1));
+    cache.storeImage(stored, makeImage(4, 4, 4, 1));
 
     LoadSpec lookup;
     lookup.filepath = "c:/some/dir/foo.tif";
-    REQUIRE(CacheManager::instance().findImage(lookup) != nullptr);
+    REQUIRE(cache.findImage(lookup) != nullptr);
   }
 #endif
 }

@@ -18,7 +18,9 @@
 #include <functional>
 #include <fstream>
 #include <limits>
+#include <memory>
 #include <sstream>
+#include <stdexcept>
 
 namespace {
 
@@ -150,7 +152,7 @@ CacheKeyHash::operator()(const CacheKey& key) const
   std::size_t seed = 0;
   hashCombine(seed, std::hash<std::string>{}(key.filepath));
   hashCombine(seed, std::hash<std::string>{}(key.subpath));
-  hashCombine(seed, std::hash<int>{}(key.scene));
+  hashCombine(seed, std::hash<std::uint32_t>{}(key.scene));
   hashCombine(seed, std::hash<std::uint32_t>{}(key.time));
   hashCombine(seed, std::hash<std::uint32_t>{}(key.minx));
   hashCombine(seed, std::hash<std::uint32_t>{}(key.maxx));
@@ -167,11 +169,20 @@ CacheKeyHash::operator()(const CacheKey& key) const
   return seed;
 }
 
-CacheManager&
-CacheManager::instance()
+namespace {
+// Storage for the process-wide singleton. A unique_ptr (rather than a Meyers
+// static) lets initialize() inject the cache directory at construction time.
+std::unique_ptr<CacheManager>&
+singletonSlot()
 {
-  static CacheManager manager;
-  return manager;
+  static std::unique_ptr<CacheManager> slot;
+  return slot;
+}
+} // namespace
+
+CacheManager::CacheManager(std::string cacheDir)
+  : m_cacheDir(std::move(cacheDir))
+{
 }
 
 bool
@@ -211,12 +222,52 @@ CacheManager::canWriteCacheDir(const std::string& path)
 }
 
 void
+CacheManager::initialize(const std::string& cacheDir)
+{
+  if (singletonSlot()) {
+    throw std::logic_error("CacheManager::initialize() called more than once; the cache directory is fixed for the "
+                           "lifetime of the process.");
+  }
+
+  // Probe writability once, here, rather than on every config-apply: the cache
+  // root is fixed for the lifetime of the process. If the directory can't be
+  // created or written, leave the root unset so the disk tier stays inert
+  // regardless of what any later CacheConfig requests.
+  std::string root = cacheDir;
+  if (!root.empty() && !canWriteCacheDir(root)) {
+    LOG_WARNING << "Disk cache disabled: cache directory not writable: " << root;
+    root.clear();
+  }
+  singletonSlot() = std::make_unique<CacheManager>(root);
+}
+
+CacheManager&
+CacheManager::instance()
+{
+  auto& slot = singletonSlot();
+  if (!slot) {
+    // initialize() was never called (e.g. a context that does no caching);
+    // fall back to a RAM-only, disk-inert manager.
+    slot = std::make_unique<CacheManager>(std::string{});
+  }
+  return *slot;
+}
+
+std::string
+CacheManager::getCacheDirectory() const
+{
+  std::scoped_lock lock(m_mutex);
+  return m_cacheDir;
+}
+
+void
 CacheManager::setConfig(const CacheConfig& config)
 {
   CacheConfig configCopy;
+  std::string cacheDirCopy;
   bool rebuildDiskIndex = false;
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     m_config = config;
     if (!m_config.enabled) {
       m_entries.clear();
@@ -228,32 +279,33 @@ CacheManager::setConfig(const CacheConfig& config)
       return;
     }
 
-    if (!m_config.enableDisk || m_config.cacheDir.empty()) {
+    if (!m_config.enableDisk || m_cacheDir.empty()) {
       m_diskEntries.clear();
       m_currentDiskBytes = 0;
       m_diskIndexRoot.clear();
-    } else if (m_diskIndexRoot != m_config.cacheDir) {
+    } else if (m_diskIndexRoot != m_cacheDir) {
       m_diskEntries.clear();
       m_currentDiskBytes = 0;
-      m_diskIndexRoot = m_config.cacheDir;
+      m_diskIndexRoot = m_cacheDir;
       rebuildDiskIndex = true;
       configCopy = m_config;
+      cacheDirCopy = m_cacheDir;
     }
   }
 
   if (rebuildDiskIndex) {
-    loadDiskIndex(configCopy);
+    loadDiskIndex(configCopy, cacheDirCopy);
     evictDiskIfNeeded(configCopy, 0);
   }
 
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   evictIfNeededLocked(0);
 }
 
 CacheConfig
 CacheManager::getConfig() const
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   return m_config;
 }
 
@@ -261,10 +313,12 @@ std::shared_ptr<ImageXYZC>
 CacheManager::findImage(const LoadSpec& loadSpec)
 {
   CacheConfig configCopy;
+  std::string cacheDirCopy;
   CacheKey key = makeKey(loadSpec);
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     configCopy = m_config;
+    cacheDirCopy = m_cacheDir;
     if (m_config.enabled && m_config.maxRamBytes > 0) {
       auto it = m_entries.find(key);
       if (it != m_entries.end()) {
@@ -292,11 +346,11 @@ CacheManager::findImage(const LoadSpec& loadSpec)
     }
   }
 
-  if (configCopy.enabled && configCopy.enableDisk && configCopy.maxDiskBytes > 0) {
-    auto diskImage = loadFromDisk(key, configCopy);
+  if (configCopy.enabled && configCopy.enableDisk && configCopy.maxDiskBytes > 0 && !cacheDirCopy.empty()) {
+    auto diskImage = loadFromDisk(key, configCopy, cacheDirCopy);
     if (diskImage) {
       {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        std::scoped_lock lock(m_mutex);
         m_stats.diskHits++;
         LOG_DEBUG << "Cache stats: ram_hits=" << m_stats.ramHits << " disk_hits=" << m_stats.diskHits
                   << " misses=" << m_stats.misses << " disk_writes=" << m_stats.diskWrites;
@@ -307,7 +361,7 @@ CacheManager::findImage(const LoadSpec& loadSpec)
   }
 
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     m_stats.misses++;
     LOG_DEBUG << "Cache stats: ram_hits=" << m_stats.ramHits << " disk_hits=" << m_stats.diskHits
               << " misses=" << m_stats.misses << " disk_writes=" << m_stats.diskWrites;
@@ -324,15 +378,17 @@ CacheManager::storeImage(const LoadSpec& loadSpec, const std::shared_ptr<ImageXY
   }
 
   CacheConfig configCopy;
+  std::string cacheDirCopy;
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     configCopy = m_config;
+    cacheDirCopy = m_cacheDir;
   }
 
   const auto key = makeKey(loadSpec);
 
-  if (configCopy.enabled && configCopy.enableDisk && configCopy.maxDiskBytes > 0) {
-    storeToDisk(key, image, configCopy);
+  if (configCopy.enabled && configCopy.enableDisk && configCopy.maxDiskBytes > 0 && !cacheDirCopy.empty()) {
+    storeToDisk(key, image, configCopy, cacheDirCopy);
   }
 
   storeImageInMemory(key, image);
@@ -341,7 +397,7 @@ CacheManager::storeImage(const LoadSpec& loadSpec, const std::shared_ptr<ImageXY
 void
 CacheManager::clearMemoryCache()
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   m_entries.clear();
   m_lruKeys.clear();
   m_currentRamBytes = 0;
@@ -353,8 +409,8 @@ CacheManager::clearDiskCache()
   std::string cacheDir;
   std::vector<std::string> knownEntryPaths;
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    cacheDir = m_config.cacheDir;
+    std::scoped_lock lock(m_mutex);
+    cacheDir = m_cacheDir;
 
     if (!isAgaveCacheDir(cacheDir)) {
       LOG_WARNING << "Refusing to clear disk cache: directory missing AGAVE cache marker file (" << kCacheMarkerFilename
@@ -433,14 +489,14 @@ CacheManager::isAgaveCacheDir(const std::string& path) const
 CacheManager::CacheStats
 CacheManager::getStats() const
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   return m_stats;
 }
 
 void
 CacheManager::resetStats()
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   m_stats = CacheStats{};
 }
 
@@ -531,7 +587,7 @@ CacheManager::evictIfNeededLocked(std::uint64_t incomingBytes)
 void
 CacheManager::storeImageInMemory(const CacheKey& key, const std::shared_ptr<ImageXYZC>& image)
 {
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   if (!m_config.enabled || m_config.maxRamBytes == 0) {
     return;
   }
@@ -560,13 +616,13 @@ CacheManager::storeImageInMemory(const CacheKey& key, const std::shared_ptr<Imag
 }
 
 std::shared_ptr<ImageXYZC>
-CacheManager::loadFromDisk(const CacheKey& key, const CacheConfig& config)
+CacheManager::loadFromDisk(const CacheKey& key, const CacheConfig& config, const std::string& cacheDir)
 {
-  if (!config.enableDisk || config.cacheDir.empty()) {
+  if (!config.enableDisk || cacheDir.empty()) {
     return nullptr;
   }
 
-  std::filesystem::path entryPath = std::filesystem::path(config.cacheDir) / diskCacheId(key);
+  std::filesystem::path entryPath = std::filesystem::path(cacheDir) / diskCacheId(key);
   std::filesystem::path metaPath = entryPath / "meta.json";
   std::filesystem::path dataPath = entryPath / "data.zarr";
   if (!std::filesystem::exists(metaPath) || !std::filesystem::exists(dataPath)) {
@@ -617,7 +673,7 @@ CacheManager::loadFromDisk(const CacheKey& key, const CacheConfig& config)
     tensorstore::Open({ { "driver", "zarr3" }, { "kvstore", { { "driver", "file" }, { "path", dataPath.string() } } } },
                       tensorstore::OpenMode::open,
                       tensorstore::ReadWriteMode::read);
-  auto result = openFuture.result();
+  const auto& result = openFuture.result();
   if (!result.ok()) {
     return nullptr;
   }
@@ -650,7 +706,7 @@ CacheManager::loadFromDisk(const CacheKey& key, const CacheConfig& config)
   }
 
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     auto it = m_diskEntries.find(diskCacheId(key));
     if (it != m_diskEntries.end()) {
       it->second.lastAccess = meta["lastAccess"].get<std::uint64_t>();
@@ -661,9 +717,12 @@ CacheManager::loadFromDisk(const CacheKey& key, const CacheConfig& config)
 }
 
 void
-CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>& image, const CacheConfig& config)
+CacheManager::storeToDisk(const CacheKey& key,
+                          const std::shared_ptr<ImageXYZC>& image,
+                          const CacheConfig& config,
+                          const std::string& cacheDir)
 {
-  if (!image || !config.enableDisk || config.cacheDir.empty()) {
+  if (!image || !config.enableDisk || cacheDir.empty()) {
     return;
   }
 
@@ -683,9 +742,9 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
   // disk and don't waste a large write that would have to be undone.
   evictDiskIfNeeded(config, bytes);
 
-  writeCacheMarker(config.cacheDir);
+  writeCacheMarker(cacheDir);
 
-  std::filesystem::path entryPath = std::filesystem::path(config.cacheDir) / diskCacheId(key);
+  std::filesystem::path entryPath = std::filesystem::path(cacheDir) / diskCacheId(key);
   std::filesystem::path dataPath = entryPath / "data.zarr";
   std::filesystem::path metaPath = entryPath / "meta.json";
   std::error_code ec;
@@ -714,7 +773,7 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
       { "kvstore", { { "driver", "file" }, { "path", dataPath.string() } } },
       { "schema", schema } },
     tensorstore::OpenMode::create | tensorstore::OpenMode::open);
-  auto result = openFuture.result();
+  const auto& result = openFuture.result();
   if (!result.ok()) {
     std::error_code rmEc;
     std::filesystem::remove_all(entryPath, rmEc);
@@ -758,7 +817,7 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
   }
 
   {
-    std::lock_guard<std::mutex> lock(m_mutex);
+    std::scoped_lock lock(m_mutex);
     m_stats.diskWrites++;
     DiskEntry entry;
     entry.path = entryPath.string();
@@ -778,24 +837,29 @@ CacheManager::storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>&
 }
 
 void
-CacheManager::loadDiskIndex(const CacheConfig& config)
+CacheManager::loadDiskIndex(const CacheConfig& config, const std::string& cacheDir)
 {
-  if (config.cacheDir.empty() || !config.enableDisk) {
+  if (cacheDir.empty() || !config.enableDisk) {
     return;
   }
 
-  std::filesystem::path root(config.cacheDir);
+  std::filesystem::path root(cacheDir);
   std::error_code ec;
   std::filesystem::create_directories(root, ec);
   if (!std::filesystem::exists(root)) {
     return;
   }
-  writeCacheMarker(config.cacheDir);
+  writeCacheMarker(cacheDir);
 
   std::unordered_map<std::string, DiskEntry> entries;
   std::uint64_t totalBytes = 0;
 
-  for (const auto& dirEntry : std::filesystem::directory_iterator(root)) {
+  std::error_code iterEc;
+  for (const auto& dirEntry : std::filesystem::directory_iterator(root, iterEc)) {
+    if (iterEc) {
+      LOG_WARNING << "loadDiskIndex: error reading cache directory " << root.string() << ": " << iterEc.message();
+      break;
+    }
     if (!dirEntry.is_directory()) {
       continue;
     }
@@ -830,7 +894,7 @@ CacheManager::loadDiskIndex(const CacheConfig& config)
     }
   }
 
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
   m_diskEntries = std::move(entries);
   m_currentDiskBytes = totalBytes;
 }
@@ -846,7 +910,7 @@ CacheManager::evictDiskIfNeeded(const CacheConfig& config, std::uint64_t incomin
   // re-populate an entry we're about to delete on disk (which would
   // otherwise let us nuke the fresh file). Each per-entry remove_all is a
   // single small zarr directory, so keeping the lock held is acceptable.
-  std::lock_guard<std::mutex> lock(m_mutex);
+  std::scoped_lock lock(m_mutex);
 
   if ((m_currentDiskBytes + incomingBytes) <= config.maxDiskBytes) {
     return;

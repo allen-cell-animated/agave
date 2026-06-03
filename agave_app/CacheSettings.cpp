@@ -13,38 +13,34 @@
 namespace {
 
 ::CacheConfig
-toRenderlibConfig(const CacheSettings& settings, const CacheSettingsData& data)
+toRenderlibConfig(const CacheSettingsData& data)
 {
-  CacheSettingsData normalized = data;
-  if (normalized.cacheDir.empty()) {
-    normalized.cacheDir = settings.defaultSettings().cacheDir;
-  }
-
   ::CacheConfig config;
-  config.enabled = normalized.enabled;
-  config.enableDisk = normalized.enableDisk;
-  config.cacheDir = normalized.cacheDir;
+  config.enabled = data.enabled;
+  config.enableDisk = data.enableDisk;
 
   std::uint64_t availableMem = SystemInfo::availableMemoryBytes();
   if (availableMem > 0) {
-    config.maxRamBytes = std::min(normalized.maxRamBytes, availableMem);
-    if (config.maxRamBytes < normalized.maxRamBytes) {
-      LOG_WARNING << "Cache RAM limit reduced from requested " << normalized.maxRamBytes << " to " << config.maxRamBytes
+    config.maxRamBytes = std::min(data.maxRamBytes, availableMem);
+    if (config.maxRamBytes < data.maxRamBytes) {
+      LOG_WARNING << "Cache RAM limit reduced from requested " << data.maxRamBytes << " to " << config.maxRamBytes
                   << " bytes to fit available memory.";
     }
   } else {
-    config.maxRamBytes = normalized.maxRamBytes;
+    config.maxRamBytes = data.maxRamBytes;
   }
 
-  std::uint64_t availableDisk = SystemInfo::availableDiskBytes(normalized.cacheDir);
+  // The cache root is owned and writability-checked by CacheManager; clamp the
+  // disk limit against whatever filesystem it actually lives on.
+  std::uint64_t availableDisk = SystemInfo::availableDiskBytes(CacheManager::instance().getCacheDirectory());
   if (availableDisk > 0) {
-    config.maxDiskBytes = std::min(normalized.maxDiskBytes, availableDisk);
-    if (config.maxDiskBytes < normalized.maxDiskBytes && normalized.enableDisk) {
-      LOG_WARNING << "Cache disk limit reduced from requested " << normalized.maxDiskBytes << " to "
-                  << config.maxDiskBytes << " bytes to fit available disk space.";
+    config.maxDiskBytes = std::min(data.maxDiskBytes, availableDisk);
+    if (config.maxDiskBytes < data.maxDiskBytes && data.enableDisk) {
+      LOG_WARNING << "Cache disk limit reduced from requested " << data.maxDiskBytes << " to " << config.maxDiskBytes
+                  << " bytes to fit available disk space.";
     }
   } else {
-    config.maxDiskBytes = normalized.maxDiskBytes;
+    config.maxDiskBytes = data.maxDiskBytes;
   }
 
   if (!config.enableDisk) {
@@ -56,21 +52,13 @@ toRenderlibConfig(const CacheSettings& settings, const CacheSettingsData& data)
 
 } // namespace
 
-CacheSettings::CacheSettings() {}
+CacheSettings::CacheSettings() = default;
 
 CacheSettingsData
 CacheSettings::defaultSettings() const
 {
-  CacheSettingsData data;
-  QString baseDir = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-  if (baseDir.isEmpty()) {
-    baseDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-  }
-  if (baseDir.isEmpty()) {
-    baseDir = QDir::currentPath();
-  }
-  data.cacheDir = QDir(baseDir).filePath("agave-cache").toStdString();
-  return data;
+  // Tunable defaults come from CacheSettingsData's in-class initializers.
+  return {};
 }
 
 std::string
@@ -115,9 +103,6 @@ CacheSettings::load()
     if (doc.contains("maxDiskBytes")) {
       data.maxDiskBytes = doc["maxDiskBytes"].get<std::uint64_t>();
     }
-    if (doc.contains("cacheDir")) {
-      data.cacheDir = doc["cacheDir"].get<std::string>();
-    }
   } catch (...) {
     return defaultSettings();
   }
@@ -133,7 +118,6 @@ CacheSettings::save(const CacheSettingsData& data) const
   doc["enableDisk"] = data.enableDisk;
   doc["maxRamBytes"] = data.maxRamBytes;
   doc["maxDiskBytes"] = data.maxDiskBytes;
-  doc["cacheDir"] = data.cacheDir;
 
   QString path = QString::fromStdString(configPath());
   QFile file(path);
@@ -148,20 +132,17 @@ CacheSettings::save(const CacheSettingsData& data) const
 void
 CacheSettings::applyToRenderlib(const CacheSettingsData& data) const
 {
-  ::CacheConfig config = toRenderlibConfig(*this, data);
-  if (config.enableDisk && !config.cacheDir.empty()) {
-    if (!CacheManager::canWriteCacheDir(config.cacheDir)) {
-      LOG_WARNING << "Cache disk disabled: cache directory not writable: " << config.cacheDir;
-      config.enableDisk = false;
-      config.maxDiskBytes = 0;
-    }
-  }
+  // The cache directory (and its writability) is settled once at startup in
+  // CacheManager::initialize(); if it wasn't writable the manager left its root
+  // unset, so a disk-enabled config here is simply honored as RAM-only. We only
+  // push the runtime tunables.
+  ::CacheConfig config = toRenderlibConfig(data);
   LOG_INFO << "Cache config: enabled=" << (config.enabled ? 1 : 0) << " ram_bytes=" << config.maxRamBytes
            << " disk_enabled=" << (config.enableDisk ? 1 : 0) << " disk_bytes=" << config.maxDiskBytes
-           << " cache_dir=" << config.cacheDir;
+           << " cache_dir=" << CacheManager::instance().getCacheDirectory();
   CacheManager::instance().setConfig(config);
   auto applied = CacheManager::instance().getConfig();
   LOG_INFO << "Cache config applied: enabled=" << (applied.enabled ? 1 : 0) << " ram_bytes=" << applied.maxRamBytes
            << " disk_enabled=" << (applied.enableDisk ? 1 : 0) << " disk_bytes=" << applied.maxDiskBytes
-           << " cache_dir=" << applied.cacheDir;
+           << " cache_dir=" << CacheManager::instance().getCacheDirectory();
 }
