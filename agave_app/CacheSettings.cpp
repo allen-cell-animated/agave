@@ -52,13 +52,13 @@ toRenderlibConfig(const CacheSettingsData& data)
 
 } // namespace
 
-CacheSettings::CacheSettings() {}
+CacheSettings::CacheSettings() = default;
 
 CacheSettingsData
 CacheSettings::defaultSettings() const
 {
   // Tunable defaults come from CacheSettingsData's in-class initializers.
-  return CacheSettingsData();
+  return {};
 }
 
 std::string
