@@ -109,10 +109,8 @@ agaveGui::agaveGui(QWidget* parent)
     m_cacheSettings.applyToRenderlib(data);
   });
   connect(m_cacheSettingsDockWidget->widget()->clearDiskButton(), &QPushButton::clicked, this, [this]() {
-    // Show the path that will actually be cleared (the applied config), which
-    // may differ from the widget's current text if the user edited the path
-    // without clicking Apply.
-    QString cacheDir = QString::fromStdString(CacheManager::instance().getConfig().cacheDir);
+    // Show the directory that will actually be cleared.
+    QString cacheDir = QString::fromStdString(CacheManager::instance().getCacheDirectory());
     QMessageBox::StandardButton reply =
       QMessageBox::question(this,
                             tr("Clear disk cache"),

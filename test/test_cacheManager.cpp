@@ -15,6 +15,16 @@
 #include <string>
 #include <thread>
 
+// Grants the test suite access to CacheManager internals (declared a friend in
+// CacheManager.h). The production API is a one-shot CacheManager::initialize();
+// tests share a single process-wide singleton and need to re-point the cache
+// directory for per-case isolation, so they call the underlying worker
+// directly through this seam rather than initialize().
+struct CacheManagerTestAccess
+{
+  static void setCacheDirectory(const std::string& dir) { CacheManager::instance().applyCacheDirectory(dir); }
+};
+
 namespace {
 
 // Bytes per pixel that CacheManager uses when estimating an image's RAM cost.
@@ -110,16 +120,19 @@ private:
   std::filesystem::path m_path;
 };
 
-CacheConfig
-diskConfig(const std::string& cacheDir, std::uint64_t maxRamBytes, std::uint64_t maxDiskBytes)
+// Register the disk cache root and apply a disk-enabled config, mirroring the
+// real startup flow (setCacheDirectory once, then setConfig). The cache
+// directory is no longer part of CacheConfig.
+void
+configureDiskCache(const std::string& cacheDir, std::uint64_t maxRamBytes, std::uint64_t maxDiskBytes)
 {
+  CacheManagerTestAccess::setCacheDirectory(cacheDir);
   CacheConfig cfg;
   cfg.enabled = true;
   cfg.enableDisk = true;
   cfg.maxRamBytes = maxRamBytes;
   cfg.maxDiskBytes = maxDiskBytes;
-  cfg.cacheDir = cacheDir;
-  return cfg;
+  CacheManager::instance().setConfig(cfg);
 }
 
 // Count subdirectories under `dir` (used to verify entry-dir counts after
@@ -372,7 +385,7 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
   {
     resetCache();
     TempCacheDir tmp;
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    configureDiskCache(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024);
 
     REQUIRE(std::filesystem::exists(tmp.path() / ".agave-cache-dir"));
   }
@@ -381,7 +394,7 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
   {
     resetCache();
     TempCacheDir tmp;
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    configureDiskCache(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024);
 
     auto img = makeImageWithPattern(4, 4, 4, 1);
     auto spec = makeSpec("disk_roundtrip");
@@ -414,7 +427,7 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
     resetCache();
     TempCacheDir tmp;
     // Cap is below a single image, so storeToDisk must refuse outright.
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, oneImage / 2));
+    configureDiskCache(tmp.str(), oneImage * 4, oneImage / 2);
 
     auto spec = makeSpec("too_big_for_disk");
     CacheManager::instance().storeImage(spec, makeImage(4, 4, 4, 1));
@@ -433,7 +446,7 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
     resetCache();
     TempCacheDir tmp;
     // Cap large enough for two entries' raw byte estimate but not three.
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, oneImage * 2));
+    configureDiskCache(tmp.str(), oneImage * 4, oneImage * 2);
 
     CacheManager::instance().storeImage(makeSpec("disk_a"), makeImage(4, 4, 4, 1));
     // Sleep briefly so lastAccess timestamps are distinct on fast disks.
@@ -458,7 +471,7 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
   {
     resetCache();
     TempCacheDir tmp;
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    configureDiskCache(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024);
 
     CacheManager::instance().storeImage(makeSpec("clear_a"), makeImage(4, 4, 4, 1));
     CacheManager::instance().storeImage(makeSpec("clear_b"), makeImage(4, 4, 4, 1));
@@ -474,7 +487,7 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
   {
     resetCache();
     TempCacheDir tmp;
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    configureDiskCache(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024);
 
     CacheManager::instance().storeImage(makeSpec("guarded_a"), makeImage(4, 4, 4, 1));
     int subdirsBefore = countSubdirs(tmp.path());
@@ -491,11 +504,11 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
     REQUIRE(countSubdirs(tmp.path()) == subdirsBefore);
   }
 
-  SECTION("Re-pointing setConfig at a previously-used cache dir rebuilds the disk index")
+  SECTION("Re-pointing setCacheDirectory at a previously-used cache dir rebuilds the disk index")
   {
     resetCache();
     TempCacheDir tmp;
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    configureDiskCache(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024);
 
     CacheManager::instance().storeImage(makeSpec("persistent"), makeImage(4, 4, 4, 1));
 
@@ -503,15 +516,53 @@ TEST_CASE("CacheManager disk tier round-trips images and respects the disk cap",
     // (forcing the manager to drop its in-memory disk bookkeeping), then
     // point it back at the original dir.
     TempCacheDir other;
-    CacheManager::instance().setConfig(diskConfig(other.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    configureDiskCache(other.str(), oneImage * 4, 1ULL * 1024 * 1024);
     CacheManager::instance().clearMemoryCache();
 
-    CacheManager::instance().setConfig(diskConfig(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024));
+    configureDiskCache(tmp.str(), oneImage * 4, 1ULL * 1024 * 1024);
     CacheManager::instance().resetStats();
 
     auto found = CacheManager::instance().findImage(makeSpec("persistent"));
     REQUIRE(found != nullptr);
     REQUIRE(CacheManager::instance().getStats().diskHits == 1);
+  }
+}
+
+TEST_CASE("CacheManager cache directory is registered separately from config", "[cache][disk]")
+{
+  const std::uint64_t oneImage = imageBytes(4, 4, 4, 1);
+
+  SECTION("getCacheDirectory reflects the registered path")
+  {
+    resetCache();
+    TempCacheDir tmp;
+    CacheManagerTestAccess::setCacheDirectory(tmp.str());
+    REQUIRE(CacheManager::instance().getCacheDirectory() == tmp.str());
+  }
+
+  SECTION("With no cache directory registered, the disk tier is inert")
+  {
+    resetCache();
+    // Clear any directory a previous test may have left registered on the
+    // singleton; the disk tier should then behave as RAM-only.
+    CacheManagerTestAccess::setCacheDirectory("");
+
+    CacheConfig cfg;
+    cfg.enabled = true;
+    cfg.enableDisk = true;
+    cfg.maxRamBytes = oneImage * 4;
+    cfg.maxDiskBytes = 1ULL * 1024 * 1024;
+    CacheManager::instance().setConfig(cfg);
+
+    auto spec = makeSpec("no_dir");
+    CacheManager::instance().storeImage(spec, makeImage(4, 4, 4, 1));
+
+    // RAM still serves it within the session...
+    REQUIRE(CacheManager::instance().findImage(spec) != nullptr);
+
+    // ...but nothing was persisted to disk, so once RAM is dropped it misses.
+    CacheManager::instance().clearMemoryCache();
+    REQUIRE(CacheManager::instance().findImage(spec) == nullptr);
   }
 }
 
