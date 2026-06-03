@@ -46,12 +46,6 @@ struct CacheKeyHash
 
 class CacheManager
 {
-  // Test-only access to internals. Lets the test suite re-point the cache
-  // directory between cases (the singleton is shared across all tests) without
-  // going through the once-only initialize() guard. Declared here so the
-  // production API exposes no test hooks.
-  friend struct CacheManagerTestAccess;
-
 public:
   struct CacheStats
   {
@@ -61,16 +55,22 @@ public:
     std::uint64_t diskWrites = 0;
   };
 
-  static CacheManager& instance();
+  // Construct a cache rooted at `cacheDir`. An empty `cacheDir` disables the
+  // disk tier (the cache is RAM-only). The directory is fixed for the lifetime
+  // of the instance and is never derived from per-apply CacheConfig. Production
+  // code uses the process-wide singleton (initialize() + instance()); this
+  // constructor is public so tests can create isolated, throwaway caches with
+  // their own directories.
+  explicit CacheManager(std::string cacheDir = {});
 
-  // Register the on-disk cache root. Must be called exactly once, at app
-  // startup, before the cache is used. The platform-appropriate path is
+  // The process-wide singleton. initialize() creates it rooted at `cacheDir`
+  // and must be called exactly once, at app startup, before the cache is used;
+  // a second call throws std::logic_error. The platform-appropriate path is
   // resolved by the GUI layer (renderlib has no Qt and so cannot resolve
-  // QStandardPaths itself) and injected here. The cache directory is fixed for
-  // the lifetime of the process and is never derived from per-apply
-  // CacheConfig. Calling initialize() more than once is a programming error
-  // and throws std::logic_error.
+  // QStandardPaths itself) and injected here. If initialize() is never called,
+  // instance() lazily yields a RAM-only (disk-inert) manager.
   static void initialize(const std::string& cacheDir);
+  static CacheManager& instance();
   std::string getCacheDirectory() const;
 
   void setConfig(const CacheConfig& config);
@@ -88,18 +88,11 @@ public:
   void resetStats();
 
 private:
-  CacheManager() = default;
-
   // Verify that `path` is (or can be made) a writable directory. Creates the
   // directory if it does not exist, then probes it by writing and deleting a
   // small marker file. Returns false on any failure. Probed once, at
   // initialize() time, since the cache root is fixed for the process lifetime.
   static bool canWriteCacheDir(const std::string& path);
-
-  // Records the cache root and (re)builds the disk index for it when the disk
-  // tier is active. The single production entry point is initialize(); this
-  // worker is also reused by the test seam to re-point across test cases.
-  void applyCacheDirectory(const std::string& dir);
 
   CacheKey makeKey(const LoadSpec& loadSpec) const;
   std::string keyToString(const CacheKey& key) const;
@@ -126,12 +119,10 @@ private:
 
   mutable std::mutex m_mutex;
   CacheConfig m_config;
-  // Set true by initialize(); guards against a second initialize() call.
-  bool m_initialized = false;
-  // The disk cache root, registered once via initialize(). Distinct from
-  // m_diskIndexRoot, which tracks the root the in-memory index was last built
-  // against (used to decide when a rebuild is needed).
-  std::string m_cacheDir;
+  // The disk cache root, fixed at construction. Distinct from m_diskIndexRoot,
+  // which tracks the root the in-memory index was last built against (used to
+  // decide when a rebuild is needed).
+  const std::string m_cacheDir;
   std::uint64_t m_currentRamBytes = 0;
   std::list<CacheKey> m_lruKeys;
 

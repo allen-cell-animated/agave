@@ -18,6 +18,7 @@
 #include <functional>
 #include <fstream>
 #include <limits>
+#include <memory>
 #include <sstream>
 #include <stdexcept>
 
@@ -168,11 +169,20 @@ CacheKeyHash::operator()(const CacheKey& key) const
   return seed;
 }
 
-CacheManager&
-CacheManager::instance()
+namespace {
+// Storage for the process-wide singleton. A unique_ptr (rather than a Meyers
+// static) lets initialize() inject the cache directory at construction time.
+std::unique_ptr<CacheManager>&
+singletonSlot()
 {
-  static CacheManager manager;
-  return manager;
+  static std::unique_ptr<CacheManager> slot;
+  return slot;
+}
+} // namespace
+
+CacheManager::CacheManager(std::string cacheDir)
+  : m_cacheDir(std::move(cacheDir))
+{
 }
 
 bool
@@ -214,58 +224,33 @@ CacheManager::canWriteCacheDir(const std::string& path)
 void
 CacheManager::initialize(const std::string& cacheDir)
 {
-  CacheManager& mgr = instance();
-  {
-    std::scoped_lock lock(mgr.m_mutex);
-    if (mgr.m_initialized) {
-      throw std::logic_error("CacheManager::initialize() called more than once; the cache directory is fixed for the "
-                             "lifetime of the process.");
-    }
-    mgr.m_initialized = true;
+  if (singletonSlot()) {
+    throw std::logic_error("CacheManager::initialize() called more than once; the cache directory is fixed for the "
+                           "lifetime of the process.");
   }
 
   // Probe writability once, here, rather than on every config-apply: the cache
-  // root is fixed for the process lifetime. If the directory can't be created
-  // or written, leave the root unset so the disk tier stays inert regardless of
-  // what any later CacheConfig requests.
+  // root is fixed for the lifetime of the process. If the directory can't be
+  // created or written, leave the root unset so the disk tier stays inert
+  // regardless of what any later CacheConfig requests.
   std::string root = cacheDir;
   if (!root.empty() && !canWriteCacheDir(root)) {
     LOG_WARNING << "Disk cache disabled: cache directory not writable: " << root;
     root.clear();
   }
-  mgr.applyCacheDirectory(root);
+  singletonSlot() = std::make_unique<CacheManager>(root);
 }
 
-void
-CacheManager::applyCacheDirectory(const std::string& dir)
+CacheManager&
+CacheManager::instance()
 {
-  CacheConfig configCopy;
-  std::string cacheDirCopy;
-  bool rebuildDiskIndex = false;
-  {
-    std::scoped_lock lock(m_mutex);
-    if (m_cacheDir == dir) {
-      return;
-    }
-    m_cacheDir = dir;
-    // The previous root's bookkeeping no longer applies. Drop it; it will be
-    // rebuilt below (or by the next setConfig) for the new root.
-    m_diskEntries.clear();
-    m_currentDiskBytes = 0;
-    m_diskIndexRoot.clear();
-
-    if (m_config.enabled && m_config.enableDisk && !m_cacheDir.empty()) {
-      m_diskIndexRoot = m_cacheDir;
-      rebuildDiskIndex = true;
-      configCopy = m_config;
-      cacheDirCopy = m_cacheDir;
-    }
+  auto& slot = singletonSlot();
+  if (!slot) {
+    // initialize() was never called (e.g. a context that does no caching);
+    // fall back to a RAM-only, disk-inert manager.
+    slot = std::make_unique<CacheManager>(std::string{});
   }
-
-  if (rebuildDiskIndex) {
-    loadDiskIndex(configCopy, cacheDirCopy);
-    evictDiskIfNeeded(configCopy, 0);
-  }
+  return *slot;
 }
 
 std::string
