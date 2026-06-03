@@ -17,7 +17,7 @@ struct CacheKey
 {
   std::string filepath;
   std::string subpath;
-  int scene = 0;
+  std::uint32_t scene = 0;
   std::uint32_t time = 0;
   std::vector<std::uint32_t> channels;
   std::uint32_t minx = 0;
