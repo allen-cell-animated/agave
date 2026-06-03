@@ -744,7 +744,7 @@ Citation
 
 .. |year| date:: %Y
 
-Daniel Toloudis, AGAVE Contributors (|year|). AGAVE: Advanced GPU Accelerated Volume Explorer (Version |release|) [Computer software]. Allen Institute, Cell Science. https://github.com/allen-cell-animated/agave
+Daniel Toloudis, AGAVE Contributors (|year|). AGAVE: Advanced GPU Accelerated Volume Explorer (Version |release|) [Computer software]. Allen Institute. https://github.com/allen-cell-animated/agave
 
 bibtex:
 
@@ -756,7 +756,7 @@ bibtex:
     year         = {|year|},
     version      = {|release|},
     url          = {https://github.com/allen-cell-animated/agave},
-    organization = {Allen Institute, Cell Science},
+    organization = {Allen Institute},
     note         = {Computer Software}
     }
 
