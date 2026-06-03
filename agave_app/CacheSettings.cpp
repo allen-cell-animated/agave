@@ -16,9 +16,7 @@ namespace {
 toRenderlibConfig(const CacheSettings& settings, const CacheSettingsData& data)
 {
   CacheSettingsData normalized = data;
-  if (normalized.cacheDir.empty()) {
-    normalized.cacheDir = settings.defaultSettings().cacheDir;
-  }
+  normalized.cacheDir = settings.defaultSettings().cacheDir;
 
   ::CacheConfig config;
   config.enabled = normalized.enabled;
@@ -115,12 +113,13 @@ CacheSettings::load()
     if (doc.contains("maxDiskBytes")) {
       data.maxDiskBytes = doc["maxDiskBytes"].get<std::uint64_t>();
     }
-    if (doc.contains("cacheDir")) {
-      data.cacheDir = doc["cacheDir"].get<std::string>();
-    }
   } catch (...) {
     return defaultSettings();
   }
+
+  // Cache files are not user data. Always use AGAVE's platform-selected cache
+  // directory and ignore custom paths from older settings files.
+  data.cacheDir = defaultSettings().cacheDir;
 
   return data;
 }
@@ -133,7 +132,6 @@ CacheSettings::save(const CacheSettingsData& data) const
   doc["enableDisk"] = data.enableDisk;
   doc["maxRamBytes"] = data.maxRamBytes;
   doc["maxDiskBytes"] = data.maxDiskBytes;
-  doc["cacheDir"] = data.cacheDir;
 
   QString path = QString::fromStdString(configPath());
   QFile file(path);
