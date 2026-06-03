@@ -152,7 +152,7 @@ CacheKeyHash::operator()(const CacheKey& key) const
   std::size_t seed = 0;
   hashCombine(seed, std::hash<std::string>{}(key.filepath));
   hashCombine(seed, std::hash<std::string>{}(key.subpath));
-  hashCombine(seed, std::hash<int>{}(key.scene));
+  hashCombine(seed, std::hash<std::uint32_t>{}(key.scene));
   hashCombine(seed, std::hash<std::uint32_t>{}(key.time));
   hashCombine(seed, std::hash<std::uint32_t>{}(key.minx));
   hashCombine(seed, std::hash<std::uint32_t>{}(key.maxx));
@@ -673,7 +673,7 @@ CacheManager::loadFromDisk(const CacheKey& key, const CacheConfig& config, const
     tensorstore::Open({ { "driver", "zarr3" }, { "kvstore", { { "driver", "file" }, { "path", dataPath.string() } } } },
                       tensorstore::OpenMode::open,
                       tensorstore::ReadWriteMode::read);
-  auto result = openFuture.result();
+  const auto& result = openFuture.result();
   if (!result.ok()) {
     return nullptr;
   }
@@ -773,7 +773,7 @@ CacheManager::storeToDisk(const CacheKey& key,
       { "kvstore", { { "driver", "file" }, { "path", dataPath.string() } } },
       { "schema", schema } },
     tensorstore::OpenMode::create | tensorstore::OpenMode::open);
-  auto result = openFuture.result();
+  const auto& result = openFuture.result();
   if (!result.ok()) {
     std::error_code rmEc;
     std::filesystem::remove_all(entryPath, rmEc);
