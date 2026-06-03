@@ -46,6 +46,12 @@ struct CacheKeyHash
 
 class CacheManager
 {
+  // Test-only access to internals. Lets the test suite re-point the cache
+  // directory between cases (the singleton is shared across all tests) without
+  // going through the once-only initialize() guard. Declared here so the
+  // production API exposes no test hooks.
+  friend struct CacheManagerTestAccess;
+
 public:
   struct CacheStats
   {
@@ -57,10 +63,15 @@ public:
 
   static CacheManager& instance();
 
-  // Verify that `path` is (or can be made) a writable directory. Creates the
-  // directory if it does not exist, then probes it by writing and deleting a
-  // small marker file. Returns false on any failure.
-  static bool canWriteCacheDir(const std::string& path);
+  // Register the on-disk cache root. Must be called exactly once, at app
+  // startup, before the cache is used. The platform-appropriate path is
+  // resolved by the GUI layer (renderlib has no Qt and so cannot resolve
+  // QStandardPaths itself) and injected here. The cache directory is fixed for
+  // the lifetime of the process and is never derived from per-apply
+  // CacheConfig. Calling initialize() more than once is a programming error
+  // and throws std::logic_error.
+  static void initialize(const std::string& cacheDir);
+  std::string getCacheDirectory() const;
 
   void setConfig(const CacheConfig& config);
   CacheConfig getConfig() const;
@@ -79,6 +90,17 @@ public:
 private:
   CacheManager() = default;
 
+  // Verify that `path` is (or can be made) a writable directory. Creates the
+  // directory if it does not exist, then probes it by writing and deleting a
+  // small marker file. Returns false on any failure. Probed once, at
+  // initialize() time, since the cache root is fixed for the process lifetime.
+  static bool canWriteCacheDir(const std::string& path);
+
+  // Records the cache root and (re)builds the disk index for it when the disk
+  // tier is active. The single production entry point is initialize(); this
+  // worker is also reused by the test seam to re-point across test cases.
+  void applyCacheDirectory(const std::string& dir);
+
   CacheKey makeKey(const LoadSpec& loadSpec) const;
   std::string keyToString(const CacheKey& key) const;
   std::string diskCacheId(const CacheKey& key) const;
@@ -88,9 +110,12 @@ private:
   void evictIfNeededLocked(std::uint64_t incomingBytes);
   void storeImageInMemory(const CacheKey& key, const std::shared_ptr<ImageXYZC>& image);
 
-  std::shared_ptr<ImageXYZC> loadFromDisk(const CacheKey& key, const CacheConfig& config);
-  void storeToDisk(const CacheKey& key, const std::shared_ptr<ImageXYZC>& image, const CacheConfig& config);
-  void loadDiskIndex(const CacheConfig& config);
+  std::shared_ptr<ImageXYZC> loadFromDisk(const CacheKey& key, const CacheConfig& config, const std::string& cacheDir);
+  void storeToDisk(const CacheKey& key,
+                   const std::shared_ptr<ImageXYZC>& image,
+                   const CacheConfig& config,
+                   const std::string& cacheDir);
+  void loadDiskIndex(const CacheConfig& config, const std::string& cacheDir);
   void evictDiskIfNeeded(const CacheConfig& config, std::uint64_t incomingBytes);
   std::uint64_t directorySizeBytes(const std::string& path) const;
   // Writes a marker file to a directory we manage as our own disk cache root.
@@ -101,6 +126,12 @@ private:
 
   mutable std::mutex m_mutex;
   CacheConfig m_config;
+  // Set true by initialize(); guards against a second initialize() call.
+  bool m_initialized = false;
+  // The disk cache root, registered once via initialize(). Distinct from
+  // m_diskIndexRoot, which tracks the root the in-memory index was last built
+  // against (used to decide when a rebuild is needed).
+  std::string m_cacheDir;
   std::uint64_t m_currentRamBytes = 0;
   std::list<CacheKey> m_lruKeys;
 
