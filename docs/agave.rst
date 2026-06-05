@@ -296,11 +296,11 @@ bounding box of the volume.  You will have to have the bounding box turned on
 in order to see it.  The scale bar will use physical units if available
 in the loaded volume data.
 
-Timestamp
-^^^^^^^^^
+Timestamps
+^^^^^^^^^^
 
 For time-series data, you can display the current timepoint as an overlay
-in the top-right corner of the viewport.  Check the "Show/hide timestamps"
+in the top-right corner of the viewport.  Check the "Timestamps"
 checkbox to turn the overlay on or off.
 
 The "Timestamp Format" dropdown selects how the time is displayed:
@@ -349,21 +349,6 @@ Click "Rotate" or "Translate" to enable viewport controls to let you move
 the clip plane interactively. Click the Rotate and Translate buttons
 a second time to disable the viewport controls. See :ref:`Rotate <rotateMode>` below for more details.
 
-Lock Lights to Camera
-~~~~~~~~~~~~~~~~~~~~~~
-
-This checkbox, which is enabled by default, controls how the lights behave
-when you rotate the camera in the viewport.
-
-When checked, the lights are locked to the camera, so they keep the same
-orientation relative to your point of view as you rotate the volume.  This
-keeps the volume evenly lit from your current viewing angle no matter how
-you turn it, which is usually what you want while exploring the data.
-
-When unchecked, the lights stay fixed in world space.  Rotating the camera
-then moves your viewpoint around stationary lights, so different parts of
-the volume fall into light and shadow as you turn it.
-
 Lighting
 ~~~~~~~~
 
@@ -375,6 +360,22 @@ can illuminate the volume from all directions.
 Each light has a "Rotate" button to enable an interactive manipulator in
 the viewport (see :ref:`Rotate <rotateMode>` below) and a "Reset" button
 to return that light to its default orientation and settings.
+
+Lock Lights to Camera
+~~~~~~~~~~~~~~~~~~~~~~
+
+This checkbox, which is enabled by default, controls how the lights behave
+when you rotate the camera in the viewport.
+
+When checked, the lights are locked to the camera, so they keep the same
+orientation relative to your point of view as you rotate the volume.  Think of
+it as if you were holding a flashlight still while tumbling the volume data in
+front of you.  This keeps the volume evenly lit from your current viewing
+angle no matter how you turn it.
+
+When unchecked, the lights stay fixed in world space.  Rotating the camera
+then moves your viewpoint around stationary lights, so the same parts of the
+volume will be illuminated no matter how you rotate the view.
 
 Tip: it can be useful to turn one light off while tuning the settings
 for the other.
@@ -455,14 +456,18 @@ intensity range will not flatten the detail you are looking at.
 A "Log" toggle button switches the histogram's Y axis between linear and
 logarithmic scaling.  Logarithmic scaling makes it easier to see sparse
 intensities that would otherwise be dwarfed by a few very tall bars.
-
-The "Copy" and "Paste" buttons let you copy the current channel's transfer
-function settings and apply them to another channel, which is handy for
-giving several channels a consistent look.  (Copy is not available in
-Custom mode.)
+The "Log" button has no effect on the transfer function curve itself, 
+which is always linear between control points.
 
 The editor has 4 mutually exclusive modes. You can switch between any of
 the modes and each mode's settings will be remembered.
+
+The "Copy" and "Paste" buttons let you copy the current channel's transfer
+function settings and apply them to another transfer function mode within
+the same channel.  (Copy is not available in Custom mode, as Custom mode
+can involve multiple control points that can't be translated to the other modes.)
+
+The control modes are described as follows:
 
 Min / Max
 ^^^^^^^^^
@@ -744,22 +749,24 @@ First, install the AGAVE Python client:
 
     pip install agave_pyclient
 
-To run AGAVE as a server explicitly, run:
-::
-
-    agave --server
-
-The Python client will then find the running AGAVE server session and send
-commands to it.  You do not have to start the server by hand, though: by
-default the ``AgaveRenderer`` will automatically launch a local AGAVE server
+The Python client will then find a running AGAVE server session and send
+commands to it.  The ``AgaveRenderer`` will automatically launch a local AGAVE server
 for you if it cannot find one already running (see the
 `agave_pyclient documentation <https://allen-cell-animated.github.io/agave/agave_pyclient>`__
 for the ``auto_launch`` and ``agave_path`` options).
+
 
 A Python script exported from the AGAVE GUI using "Save to Python script" will re-create the session and produce an image when run.
 ::
 
     python my_script.py
+
+Scripts exported from AGAVE in this way will automatically launch an AGAVE server if one is not already running, so you can run them without any special setup.
+
+To run AGAVE as a server explicitly, run:
+::
+
+    agave --server
 
 The AGAVE Python client provides commands for every setting in the user
 interface, and also provides two additional convenience commands for creating
