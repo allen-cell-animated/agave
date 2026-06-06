@@ -25,7 +25,7 @@ CitationDialog::CitationDialog()
   auto citationtext = new QLabel(this);
   citationtext->setText("Daniel Toloudis, AGAVE Contributors (" + syear +
                         "). AGAVE: Advanced GPU Accelerated Volume Explorer (Version " + qApp->applicationVersion() +
-                        ") [Computer software]. Allen Institute. <a "
+                        ") [Computer software]. Allen Institute, Cell Science. <a "
                         "href=\"" +
                         agaveUrl + "\"></a>");
   citationtext->setFrameShape(QFrame::Panel);
