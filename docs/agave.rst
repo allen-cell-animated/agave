@@ -362,7 +362,7 @@ the viewport (see :ref:`Rotate <rotateMode>` below) and a "Reset" button
 to return that light to its default orientation and settings.
 
 Lock Lights to Camera
-~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^
 
 This checkbox, which is enabled by default, controls how the lights behave
 when you rotate the camera in the viewport.
