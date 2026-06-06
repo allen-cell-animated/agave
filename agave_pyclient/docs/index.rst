@@ -8,17 +8,19 @@ Quick start
 
    pip install agave_pyclient
 
-You must have AGAVE installed separately. You can start it as a server
-yourself on the command line:
+You must have AGAVE installed separately. 
+
+:ref:`agave-renderer-label` will automatically try to connect to an already-running AGAVE server.
+If it can't find one, it can attempt to launch a local server automatically. 
+(Pass ``auto_launch=False`` to disable this, or
+``agave_path="/path/to/agave"`` to point at a specific executable to launch.)
+
+You can start AGAVE as a server yourself on the command line:
 
 .. code-block:: console
 
    agave --server &
 
-But you do not have to: by default :ref:`agave-renderer-label` will
-automatically locate and launch a local AGAVE server for you if one is not
-already running. Pass ``auto_launch=False`` to disable this, or
-``agave_path="/path/to/agave"`` to point at a specific executable.
 
 Import and use the :ref:`agave-renderer-label` class in your Python code.
 
@@ -27,6 +29,7 @@ Import and use the :ref:`agave-renderer-label` class in your Python code.
    from agave_pyclient import AgaveRenderer
 
    # 1. connect to the AGAVE server (launching one if needed)
+   # see the documentation for options to control this behavior
    r = AgaveRenderer()
    # 2. tell it what data to load
    r.load_data("my_favorite.ome.tiff", 0, 0, 0, [], [])
@@ -43,9 +46,11 @@ Import and use the :ref:`agave-renderer-label` class in your Python code.
    r.session("output.png")
    # 5. wait for render and then save output
    r.redraw()
+   # 6. disconnect when done
+   r.close()  
 
-When you are done, call ``r.close()`` to disconnect. If ``AgaveRenderer``
-auto-launched a server for you, ``close()`` also shuts that process down.
+If ``AgaveRenderer`` auto-launched a server for you, ``close()`` shuts that process down.  Otherwise,
+``close()`` just disconnects from the server, leaving it running for other clients to use.
 ``AgaveRenderer`` can also be used as a context manager, which closes it
 automatically:
 
@@ -55,6 +60,7 @@ automatically:
 
    with AgaveRenderer() as r:
        r.load_data("my_favorite.ome.tiff")
+       # ... set render settings as above...
        r.session("output.png")
        r.redraw()
 
