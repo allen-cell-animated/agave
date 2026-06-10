@@ -756,7 +756,7 @@ bibtex:
     year         = {|year|},
     version      = {|release|},
     url          = {https://github.com/allen-cell-animated/agave},
-    organization = {Allen Institute},
+    organization = {Allen Institute, Cell Science},
     note         = {Computer Software}
     }
 
