@@ -52,7 +52,7 @@ CitationDialog::CitationDialog()
                          "&nbsp;&nbsp;url       = {" +
                          agaveUrl +
                          "},<br/>"
-                         "&nbsp;&nbsp;organization = {Allen Institute},<br/>"
+                         "&nbsp;&nbsp;organization = {Allen Institute, Cell Science},<br/>"
                          "&nbsp;&nbsp;note      = {Computer Software}<br/>"
                          "}</tt><br/>");
   citationtext2->setFrameShape(QFrame::Panel);
