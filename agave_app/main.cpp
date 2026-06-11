@@ -176,7 +176,7 @@ main(int argc, char* argv[])
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     QApplication::setStyle("fusion");
     AgaveApplication a(argc, argv);
-    AgaveApplication::setOrganizationName("Allen Institute for Cell Science");
+    AgaveApplication::setOrganizationName("Allen Institute");
     AgaveApplication::setOrganizationDomain("allencell.org");
     AgaveApplication::setApplicationName("AGAVE");
     AgaveApplication::setApplicationVersion(AICS_VERSION_STRING);

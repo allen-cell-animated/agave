@@ -1,6 +1,6 @@
-# Contributing to Allen Institute for Cell Science Open Source
+# Contributing to Allen Institute Open Source
 
-Thank you for your interest in contributing to this Allen Institute for Cell Science open source project! This document is
+Thank you for your interest in contributing to this Allen Institute open source project! This document is
 a set of guidelines to help you contribute to this project.
 
 ## Code of Conduct

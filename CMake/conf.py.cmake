@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = "AGAVE"
-copyright = "2020, Allen Institute for Cell Science"
-author = "Allen Institute for Cell Science"
+copyright = "2020-26, Allen Institute"
+author = "Allen Institute"
 
 # The full version, including alpha/beta/rc tags
 release = "@PROJECT_VERSION@"
