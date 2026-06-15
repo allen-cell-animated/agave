@@ -120,6 +120,7 @@ jobs:
           vc_arch: "x64"
         # use older sdk to work around https://github.com/grpc/grpc/issues/37210
         run: |
+          set "PATH=C:\Program Files\Git\usr\bin;%SystemRoot%\system32;%SystemRoot%;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%SystemRoot%\System32\OpenSSH\;%ProgramFiles%\CMake\bin;%ProgramFiles%\NASM;%PATH%"
           mkdir build
           cd build
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.26100.0
