@@ -17,7 +17,7 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact: agave-linux
-          - os: windows-latest
+          - os: windows-2022
             artifact: agave-win
           - os: macos-15
             artifact: agave-macos-arm64
@@ -94,14 +94,14 @@ jobs:
           name: ${{ matrix.artifact }}
           path: ./build/install/Release/agave-install
       - name: windows install nasm
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         run: |
           choco install nasm
       - name: windows install nsis
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         run: choco install nsis -y
       - name: windows install deps
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         shell: cmd
         env:
           vc_arch: "x64"
@@ -111,32 +111,25 @@ jobs:
           vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd curl
       - name: Remove bad Strawberry Perl patch binary in search path
         # https://github.com/actions/runner-images/issues/5459#issuecomment-1532856844
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         run: |
           echo "C:\Program Files\git\usr\bin" >> $env:GITHUB_PATH
       - name: windows build and test
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         env:
           vc_arch: "x64"
         # use older sdk to work around https://github.com/grpc/grpc/issues/37210
         run: |
-          set "PATH=C:\Program Files\Git\usr\bin;%SystemRoot%\system32;%SystemRoot%;%SystemRoot%\System32\Wbem;%SystemRoot%\System32\WindowsPowerShell\v1.0\;%SystemRoot%\System32\OpenSSH\;%ProgramFiles%\CMake\bin;%ProgramFiles%\NASM;%PATH%"
           mkdir build
           cd build
           call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64 10.0.26100.0
-          cmake -G "Ninja" ^
-            -DCMAKE_C_COMPILER=cl ^
-            -DCMAKE_CXX_COMPILER=cl ^
-            -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" ^
-            -DVCPKG_TARGET_TRIPLET=x64-windows ^
-            -DCMAKE_BUILD_TYPE=Release ^
-            ..
+          cmake -G "Ninja" -DCMAKE_TOOLCHAIN_FILE="%VCPKG_INSTALLATION_ROOT%\scripts\buildsystems\vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_BUILD_TYPE=Release ..
           cmake --build . --parallel --target agave_test --config Release
           cmake --build . --parallel --config Release
           cpack -D CPACK_PACKAGE_FILE_NAME=${{ matrix.artifact }}
         shell: cmd
       - name: Upload windows artifact
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
