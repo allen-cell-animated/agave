@@ -44,7 +44,7 @@ Run from a **VS2026 x64 Native Tools Command Prompt**. Requires Perl, NASM, and 
 
 ```powershell
 pip install aqtinstall
-aqt install-qt --outputdir C:\Qt windows desktop 6.9.3 win64_msvc2026_64 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir C:\Qt windows desktop 6.9.3 win64_msvc2022_64 -m qtwebsockets qtimageformats
 
 vcpkg install spdlog zlib libjpeg-turbo liblzma tiff zstd curl --triplet x64-windows
 
