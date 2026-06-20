@@ -40,11 +40,11 @@ make
 
 ### Windows
 
-Run from a **VS2022 x64 Native Tools Command Prompt**. Requires Perl, NASM, and GNU Patch in PATH (install via `choco install strawberryperl nasm patch`).
+Run from a **VS2026 x64 Native Tools Command Prompt**. Requires Perl, NASM, and GNU Patch in PATH (install via `choco install strawberryperl nasm patch`).
 
 ```powershell
 pip install aqtinstall
-aqt install-qt --outputdir C:\Qt windows desktop 6.9.3 win64_msvc2022_64 -m qtwebsockets qtimageformats
+aqt install-qt --outputdir C:\Qt windows desktop 6.9.3 win64_msvc2026_64 -m qtwebsockets qtimageformats
 
 vcpkg install spdlog zlib libjpeg-turbo liblzma tiff zstd curl --triplet x64-windows
 
@@ -69,7 +69,7 @@ pytest agave_pyclient/tests/
 # macOS / Linux (requires clang-tidy, e.g. brew install llvm)
 clang-tidy -p build renderlib/RenderSettings.cpp
 
-# Windows (from a VS2022 x64 Native Tools Command Prompt)
+# Windows (from a VS2026 x64 Native Tools Command Prompt)
 clang-tidy.exe -p build renderlib\RenderSettings.cpp
 
 # To auto-apply suggested fixes, add --fix:
