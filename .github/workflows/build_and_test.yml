@@ -87,7 +87,7 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact: agave-linux
-          - os: windows-latest
+          - os: windows-2022
             artifact: agave-win
           - os: macos-15
             artifact: agave-macos-arm64
@@ -163,14 +163,14 @@ jobs:
           name: ${{ matrix.artifact }}
           path: ./build/install/Release/agave-install
       - name: windows install nasm
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         run: |
           choco install nasm
       - name: windows install nsis
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         run: choco install nsis -y
       - name: windows install deps
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         shell: cmd
         env:
           vc_arch: "x64"
@@ -179,11 +179,11 @@ jobs:
           vcpkg install --triplet x64-windows tiff glm zlib libjpeg-turbo liblzma spdlog zstd curl
       - name: Remove bad Strawberry Perl patch binary in search path
         # https://github.com/actions/runner-images/issues/5459#issuecomment-1532856844
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         run: |
           echo "C:\Program Files\git\usr\bin" >> $env:GITHUB_PATH
       - name: windows build and test
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         env:
           vc_arch: "x64"
         # use older sdk to work around https://github.com/grpc/grpc/issues/37210
@@ -197,7 +197,7 @@ jobs:
           cpack -D CPACK_PACKAGE_FILE_NAME=${{ matrix.artifact }}
         shell: cmd
       - name: Upload windows artifact
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
