@@ -148,7 +148,7 @@ CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/CMake/conf.py.cmake ${CMAKE_SOURCE_DIR}/docs/
 # #####################
 find_package(Qt6QTiffPlugin 6.9.3 REQUIRED PATHS ${Qt6Gui_DIR})
 
-set(CPACK_PACKAGE_VENDOR "Allen Institute for Cell Science")
+set(CPACK_PACKAGE_VENDOR "Allen Institute")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "AGAVE is a viewer for 4D multichannel microscopy images, using physically based lighting and rendering.")
 
 set(CPACK_PACKAGE_NAME "AGAVE")
@@ -388,7 +388,7 @@ else() # Linux
   )
   set(CPACK_GENERATOR "DEB")
   set(CPACK_DEBIAN_PACKAGE_NAME "agave")
-  set(CPACK_PACKAGE_CONTACT "Allen Institute for Cell Science")
+  set(CPACK_PACKAGE_CONTACT "Allen Institute")
 
   include(CPack)
 endif(WIN32)

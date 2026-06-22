@@ -4,7 +4,7 @@
 
 from .agave import AgaveRenderer  # noqa: F401
 
-__author__ = "Daniel Toloudis, Allen Institute for Cell Science"
+__author__ = "Daniel Toloudis, Allen Institute"
 __email__ = "danielt@alleninstitute.org"
 # Do not edit this string manually, always use bumpversion
 # Details in CONTRIBUTING.md

@@ -18,7 +18,7 @@ BEGIN
   BEGIN
     BLOCK "040904E4"
     BEGIN
-      VALUE "CompanyName", "Allen Institute for Cell Science"
+      VALUE "CompanyName", "Allen Institute"
       VALUE "FileVersion", AICS_VERSION_STRING
       VALUE "ProductName", "AGAVE"
       VALUE "ProductVersion", AICS_VERSION_STRING

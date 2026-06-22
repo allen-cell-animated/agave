@@ -296,6 +296,26 @@ bounding box of the volume.  You will have to have the bounding box turned on
 in order to see it.  The scale bar will use physical units if available
 in the loaded volume data.
 
+Timestamps
+^^^^^^^^^^
+
+For time-series data, you can display the current timepoint as an overlay
+in the top-right corner of the viewport.  Check the "Timestamps"
+checkbox to turn the overlay on or off.
+
+The "Timestamp Format" dropdown selects how the time is displayed:
+
+- **HH:MM:SS**: the current time is converted to seconds and shown as a
+  clock-style value.  Fractional seconds are added automatically when the
+  spacing between timepoints requires them for the value to change visibly.
+- **Time Units**: the current time is shown using the physical time units
+  read from the file metadata (for example seconds, minutes, or whatever
+  the data records).  The numeric precision adapts to the magnitude of the
+  value so the display stays readable.
+
+If the loaded data has only a single timepoint, the timestamp overlay has
+nothing to display.
+
 Volume Scale
 ~~~~~~~~~~~~
 
@@ -336,6 +356,26 @@ There are two types of light illuminating your volume. One is an “Area
 Light”, represented by an imaginary square-shaped light source that can
 be moved anywhere around the volume. The second is a “Sky Sphere”, which
 can illuminate the volume from all directions.
+
+Each light has a "Rotate" button to enable an interactive manipulator in
+the viewport (see :ref:`Rotate <rotateMode>` below) and a "Reset" button
+to return that light to its default orientation and settings.
+
+Lock Lights to Camera
+^^^^^^^^^^^^^^^^^^^^^
+
+This checkbox, which is enabled by default, controls how the lights behave
+when you rotate the camera in the viewport.
+
+When checked, the lights are locked to the camera, so they keep the same
+orientation relative to your point of view as you rotate the volume.  Think of
+it as if you were holding a flashlight still while tumbling the volume data in
+front of you.  This keeps the volume evenly lit from your current viewing
+angle no matter how you turn it.
+
+When unchecked, the lights stay fixed in world space.  Rotating the camera
+then moves your viewpoint around stationary lights, so the same parts of the
+volume will be illuminated no matter how you rotate the view.
 
 Tip: it can be useful to turn one light off while tuning the settings
 for the other.
@@ -409,9 +449,25 @@ shows how volume intensities X are remapped to new intensities Y.
 The graph itself can be zoomed and panned along the X axis.
 To zoom, use the mouse wheel (or two finger drag up/down on touchpad). To pan, click and drag the graph.
 To reset the graph to fit the data, double-click anywhere in the graph area.
+As you zoom and pan, the histogram's vertical (Y) axis automatically
+rescales to fit the data currently in view, so tall peaks elsewhere in the
+intensity range will not flatten the detail you are looking at.
+
+A "Log" toggle button switches the histogram's Y axis between linear and
+logarithmic scaling.  Logarithmic scaling makes it easier to see sparse
+intensities that would otherwise be dwarfed by a few very tall bars.
+The "Log" button has no effect on the transfer function curve itself, 
+which is always linear between control points.
 
 The editor has 4 mutually exclusive modes. You can switch between any of
 the modes and each mode's settings will be remembered.
+
+The "Copy" and "Paste" buttons let you copy the current channel's transfer
+function settings and apply them to another transfer function mode within
+the same channel.  (Copy is not available in Custom mode, as Custom mode
+can involve multiple control points that can't be translated to the other modes.)
+
+The control modes are described as follows:
 
 Min / Max
 ^^^^^^^^^
@@ -693,17 +749,24 @@ First, install the AGAVE Python client:
 
     pip install agave_pyclient
 
-To run AGAVE as a server, run:
-::
+The Python client will then find a running AGAVE server session and send
+commands to it.  The ``AgaveRenderer`` will automatically launch a local AGAVE server
+for you if it cannot find one already running (see the
+`agave_pyclient documentation <https://allen-cell-animated.github.io/agave/agave_pyclient>`__
+for the ``auto_launch`` and ``agave_path`` options).
 
-    agave --server
 
-Now the Python client will be able to find the running AGAVE server session,
-and send commands to it.
 A Python script exported from the AGAVE GUI using "Save to Python script" will re-create the session and produce an image when run.
 ::
 
     python my_script.py
+
+Scripts exported from AGAVE in this way will automatically launch an AGAVE server if one is not already running, so you can run them without any special setup.
+
+To run AGAVE as a server explicitly, run:
+::
+
+    agave --server
 
 The AGAVE Python client provides commands for every setting in the user
 interface, and also provides two additional convenience commands for creating
@@ -721,9 +784,17 @@ AGAVE supports the following command line options:
 
   Runs AGAVE without opening a window. AGAVE will wait for a local websocket connection on port 1235 by default. See `Python Interface`_ for more information about how to communicate with AGAVE in server mode.
 
+``--port number``
+
+  Specifies the port to listen on in server mode. Defaults to 1235. A port given here overrides any port specified in a ``--config`` file.
+
 ``--config filepath``
 
   Provides a JSON configuration file for server mode that contains a custom port number.  Filepath is defaulted to setup.cfg. The JSON must be of the form ``{ port: portnumber }``.
+
+``--load fileOrUrl``
+
+  Opens the given file or URL on startup. This works both in windowed mode and in server mode.
 
 ``--list_devices``
 
@@ -744,7 +815,7 @@ Citation
 
 .. |year| date:: %Y
 
-Daniel Toloudis, AGAVE Contributors (|year|). AGAVE: Advanced GPU Accelerated Volume Explorer (Version |release|) [Computer software]. Allen Institute for Cell Science. https://github.com/allen-cell-animated/agave
+Daniel Toloudis, AGAVE Contributors (|year|). AGAVE: Advanced GPU Accelerated Volume Explorer (Version |release|) [Computer software]. Allen Institute, Cell Science. https://github.com/allen-cell-animated/agave
 
 bibtex:
 
@@ -756,7 +827,7 @@ bibtex:
     year         = {|year|},
     version      = {|release|},
     url          = {https://github.com/allen-cell-animated/agave},
-    organization = {Allen Institute for Cell Science},
+    organization = {Allen Institute, Cell Science},
     note         = {Computer Software}
     }
 

@@ -37,13 +37,12 @@ AboutDialog::AboutDialog()
   layout->addWidget(text);
 
   label = new QLabel(this);
-  label->setText(
-    "AGAVE is made possible through the hard work and dedication of engineers, designers, and scientists at the Allen "
-    "Institute for Cell Science and through the continued philanthropy of the Paul Allen estate."
-    "<br>"
-    "<br>"
-    "<b>Copyright 2023 The Allen Institute.  All rights reserved.</b><br>"
-    "");
+  label->setText("AGAVE is made possible through the hard work and dedication of engineers, designers, and scientists "
+                 "at the Allen Institute and through the continued philanthropy of the Paul Allen estate."
+                 "<br>"
+                 "<br>"
+                 "<b>Copyright 2023-26 The Allen Institute.  All rights reserved.</b><br>"
+                 "");
   label->setWordWrap(true);
   layout->addWidget(label);
 
