@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>agave_pyclient.agave &mdash; agave_pyclient 1.9.0 documentation</title>
+  <title>agave_pyclient.agave &mdash; agave_pyclient 1.10.0-rc.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=c4cb232b"></script>
+      <script src="../../_static/documentation_options.js?v=b0be4724"></script>
       <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -52,6 +52,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.batch_render_turntable"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.batch_render_turntable()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.bounding_box_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.bounding_box_color()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.camera_projection"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.camera_projection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.close"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.close()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.density"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.density()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.enable_channel"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.enable_channel()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.exposure"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.exposure()</span></code></a></li>
@@ -62,6 +63,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.light_pos"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.light_pos()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.light_size"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.light_size()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.load_data"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.load_data_and_get_info"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_data_and_get_info()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.load_ome_tif"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_ome_tif()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.load_volume_from_file"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_volume_from_file()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.mat_diffuse"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.mat_diffuse()</span></code></a></li>
@@ -85,11 +87,14 @@
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_primary_ray_step_size"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_primary_ray_step_size()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_resolution"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_resolution()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_secondary_ray_step_size"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_secondary_ray_step_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_skylight_rotation"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_skylight_rotation()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_time"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_time()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_time_stamp_format"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_time_stamp_format()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_voxel_scale"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_voxel_scale()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_window_level"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_window_level()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.show_bounding_box"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.show_bounding_box()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.show_scale_bar"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.show_scale_bar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.show_time_stamp"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.show_time_stamp()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.skylight_bottom_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.skylight_bottom_color()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.skylight_middle_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.skylight_middle_color()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.skylight_top_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.skylight_top_color()</span></code></a></li>
@@ -129,17 +134,28 @@
              
   <h1>Source code for agave_pyclient.agave</h1><div class="highlight"><pre>
 <span></span><span class="c1"># require pillow, numpy, ws4py</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">ws4py.client.threadedclient</span><span class="w"> </span><span class="kn">import</span> <span class="n">WebSocketClient</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">io</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">.agave_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">AgaveClient</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.commandbuffer</span><span class="w"> </span><span class="kn">import</span> <span class="n">CommandBuffer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.find_agave</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">find_matching_subdirectories</span><span class="p">,</span>
+    <span class="n">guess_agave_path</span><span class="p">,</span>
+    <span class="n">launch_agave_process</span><span class="p">,</span>
+    <span class="n">port_from_url</span><span class="p">,</span>
+    <span class="n">resolve_agave_path</span><span class="p">,</span>
+    <span class="n">wait_for_connection</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;AgaveClient&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;AgaveRenderer&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;find_matching_subdirectories&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;guess_agave_path&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">lerp</span><span class="p">(</span><span class="n">startframe</span><span class="p">,</span> <span class="n">endframe</span><span class="p">,</span> <span class="n">startval</span><span class="p">,</span> <span class="n">endval</span><span class="p">):</span>
@@ -204,82 +220,6 @@
     <span class="k">return</span> <span class="n">axis</span>
 
 
-<span class="c1"># assumptions: every commandbuffer send should result in one image.</span>
-<span class="c1"># also, they arrive in the order the buffers were sent.</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">AgaveClient</span><span class="p">(</span><span class="n">WebSocketClient</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">AgaveClient</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">onOpened</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">onClose</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">messages</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">load_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image_path</span><span class="p">,</span> <span class="n">onLoaded</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">get_info</span><span class="p">(</span><span class="n">image_path</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="n">onLoaded</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">opened</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;opened up&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">onOpened</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">onOpened</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">wait_for_image</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">is_binary</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Non binary ws message returned&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">break</span>
-        <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">wait_for_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receive</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="o">.</span><span class="n">is_binary</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;binary ws message returned&quot;</span><span class="p">)</span>
-            <span class="k">break</span>
-        <span class="k">return</span> <span class="kc">None</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">received_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">m</span><span class="p">))</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">closed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Puts a :exc:`StopIteration` as a message into the</span>
-<span class="sd">        `messages` queue.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># When the connection is closed, put a StopIteration</span>
-        <span class="c1"># on the message queue to signal there&#39;s nothing left</span>
-        <span class="c1"># to wait for</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="ne">StopIteration</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Closed down&quot;</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">reason</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">onClose</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">onClose</span><span class="p">()</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">receive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns messages that were stored into the</span>
-<span class="sd">        `messages` queue and returns `None` when the</span>
-<span class="sd">        websocket is terminated or closed.</span>
-<span class="sd">        `block` is passed though the gevent queue `.get()` method, which if</span>
-<span class="sd">        True will block until an item in the queue is available. Set this to</span>
-<span class="sd">        False if you just want to check the queue, which will raise an</span>
-<span class="sd">        Empty exception you need to handle if there is no message to return.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># If the websocket was terminated and there are no messages</span>
-        <span class="c1"># left in the queue, return None immediately otherwise the client</span>
-        <span class="c1"># will block forever</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">terminated</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="n">block</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">message</span> <span class="ow">is</span> <span class="ne">StopIteration</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">message</span>
-
-
 <div class="viewcode-block" id="AgaveRenderer">
 <a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AgaveRenderer</span><span class="p">:</span>
@@ -290,30 +230,140 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    url: str</span>
-<span class="sd">        Full url to websocket server including port</span>
+<span class="sd">        Full url to websocket server including port.</span>
 <span class="sd">    mode: str</span>
-<span class="sd">        &quot;pathtrace&quot; or &quot;raymarch&quot; (pathtrace is default)</span>
+<span class="sd">        &quot;pathtrace&quot; or &quot;raymarch&quot; (pathtrace is default).</span>
+<span class="sd">    agave_path: Optional[str]</span>
+<span class="sd">        Path to an AGAVE executable to launch if no running server is found.</span>
+<span class="sd">        If ``None``, a standard install location will be searched for via</span>
+<span class="sd">        :func:`guess_agave_path`. Ignored when ``auto_launch`` is False.</span>
+<span class="sd">    auto_launch: bool</span>
+<span class="sd">        If True (default), and no AGAVE instance can be reached at ``url``,</span>
+<span class="sd">        attempt to launch one locally. If False, only connect to an already</span>
+<span class="sd">        running instance and raise on failure.</span>
+<span class="sd">    launch_retries: int</span>
+<span class="sd">        Number of times to retry connecting after launching AGAVE.</span>
+<span class="sd">    launch_retry_delay: float</span>
+<span class="sd">        Seconds to wait between connection retries after launching AGAVE.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
-<span class="sd">    Connect to an already running local AGAVE server instance</span>
+<span class="sd">    Connect to a running local AGAVE server, launching one if necessary:</span>
 
 <span class="sd">    &gt;&gt;&gt; agaveclient = AgaveRenderer()</span>
 
+<span class="sd">    Connect only — do not auto-launch:</span>
+
+<span class="sd">    &gt;&gt;&gt; agaveclient = AgaveRenderer(auto_launch=False)</span>
+
+<span class="sd">    Launch a specific AGAVE executable:</span>
+
+<span class="sd">    &gt;&gt;&gt; agaveclient = AgaveRenderer(agave_path=&quot;/path/to/agave&quot;)</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Connection precedence (highest to lowest):</span>
+
+<span class="sd">    1. An AGAVE server already listening at ``url`` is always used</span>
+<span class="sd">       first, regardless of the other arguments. ``agave_path`` and</span>
+<span class="sd">       ``auto_launch`` are ignored when the initial connect succeeds.</span>
+
+<span class="sd">    2. If no server responds and ``auto_launch`` is False, the</span>
+<span class="sd">       connection error is re-raised immediately. ``agave_path`` is</span>
+<span class="sd">       not consulted.</span>
+
+<span class="sd">    3. If no server responds and ``auto_launch`` is True, an AGAVE</span>
+<span class="sd">       executable is located using:</span>
+
+<span class="sd">       a. ``agave_path`` if explicitly provided, else</span>
+<span class="sd">       b. :func:`guess_agave_path` (PATH, then standard install</span>
+<span class="sd">          locations for the current OS).</span>
+
+<span class="sd">       The executable is launched with ``--server --port=&lt;port&gt;``</span>
+<span class="sd">       where ``&lt;port&gt;`` is parsed from ``url``, then the connection</span>
+<span class="sd">       is retried up to ``launch_retries`` times spaced</span>
+<span class="sd">       ``launch_retry_delay`` seconds apart.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">&quot;ws://localhost:1235/&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;pathtrace&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ws://localhost:1235/&quot;</span><span class="p">,</span>
+        <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;pathtrace&quot;</span><span class="p">,</span>
+        <span class="n">agave_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">auto_launch</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">launch_retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+        <span class="n">launch_retry_delay</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># See class docstring &quot;Notes&quot; section for the connection-precedence</span>
+        <span class="c1"># rules that this constructor implements.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agave_process</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cb</span> <span class="o">=</span> <span class="n">CommandBuffer</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">session_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">!=</span> <span class="s2">&quot;pathtrace&quot;</span> <span class="ow">and</span> <span class="n">mode</span> <span class="o">!=</span> <span class="s2">&quot;raymarch&quot;</span><span class="p">:</span>
             <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;pathtrace&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span> <span class="o">=</span> <span class="n">AgaveClient</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">?mode=</span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">protocols</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;http-only&quot;</span><span class="p">,</span> <span class="s2">&quot;chat&quot;</span><span class="p">])</span>
-        <span class="c1"># self.ws.onOpened = self.onOpen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_url</span> <span class="o">=</span> <span class="n">url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">mode</span>
+
+        <span class="c1"># 1. Try to connect to an already-running AGAVE instance.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">connect_err</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">auto_launch</span><span class="p">:</span>
+                <span class="k">raise</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not connect to AGAVE at </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">connect_err</span><span class="si">}</span><span class="s2">); &quot;</span>
+                <span class="s2">&quot;attempting to launch a local instance...&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># 2. Locate an AGAVE executable and launch it in server mode.</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">resolve_agave_path</span><span class="p">(</span><span class="n">agave_path</span><span class="p">)</span>
+        <span class="n">port</span> <span class="o">=</span> <span class="n">port_from_url</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">agave_process</span> <span class="o">=</span> <span class="n">launch_agave_process</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">)</span>
+
+        <span class="c1"># 3. Retry connecting until the server is up.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">wait_for_connection</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">agave_process</span><span class="p">,</span>
+                <span class="n">retries</span><span class="o">=</span><span class="n">launch_retries</span><span class="p">,</span>
+                <span class="n">retry_delay</span><span class="o">=</span><span class="n">launch_retry_delay</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># wait_for_connection has already terminated the process on failure.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agave_process</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">raise</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Open a websocket connection to the AGAVE server.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span> <span class="o">=</span> <span class="n">AgaveClient</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_url</span><span class="si">}</span><span class="s2">?mode=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">protocols</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;http-only&quot;</span><span class="p">,</span> <span class="s2">&quot;chat&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
-        <span class="c1"># self.ws.run_forever()</span>
-        <span class="c1"># except KeyboardInterrupt:</span>
-        <span class="c1">#     print(&quot;keyboard&quot;)</span>
-        <span class="c1">#     ws.close()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="AgaveRenderer.close">
+<a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close the websocket and any AGAVE process started by this client.&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;ws&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">agave_process</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">agave_process</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">agave_process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">agave_process</span> <span class="o">=</span> <span class="kc">None</span></div>
+
 
 <div class="viewcode-block" id="AgaveRenderer.session">
 <a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.session">[docs]</a>
@@ -1176,6 +1226,52 @@
         <span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="AgaveRenderer.load_data_and_get_info">
+<a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.load_data_and_get_info">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_data_and_get_info</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">scene</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">multiresolution_level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">time</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+        <span class="n">region</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load a volume and return the server&#39;s metadata response as a dict.</span>
+
+<span class="sd">        Same arguments as :meth:`load_data`, but this variant immediately</span>
+<span class="sd">        flushes the command buffer to the server, waits for the JSON text</span>
+<span class="sd">        frame the server sends back, and returns the parsed dictionary.</span>
+
+<span class="sd">        The returned dict contains at least the following keys (see</span>
+<span class="sd">        ``LoadDataCommand::execute`` in ``renderlib/command.cpp``):</span>
+
+<span class="sd">        - ``commandId``           : int, id of the LOAD_DATA command</span>
+<span class="sd">        - ``x``, ``y``, ``z``, ``c``, ``t`` : int, image extents</span>
+<span class="sd">        - ``pixel_size_x/y/z``    : float, physical voxel size</span>
+<span class="sd">        - ``channel_names``       : list[str]</span>
+<span class="sd">        - ``channel_min_intensity``: list[int], one value per channel</span>
+<span class="sd">        - ``channel_max_intensity``: list[int], one value per channel</span>
+<span class="sd">        - ``volume_dimensions``   : nested dict mirroring the C++</span>
+<span class="sd">          ``VolumeDimensions`` struct</span>
+
+<span class="sd">        Note: any other commands queued in the buffer prior to calling</span>
+<span class="sd">        this method will be flushed at the same time.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            Parsed JSON metadata for the loaded volume.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">scene</span><span class="p">,</span> <span class="n">multiresolution_level</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">region</span><span class="p">)</span>
+        <span class="n">buf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">make_buffer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># Reset the buffer for subsequent commands.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb</span> <span class="o">=</span> <span class="n">CommandBuffer</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ws</span><span class="o">.</span><span class="n">wait_for_json</span><span class="p">()</span></div>
+
+
 <div class="viewcode-block" id="AgaveRenderer.show_scale_bar">
 <a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.show_scale_bar">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show_scale_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">on</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
@@ -1287,6 +1383,60 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;SET_MIN_MAX_THRESHOLD&quot;</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">min_val</span><span class="p">,</span> <span class="n">max_val</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="AgaveRenderer.set_skylight_rotation">
+<a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_skylight_rotation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_skylight_rotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">z</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the orientation of the sphere (sky) light as a quaternion. The quaternion</span>
+<span class="sd">        rotates the default direction (0, 0, 1) to the desired sky-light direction and</span>
+<span class="sd">        also encodes the roll of the sphere around that direction, which determines</span>
+<span class="sd">        where the top/middle/bottom color bands appear relative to the volume.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x: float</span>
+<span class="sd">            Quaternion x component.</span>
+<span class="sd">        y: float</span>
+<span class="sd">            Quaternion y component.</span>
+<span class="sd">        z: float</span>
+<span class="sd">            Quaternion z component.</span>
+<span class="sd">        w: float</span>
+<span class="sd">            Quaternion w component.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 51</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;SET_SKYLIGHT_ROTATION&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AgaveRenderer.show_time_stamp">
+<a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.show_time_stamp">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">show_time_stamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">on</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Turn timestamp display on or off</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        on: int</span>
+<span class="sd">            0 to hide timestamps, 1 to show them</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 52</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;SHOW_TIME_STAMP&quot;</span><span class="p">,</span> <span class="n">on</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AgaveRenderer.set_time_stamp_format">
+<a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.set_time_stamp_format">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_time_stamp_format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">format</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set the timestamp display format</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        format: int</span>
+<span class="sd">            0 for HH:MM:SS, 1 for time units</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 53</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cb</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="s2">&quot;SET_TIME_STAMP_FORMAT&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="AgaveRenderer.batch_render_turntable">
 <a class="viewcode-back" href="../../agave_renderer.html#agave_pyclient.agave.AgaveRenderer.batch_render_turntable">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">batch_render_turntable</span><span class="p">(</span>
@@ -1315,7 +1465,7 @@
 
         <span class="c1"># then orbit the camera parametrically</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_frames</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="n">first_frame</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">first_frame</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">redraw</span><span class="p">()</span>
             <span class="c1"># first frame gets zero orbit, then onward:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">trackball_camera</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">direction</span> <span class="o">*</span> <span class="p">(</span><span class="mf">360.0</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">number_of_frames</span><span class="p">)))</span></div>
@@ -1359,7 +1509,7 @@
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_frames</span><span class="p">):</span>
             <span class="n">quadrant</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span> <span class="o">//</span> <span class="n">number_of_frames</span>
             <span class="n">quadrantdirection</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">quadrant</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">quadrant</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="n">first_frame</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">first_frame</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">redraw</span><span class="p">()</span>
             <span class="c1"># first frame gets zero orbit, then onward:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">trackball_camera</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">angledelta</span> <span class="o">*</span> <span class="n">direction</span> <span class="o">*</span> <span class="n">quadrantdirection</span><span class="p">)</span></div>

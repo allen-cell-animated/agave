@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AgaveRenderer &mdash; agave_pyclient 1.9.0 documentation</title>
+  <title>AgaveRenderer &mdash; agave_pyclient 1.10.0-rc.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=c4cb232b"></script>
+      <script src="_static/documentation_options.js?v=b0be4724"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/js/theme.js"></script>
@@ -54,6 +54,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.batch_render_turntable"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.batch_render_turntable()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.bounding_box_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.bounding_box_color()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.camera_projection"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.camera_projection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.close"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.close()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.density"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.density()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.enable_channel"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.enable_channel()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.exposure"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.exposure()</span></code></a></li>
@@ -64,6 +65,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.light_pos"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.light_pos()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.light_size"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.light_size()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.load_data"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.load_data_and_get_info"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_data_and_get_info()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.load_ome_tif"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_ome_tif()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.load_volume_from_file"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.load_volume_from_file()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.mat_diffuse"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.mat_diffuse()</span></code></a></li>
@@ -87,11 +89,14 @@
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_primary_ray_step_size"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_primary_ray_step_size()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_resolution"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_resolution()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_secondary_ray_step_size"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_secondary_ray_step_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_skylight_rotation"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_skylight_rotation()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_time"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_time()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_time_stamp_format"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_time_stamp_format()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_voxel_scale"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_voxel_scale()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.set_window_level"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.set_window_level()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.show_bounding_box"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.show_bounding_box()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.show_scale_bar"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.show_scale_bar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.show_time_stamp"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.show_time_stamp()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.skylight_bottom_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.skylight_bottom_color()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.skylight_middle_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.skylight_middle_color()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.skylight_top_color"><code class="docutils literal notranslate"><span class="pre">AgaveRenderer.skylight_top_color()</span></code></a></li>
@@ -135,22 +140,60 @@
 <span id="agave-renderer-label"></span><h1>AgaveRenderer<a class="headerlink" href="#agaverenderer" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agave_pyclient.agave.</span></span><span class="sig-name descname"><span class="pre">AgaveRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ws://localhost:1235/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pathtrace'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">agave_pyclient.agave.</span></span><span class="sig-name descname"><span class="pre">AgaveRenderer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ws://localhost:1235/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'pathtrace'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">agave_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_launch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">launch_retries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">launch_retry_delay</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer" title="Link to this definition"></a></dt>
 <dd><p>AgaveRenderer communicates with AGAVE running in server mode to perform GPU volume
 rendering.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>url</strong> (<em>str</em>) – Full url to websocket server including port</p></li>
-<li><p><strong>mode</strong> (<em>str</em>) – “pathtrace” or “raymarch” (pathtrace is default)</p></li>
+<li><p><strong>url</strong> (<em>str</em>) – Full url to websocket server including port.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – “pathtrace” or “raymarch” (pathtrace is default).</p></li>
+<li><p><strong>agave_path</strong> (<em>Optional[str]</em>) – Path to an AGAVE executable to launch if no running server is found.
+If <code class="docutils literal notranslate"><span class="pre">None</span></code>, a standard install location will be searched for via
+<code class="xref py py-func docutils literal notranslate"><span class="pre">guess_agave_path()</span></code>. Ignored when <code class="docutils literal notranslate"><span class="pre">auto_launch</span></code> is False.</p></li>
+<li><p><strong>auto_launch</strong> (<em>bool</em>) – If True (default), and no AGAVE instance can be reached at <code class="docutils literal notranslate"><span class="pre">url</span></code>,
+attempt to launch one locally. If False, only connect to an already
+running instance and raise on failure.</p></li>
+<li><p><strong>launch_retries</strong> (<em>int</em>) – Number of times to retry connecting after launching AGAVE.</p></li>
+<li><p><strong>launch_retry_delay</strong> (<em>float</em>) – Seconds to wait between connection retries after launching AGAVE.</p></li>
 </ul>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<p>Connect to an already running local AGAVE server instance</p>
+<p>Connect to a running local AGAVE server, launching one if necessary:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">agaveclient</span> <span class="o">=</span> <span class="n">AgaveRenderer</span><span class="p">()</span>
 </pre></div>
 </div>
+<p>Connect only — do not auto-launch:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">agaveclient</span> <span class="o">=</span> <span class="n">AgaveRenderer</span><span class="p">(</span><span class="n">auto_launch</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Launch a specific AGAVE executable:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">agaveclient</span> <span class="o">=</span> <span class="n">AgaveRenderer</span><span class="p">(</span><span class="n">agave_path</span><span class="o">=</span><span class="s2">&quot;/path/to/agave&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">Notes</p>
+<p>Connection precedence (highest to lowest):</p>
+<ol class="arabic">
+<li><p>An AGAVE server already listening at <code class="docutils literal notranslate"><span class="pre">url</span></code> is always used
+first, regardless of the other arguments. <code class="docutils literal notranslate"><span class="pre">agave_path</span></code> and
+<code class="docutils literal notranslate"><span class="pre">auto_launch</span></code> are ignored when the initial connect succeeds.</p></li>
+<li><p>If no server responds and <code class="docutils literal notranslate"><span class="pre">auto_launch</span></code> is False, the
+connection error is re-raised immediately. <code class="docutils literal notranslate"><span class="pre">agave_path</span></code> is
+not consulted.</p></li>
+<li><p>If no server responds and <code class="docutils literal notranslate"><span class="pre">auto_launch</span></code> is True, an AGAVE
+executable is located using:</p>
+<ol class="loweralpha simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">agave_path</span></code> if explicitly provided, else</p></li>
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">guess_agave_path()</span></code> (PATH, then standard install
+locations for the current OS).</p></li>
+</ol>
+<p>The executable is launched with <code class="docutils literal notranslate"><span class="pre">--server</span> <span class="pre">--port=&lt;port&gt;</span></code>
+where <code class="docutils literal notranslate"><span class="pre">&lt;port&gt;</span></code> is parsed from <code class="docutils literal notranslate"><span class="pre">url</span></code>, then the connection
+is retried up to <code class="docutils literal notranslate"><span class="pre">launch_retries</span></code> times spaced
+<code class="docutils literal notranslate"><span class="pre">launch_retry_delay</span></code> seconds apart.</p>
+</li>
+</ol>
 <dl class="py method">
 <dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.aperture">
 <span class="sig-name descname"><span class="pre">aperture</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.aperture"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.aperture" title="Link to this definition"></a></dt>
@@ -277,6 +320,12 @@ Default: 55.0 degrees. (default Orthographic scale is 0.5)</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.close" title="Link to this definition"></a></dt>
+<dd><p>Close the websocket and any AGAVE process started by this client.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -415,6 +464,37 @@ accessible from the AGAVE server.</p></li>
 <li><p><strong>region</strong> (<em>List[int]</em>) – 6 integers specifying the region to load.  Defaults to the entire volume.
 Any list length other than 0 or 6 is an error.</p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.load_data_and_get_info">
+<span class="sig-name descname"><span class="pre">load_data_and_get_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scene</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiresolution_level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.load_data_and_get_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.load_data_and_get_info" title="Link to this definition"></a></dt>
+<dd><p>Load a volume and return the server’s metadata response as a dict.</p>
+<p>Same arguments as <a class="reference internal" href="#agave_pyclient.agave.AgaveRenderer.load_data" title="agave_pyclient.agave.AgaveRenderer.load_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load_data()</span></code></a>, but this variant immediately
+flushes the command buffer to the server, waits for the JSON text
+frame the server sends back, and returns the parsed dictionary.</p>
+<p>The returned dict contains at least the following keys (see
+<code class="docutils literal notranslate"><span class="pre">LoadDataCommand::execute</span></code> in <code class="docutils literal notranslate"><span class="pre">renderlib/command.cpp</span></code>):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">commandId</span></code>           : int, id of the LOAD_DATA command</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">c</span></code>, <code class="docutils literal notranslate"><span class="pre">t</span></code> : int, image extents</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pixel_size_x/y/z</span></code>    : float, physical voxel size</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel_names</span></code>       : list[str]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel_min_intensity</span></code>: list[int], one value per channel</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">channel_max_intensity</span></code>: list[int], one value per channel</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">volume_dimensions</span></code>   : nested dict mirroring the C++
+<code class="docutils literal notranslate"><span class="pre">VolumeDimensions</span></code> struct</p></li>
+</ul>
+<p>Note: any other commands queued in the buffer prior to calling
+this method will be flushed at the same time.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Parsed JSON metadata for the loaded volume.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -745,12 +825,42 @@ scattered within the volume.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_skylight_rotation">
+<span class="sig-name descname"><span class="pre">set_skylight_rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_skylight_rotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_skylight_rotation" title="Link to this definition"></a></dt>
+<dd><p>Set the orientation of the sphere (sky) light as a quaternion. The quaternion
+rotates the default direction (0, 0, 1) to the desired sky-light direction and
+also encodes the roll of the sphere around that direction, which determines
+where the top/middle/bottom color bands appear relative to the volume.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – Quaternion x component.</p></li>
+<li><p><strong>y</strong> (<em>float</em>) – Quaternion y component.</p></li>
+<li><p><strong>z</strong> (<em>float</em>) – Quaternion z component.</p></li>
+<li><p><strong>w</strong> (<em>float</em>) – Quaternion w component.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_time">
 <span class="sig-name descname"><span class="pre">set_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_time"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_time" title="Link to this definition"></a></dt>
 <dd><p>Load a time from the current volume file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>time</strong> (<em>int</em>) – zero-based index to select the time sample.  Defaults to 0</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.set_time_stamp_format">
+<span class="sig-name descname"><span class="pre">set_time_stamp_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.set_time_stamp_format"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.set_time_stamp_format" title="Link to this definition"></a></dt>
+<dd><p>Set the timestamp display format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>format</strong> (<em>int</em>) – 0 for HH:MM:SS, 1 for time units</p>
 </dd>
 </dl>
 </dd></dl>
@@ -805,6 +915,17 @@ and y scale will differ from the z scale.  Defaults to (1,1,1)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>on</strong> (<em>int</em>) – 0 to hide scale bar, 1 to show it</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="agave_pyclient.agave.AgaveRenderer.show_time_stamp">
+<span class="sig-name descname"><span class="pre">show_time_stamp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">on</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agave_pyclient/agave.html#AgaveRenderer.show_time_stamp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#agave_pyclient.agave.AgaveRenderer.show_time_stamp" title="Link to this definition"></a></dt>
+<dd><p>Turn timestamp display on or off</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>on</strong> (<em>int</em>) – 0 to hide timestamps, 1 to show them</p>
 </dd>
 </dl>
 </dd></dl>
