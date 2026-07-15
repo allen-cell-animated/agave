@@ -13,6 +13,9 @@
 
 namespace {
 
+// The magic constant 0x9e3779b9 is 2^32 / golden_ratio, used to spread out the bits of the hash value.
+// This is a common technique for combining hash values of multiple fields into a single hash.
+// See also https://softwareengineering.stackexchange.com/a/402543
 inline void
 hashCombine(std::size_t& seed, std::size_t value)
 {
